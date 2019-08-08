@@ -1,105 +1,157 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<EnsembleReport name="AudioPLL" kind="AudioPLL" version="1.0" fabric="QSYS">
+<EnsembleReport name="SDRAMPLL" kind="system" version="17.1" fabric="QSYS">
  <!-- Format version 17.1 590 (Future versions may contain additional information.) -->
- <!-- 2019.08.08.15:02:35 -->
+ <!-- 2019.08.08.14:34:49 -->
  <!-- A collection of modules and connections -->
- <parameter name="AUTO_GENERATION_ID">
-  <type>java.lang.Integer</type>
-  <value>1565301755</value>
+ <parameter name="clockCrossingAdapter">
+  <type>com.altera.sopcmodel.ensemble.EClockAdapter</type>
+  <value>HANDSHAKE</value>
   <derived>false</derived>
   <enabled>true</enabled>
-  <visible>false</visible>
+  <visible>true</visible>
   <valid>true</valid>
-  <sysinfo_type>GENERATION_ID</sysinfo_type>
  </parameter>
- <parameter name="AUTO_UNIQUE_ID">
-  <type>java.lang.String</type>
-  <value></value>
-  <derived>false</derived>
-  <enabled>true</enabled>
-  <visible>false</visible>
-  <valid>true</valid>
-  <sysinfo_type>UNIQUE_ID</sysinfo_type>
- </parameter>
- <parameter name="AUTO_DEVICE_FAMILY">
-  <type>java.lang.String</type>
-  <value>CYCLONEV</value>
-  <derived>false</derived>
-  <enabled>true</enabled>
-  <visible>false</visible>
-  <valid>true</valid>
-  <sysinfo_type>DEVICE_FAMILY</sysinfo_type>
- </parameter>
- <parameter name="AUTO_DEVICE">
+ <parameter name="device">
   <type>java.lang.String</type>
   <value>5CSEMA5F31C6</value>
   <derived>false</derived>
   <enabled>true</enabled>
-  <visible>false</visible>
+  <visible>true</visible>
   <valid>true</valid>
-  <sysinfo_type>DEVICE</sysinfo_type>
  </parameter>
- <parameter name="AUTO_DEVICE_SPEEDGRADE">
+ <parameter name="deviceFamily">
+  <type>java.lang.String</type>
+  <value>CYCLONEV</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>true</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="deviceSpeedGrade">
   <type>java.lang.String</type>
   <value>6</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
   <valid>true</valid>
-  <sysinfo_type>DEVICE_SPEEDGRADE</sysinfo_type>
  </parameter>
- <parameter name="AUTO_REF_CLK_CLOCK_RATE">
-  <type>java.lang.Long</type>
-  <value>-1</value>
+ <parameter name="fabricMode">
+  <type>com.altera.sopcmodel.ensemble.Ensemble$EFabricMode</type>
+  <value>QSYS</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
   <valid>true</valid>
-  <sysinfo_type>CLOCK_RATE</sysinfo_type>
-  <sysinfo_arg>ref_clk</sysinfo_arg>
- </parameter>
- <parameter name="AUTO_REF_CLK_CLOCK_DOMAIN">
-  <type>java.lang.Integer</type>
-  <value>-1</value>
-  <derived>false</derived>
-  <enabled>true</enabled>
-  <visible>false</visible>
-  <valid>true</valid>
-  <sysinfo_type>CLOCK_DOMAIN</sysinfo_type>
-  <sysinfo_arg>ref_clk</sysinfo_arg>
- </parameter>
- <parameter name="AUTO_REF_CLK_RESET_DOMAIN">
-  <type>java.lang.Integer</type>
-  <value>-1</value>
-  <derived>false</derived>
-  <enabled>true</enabled>
-  <visible>false</visible>
-  <valid>true</valid>
-  <sysinfo_type>RESET_DOMAIN</sysinfo_type>
-  <sysinfo_arg>ref_clk</sysinfo_arg>
- </parameter>
- <parameter name="deviceFamily">
-  <type>java.lang.String</type>
-  <value>Cyclone V</value>
-  <derived>false</derived>
-  <enabled>true</enabled>
-  <visible>false</visible>
-  <valid>true</valid>
-  <sysinfo_type>DEVICE_FAMILY</sysinfo_type>
  </parameter>
  <parameter name="generateLegacySim">
   <type>boolean</type>
   <value>false</value>
   <derived>false</derived>
   <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="generationId">
+  <type>int</type>
+  <value>1565300085</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
   <visible>true</visible>
   <valid>true</valid>
  </parameter>
+ <parameter name="globalResetBus">
+  <type>boolean</type>
+  <value>false</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="hdlLanguage">
+  <type>com.altera.entityinterfaces.moduleext.IModuleGenerateHDL$HDLLanguage</type>
+  <value>VERILOG</value>
+  <derived>false</derived>
+  <enabled>false</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="hideFromIPCatalog">
+  <type>boolean</type>
+  <value>true</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>true</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="lockedInterfaceDefinition">
+  <type>com.altera.sopcmodel.definition.BoundaryDefinition</type>
+  <value></value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="maxAdditionalLatency">
+  <type>int</type>
+  <value>1</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>true</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="projectName">
+  <type>java.lang.String</type>
+  <value></value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="sopcBorderPoints">
+  <type>boolean</type>
+  <value>false</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="systemHash">
+  <type>long</type>
+  <value>0</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="testBenchDutName">
+  <type>java.lang.String</type>
+  <value></value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="timeStamp">
+  <type>long</type>
+  <value>0</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
+ <parameter name="useTestBenchNamingPattern">
+  <type>boolean</type>
+  <value>false</value>
+  <derived>false</derived>
+  <enabled>true</enabled>
+  <visible>false</visible>
+  <valid>true</valid>
+ </parameter>
  <module
-   name="audio_pll_0"
-   kind="altera_up_avalon_audio_pll"
+   name="sys_sdram_pll_0"
+   kind="altera_up_avalon_sys_sdram_pll"
    version="17.1"
-   path="audio_pll_0">
+   path="sys_sdram_pll_0">
   <!-- Describes a single module. Module parameters are
 the requested settings for a module instance. -->
   <parameter name="gui_refclk">
@@ -118,12 +170,68 @@ the requested settings for a module instance. -->
    <visible>false</visible>
    <valid>true</valid>
   </parameter>
-  <parameter name="audio_clk_freq">
+  <parameter name="gui_outclk">
    <type>double</type>
-   <value>12.288</value>
+   <value>50.0</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="outclk">
+   <type>double</type>
+   <value>50.0</value>
+   <derived>true</derived>
+   <enabled>false</enabled>
+   <visible>false</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="CIII_boards">
+   <type>java.lang.String</type>
+   <value>DE0</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>false</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="CIV_boards">
+   <type>java.lang.String</type>
+   <value>DE2-115</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>false</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="CV_boards">
+   <type>java.lang.String</type>
+   <value>DE1-SoC</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>true</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="MAX10_boards">
+   <type>java.lang.String</type>
+   <value>DE10-Lite</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>false</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="other_boards">
+   <type>java.lang.String</type>
+   <value>None</value>
+   <derived>false</derived>
+   <enabled>true</enabled>
+   <visible>false</visible>
+   <valid>true</valid>
+  </parameter>
+  <parameter name="board">
+   <type>java.lang.String</type>
+   <value>DE1-SoC</value>
+   <derived>true</derived>
+   <enabled>false</enabled>
+   <visible>false</visible>
    <valid>true</valid>
   </parameter>
   <parameter name="device_family">
@@ -259,7 +367,7 @@ parameters are a RESULT of the module parameters. -->
     <role>reset</role>
    </port>
   </interface>
-  <interface name="audio_clk" kind="clock_source" version="17.1">
+  <interface name="sys_clk" kind="clock_source" version="17.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -273,7 +381,7 @@ parameters are a RESULT of the module parameters. -->
    </parameter>
    <parameter name="clockRate">
     <type>long</type>
-    <value>12288135</value>
+    <value>50000000</value>
     <derived>false</derived>
     <enabled>true</enabled>
     <visible>true</visible>
@@ -322,7 +430,76 @@ parameters are a RESULT of the module parameters. -->
    <type>clock</type>
    <isStart>true</isStart>
    <port>
-    <name>audio_clk_clk</name>
+    <name>sys_clk_clk</name>
+    <direction>Output</direction>
+    <width>1</width>
+    <role>clk</role>
+   </port>
+  </interface>
+  <interface name="sdram_clk" kind="clock_source" version="17.1">
+   <!-- The connection points exposed by a module instance for the
+particular module parameters. Connection points and their
+parameters are a RESULT of the module parameters. -->
+   <parameter name="associatedDirectClock">
+    <type>java.lang.String</type>
+    <value></value>
+    <derived>false</derived>
+    <enabled>true</enabled>
+    <visible>true</visible>
+    <valid>true</valid>
+   </parameter>
+   <parameter name="clockRate">
+    <type>long</type>
+    <value>50000000</value>
+    <derived>false</derived>
+    <enabled>true</enabled>
+    <visible>true</visible>
+    <valid>true</valid>
+   </parameter>
+   <parameter name="clockRateKnown">
+    <type>boolean</type>
+    <value>true</value>
+    <derived>false</derived>
+    <enabled>true</enabled>
+    <visible>true</visible>
+    <valid>true</valid>
+   </parameter>
+   <parameter name="externallyDriven">
+    <type>boolean</type>
+    <value>false</value>
+    <derived>false</derived>
+    <enabled>true</enabled>
+    <visible>false</visible>
+    <valid>true</valid>
+   </parameter>
+   <parameter name="ptfSchematicName">
+    <type>java.lang.String</type>
+    <value></value>
+    <derived>false</derived>
+    <enabled>true</enabled>
+    <visible>false</visible>
+    <valid>true</valid>
+   </parameter>
+   <parameter name="deviceFamily">
+    <type>java.lang.String</type>
+    <value>UNKNOWN</value>
+    <derived>false</derived>
+    <enabled>true</enabled>
+    <visible>true</visible>
+    <valid>true</valid>
+   </parameter>
+   <parameter name="generateLegacySim">
+    <type>boolean</type>
+    <value>false</value>
+    <derived>false</derived>
+    <enabled>true</enabled>
+    <visible>true</visible>
+    <valid>true</valid>
+   </parameter>
+   <type>clock</type>
+   <isStart>true</isStart>
+   <port>
+    <name>sdram_clk_clk</name>
     <direction>Output</direction>
     <width>1</width>
     <role>clk</role>
@@ -392,10 +569,10 @@ parameters are a RESULT of the module parameters. -->
  </module>
  <plugin>
   <instanceCount>1</instanceCount>
-  <name>altera_up_avalon_audio_pll</name>
+  <name>altera_up_avalon_sys_sdram_pll</name>
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IModule</subtype>
-  <displayName>Audio Clock for DE-series Boards</displayName>
+  <displayName>System and SDRAM Clocks for DE-series Boards</displayName>
   <version>17.1</version>
  </plugin>
  <plugin>
@@ -415,7 +592,7 @@ parameters are a RESULT of the module parameters. -->
   <version>17.1</version>
  </plugin>
  <plugin>
-  <instanceCount>1</instanceCount>
+  <instanceCount>2</instanceCount>
   <name>clock_source</name>
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
@@ -431,5 +608,5 @@ parameters are a RESULT of the module parameters. -->
   <version>17.1</version>
  </plugin>
  <reportVersion>17.1 590</reportVersion>
- <uniqueIdentifier></uniqueIdentifier>
+ <uniqueIdentifier>1C659DC88C270000016C7327D978</uniqueIdentifier>
 </EnsembleReport>
