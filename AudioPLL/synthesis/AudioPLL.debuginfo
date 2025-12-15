@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<EnsembleReport name="AudioPLL" kind="system" version="17.1" fabric="QSYS">
- <!-- Format version 17.1 590 (Future versions may contain additional information.) -->
- <!-- 2019.07.14.12:04:58 -->
+<EnsembleReport name="AudioPLL" kind="system" version="18.1" fabric="QSYS">
+ <!-- Format version 18.1 625 (Future versions may contain additional information.) -->
+ <!-- 2025.12.14.15:52:36 -->
  <!-- A collection of modules and connections -->
  <parameter name="clockCrossingAdapter">
   <type>com.altera.sopcmodel.ensemble.EClockAdapter</type>
@@ -53,7 +53,7 @@
  </parameter>
  <parameter name="generationId">
   <type>int</type>
-  <value>1563131095</value>
+  <value>1765756352</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>true</visible>
@@ -150,7 +150,7 @@
  <module
    name="audio_pll_0"
    kind="altera_up_avalon_audio_pll"
-   version="17.1"
+   version="18.0"
    path="audio_pll_0">
   <!-- Describes a single module. Module parameters are
 the requested settings for a module instance. -->
@@ -221,7 +221,7 @@ the requested settings for a module instance. -->
    <visible>true</visible>
    <valid>true</valid>
   </parameter>
-  <interface name="ref_clk" kind="clock_sink" version="17.1">
+  <interface name="ref_clk" kind="clock_sink" version="18.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -266,7 +266,7 @@ parameters are a RESULT of the module parameters. -->
     <role>clk</role>
    </port>
   </interface>
-  <interface name="ref_reset" kind="reset_sink" version="17.1">
+  <interface name="ref_reset" kind="reset_sink" version="18.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -311,7 +311,7 @@ parameters are a RESULT of the module parameters. -->
     <role>reset</role>
    </port>
   </interface>
-  <interface name="audio_clk" kind="clock_source" version="17.1">
+  <interface name="audio_clk" kind="clock_source" version="18.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -380,7 +380,7 @@ parameters are a RESULT of the module parameters. -->
     <role>clk</role>
    </port>
   </interface>
-  <interface name="reset_source" kind="reset_source" version="17.1">
+  <interface name="reset_source" kind="reset_source" version="18.1">
    <!-- The connection points exposed by a module instance for the
 particular module parameters. Connection points and their
 parameters are a RESULT of the module parameters. -->
@@ -448,7 +448,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IModule</subtype>
   <displayName>Audio Clock for DE-series Boards</displayName>
-  <version>17.1</version>
+  <version>18.0</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -456,7 +456,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Clock Input</displayName>
-  <version>17.1</version>
+  <version>18.1</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -464,7 +464,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Reset Input</displayName>
-  <version>17.1</version>
+  <version>18.1</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -472,7 +472,7 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Clock Output</displayName>
-  <version>17.1</version>
+  <version>18.1</version>
  </plugin>
  <plugin>
   <instanceCount>1</instanceCount>
@@ -480,8 +480,8 @@ parameters are a RESULT of the module parameters. -->
   <type>com.altera.entityinterfaces.IElementClass</type>
   <subtype>com.altera.entityinterfaces.IMutableConnectionPoint</subtype>
   <displayName>Reset Output</displayName>
-  <version>17.1</version>
+  <version>18.1</version>
  </plugin>
- <reportVersion>17.1 590</reportVersion>
- <uniqueIdentifier>1C659DC88C270000016BF1DFAF46</uniqueIdentifier>
+ <reportVersion>18.1 625</reportVersion>
+ <uniqueIdentifier>5CE42AD236230000019B1F47BEF3</uniqueIdentifier>
 </EnsembleReport>

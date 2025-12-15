@@ -1,4 +1,4 @@
-// (C) 2001-2017 Intel Corporation. All rights reserved.
+// (C) 2001-2018 Intel Corporation. All rights reserved.
 // Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files from any of the foregoing (including device programming or simulation 
@@ -126,11 +126,11 @@ scfifo	Sync_FIFO (
 	.full				(fifo_is_full),
 	.usedw			(words_used),
 	
-	.q					(read_data),
+	.q					(read_data)
 
 	// Unused
 	// synopsys translate_off
-	
+	,
 	.aclr				(),
 	.almost_empty	(),
 	.almost_full	()

@@ -6,7 +6,7 @@
    version="1.0"
    description=""
    tags="INTERNAL_COMPONENT=true"
-   categories="" />
+   categories="System" />
  <parameter name="bonusData"><![CDATA[bonusData 
 {
    element audio_pll_0
@@ -65,7 +65,7 @@
  <module
    name="audio_pll_0"
    kind="altera_up_avalon_audio_pll"
-   version="17.1"
+   version="18.0"
    enabled="1"
    autoexport="1">
   <parameter name="AUTO_DEVICE" value="5CSEMA5F31C6" />

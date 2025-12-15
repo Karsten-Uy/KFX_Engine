@@ -1,0 +1,23 @@
+IP Ports Diff Report for AudioPLL
+Sun Dec 14 14:20:43 2025
+Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. IP Information
+
+
+
++------------------------------------------------------+
+; IP Information                                       ;
++----------------------+-------------------------------+
+; IP Variation Name    ; AudioPLL                      ;
+; Prior Version        ; 17.1                          ;
+; New Version          ; 18.1                          ;
+; New File             ; AudioPLL/synthesis/AudioPLL.v ;
+; Has Port Differences ; No                            ;
++----------------------+-------------------------------+
+
+

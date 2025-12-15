@@ -1,8 +1,8 @@
 Info: Starting: Create block symbol file (.bsf)
-Info: qsys-generate "D:\Documents\nav docs\FPGA\AudioPLL.qsys" --block-symbol-file --output-directory="D:\Documents\nav docs\FPGA\AudioPLL" --family="Cyclone V" --part=5CSEMA5F31C6
-Progress: Loading FPGA/AudioPLL.qsys
+Info: qsys-generate C:\Users\karst\Documents\homemade_multifx\HaH_processor\AudioPLL.qsys --block-symbol-file --output-directory=C:\Users\karst\Documents\homemade_multifx\HaH_processor\AudioPLL --family="Cyclone V" --part=5CSEMA5F31C6
+Progress: Loading HaH_processor/AudioPLL.qsys
 Progress: Reading input file
-Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 17.1]
+Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
 Progress: Parameterizing module audio_pll_0
 Progress: Building connections
 Progress: Parameterizing connections
@@ -12,10 +12,10 @@ Info: qsys-generate succeeded.
 Info: Finished: Create block symbol file (.bsf)
 Info: 
 Info: Starting: Create HDL design files for synthesis
-Info: qsys-generate "D:\Documents\nav docs\FPGA\AudioPLL.qsys" --synthesis=VERILOG --output-directory="D:\Documents\nav docs\FPGA\AudioPLL\synthesis" --family="Cyclone V" --part=5CSEMA5F31C6
-Progress: Loading FPGA/AudioPLL.qsys
+Info: qsys-generate C:\Users\karst\Documents\homemade_multifx\HaH_processor\AudioPLL.qsys --synthesis=VERILOG --output-directory=C:\Users\karst\Documents\homemade_multifx\HaH_processor\AudioPLL\synthesis --family="Cyclone V" --part=5CSEMA5F31C6
+Progress: Loading HaH_processor/AudioPLL.qsys
 Progress: Reading input file
-Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 17.1]
+Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
 Progress: Parameterizing module audio_pll_0
 Progress: Building connections
 Progress: Parameterizing connections

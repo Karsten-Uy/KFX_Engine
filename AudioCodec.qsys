@@ -112,7 +112,7 @@
  <module
    name="audio_0"
    kind="altera_up_avalon_audio"
-   version="17.1"
+   version="18.0"
    enabled="1"
    autoexport="1">
   <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />

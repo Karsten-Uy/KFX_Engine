@@ -1,0 +1,141 @@
+IP Upgrade report for AudioFX
+Sun Dec 14 14:20:43 2025
+Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. IP Upgrade Summary
+  3. Successfully Upgraded IP Components
+  4. IP Upgrade Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2018  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details.
+
+
+
++----------------------------------------------------------------------------+
+; IP Upgrade Summary                                                         ;
++------------------------------+---------------------------------------------+
+; IP Components Upgrade Status ; Passed - Sun Dec 14 14:20:43 2025           ;
+; Quartus Prime Version        ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
+; Revision Name                ; AudioFX                                     ;
+; Top-level Entity Name        ; AudioFX                                     ;
+; Family                       ; Cyclone V                                   ;
++------------------------------+---------------------------------------------+
+
+
++---------------------------------------------------------------------------------------------------------------------------------------------+
+; Successfully Upgraded IP Components                                                                                                         ;
++-------------+----------------+---------+---------------------------------+----------------------+---------------------------------+---------+
+; Entity Name ; Component Name ; Version ; Original Source File            ; Generation File Path ; New Source File                 ; Message ;
++-------------+----------------+---------+---------------------------------+----------------------+---------------------------------+---------+
+; AudioPLL    ; altera_pll     ; 17.1    ; AudioPLL/synthesis/AudioPLL.qip ; AudioPLL.qsys        ; AudioPLL/synthesis/AudioPLL.qip ;         ;
++-------------+----------------+---------+---------------------------------+----------------------+---------------------------------+---------+
+
+
++---------------------+
+; IP Upgrade Messages ;
++---------------------+
+Info (11902): Backing up file "AudioPLL.qsys" to "AudioPLL.BAK.qsys"
+Info (11902): Backing up file "AudioPLL/synthesis/AudioPLL.v" to "AudioPLL.BAK.v"
+Info (11837): Started upgrading IP component altera_pll with file "AudioPLL.qsys"
+Info: 2025.12.14.14:20:07 Info: Starting to upgrade the IP cores in the Platform Designer system
+Info: 2025.12.14.14:20:07 Info: Finished upgrading the ip cores
+Info: 2025.12.14.14:20:14 Info: Saving generation log to C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL
+Info: 2025.12.14.14:20:14 Info: Starting: Create simulation model
+Info: 2025.12.14.14:20:14 Info: qsys-generate C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL.qsys --simulation=VERILOG --allow-mixed-language-simulation --output-directory=C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL\simulation --family="Cyclone V" --part=5CSEMA5F31C6
+Info: 2025.12.14.14:20:14 Info: Loading audio_loopback_only
+Info: 2025.12.14.14:20:15 Info: Reading input file
+Info: 2025.12.14.14:20:15 Info: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info: 2025.12.14.14:20:15 Info: Parameterizing module audio_pll_0
+Info: 2025.12.14.14:20:15 Info: Building connections
+Info: 2025.12.14.14:20:15 Info: Parameterizing connections
+Info: 2025.12.14.14:20:15 Info: Validating
+Info: 2025.12.14.14:20:16 Info: Done reading input file
+Info: 2025.12.14.14:20:17 Info: AudioPLL: Generating AudioPLL "AudioPLL" for SIM_VERILOG
+Info: 2025.12.14.14:20:21 Info: audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
+Info: 2025.12.14.14:20:21 Info: audio_pll: Generating simgen model
+Info: 2025.12.14.14:20:33 Info: audio_pll: Simgen was successful
+Info: 2025.12.14.14:20:33 Info: audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
+Info: 2025.12.14.14:20:33 Info: reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_reset_from_locked_signal "reset_from_locked"
+Info: 2025.12.14.14:20:33 Info: AudioPLL: Done "AudioPLL" with 4 modules, 4 files
+Info: 2025.12.14.14:20:33 Info: qsys-generate succeeded.
+Info: 2025.12.14.14:20:33 Info: Finished: Create simulation model
+Info: 2025.12.14.14:20:33 Info: Starting: Create Modelsim Project.
+Info: 2025.12.14.14:20:33 Info: sim-script-gen --spd=C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL\AudioPLL.spd --output-directory=C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:33 Info: Doing: ip-make-simscript --spd=C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL\AudioPLL.spd --output-directory=C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:34 Info: Generating the following file(s) for MODELSIM simulator in C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:34 Info:     mentor
+Info: 2025.12.14.14:20:34 Info: Generating the following file(s) for VCS simulator in C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:34 Info:     synopsys/vcs
+Info: 2025.12.14.14:20:34 Info: Generating the following file(s) for VCSMX simulator in C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:34 Info:     synopsys/vcsmx
+Info: 2025.12.14.14:20:34 Info:     synopsys/vcsmx
+Info: 2025.12.14.14:20:34 Info: Generating the following file(s) for NCSIM simulator in C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:34 Info:     cadence
+Info: 2025.12.14.14:20:34 Info:     cadence
+Info: 2025.12.14.14:20:34 Info:     cadence
+Info: 2025.12.14.14:20:34 Info:     3 .cds.lib files in cadence/cds_libs
+Info: 2025.12.14.14:20:34 Info: Generating the following file(s) for RIVIERA simulator in C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:34 Info:     aldec
+Info: 2025.12.14.14:20:34 Info: For information on how to simulate your IP, see the explanatory comments in the simulator-specific subdirectories under C:/Users/karst/Documents/homemade_multifx/audio_loopback_only/AudioPLL/simulation
+Info: 2025.12.14.14:20:34 Info: Regenerate these scripts whenever you make any change to any Quartus-generated IP in your project.
+Info: 2025.12.14.14:20:34 Info: Finished: Create Modelsim Project.
+Info: 2025.12.14.14:20:34 Info: Starting: Create block symbol file (.bsf)
+Info: 2025.12.14.14:20:34 Info: qsys-generate C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL.qsys --block-symbol-file --output-directory=C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL --family="Cyclone V" --part=5CSEMA5F31C6
+Info: 2025.12.14.14:20:34 Info: Loading audio_loopback_only
+Info: 2025.12.14.14:20:35 Info: Reading input file
+Info: 2025.12.14.14:20:35 Info: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info: 2025.12.14.14:20:35 Info: Parameterizing module audio_pll_0
+Info: 2025.12.14.14:20:35 Info: Building connections
+Info: 2025.12.14.14:20:35 Info: Parameterizing connections
+Info: 2025.12.14.14:20:35 Info: Validating
+Info: 2025.12.14.14:20:35 Info: Done reading input file
+Info: 2025.12.14.14:20:37 Info: qsys-generate succeeded.
+Info: 2025.12.14.14:20:37 Info: Finished: Create block symbol file (.bsf)
+Info: 2025.12.14.14:20:37 Info:
+Info: 2025.12.14.14:20:37 Info: Starting: Create HDL design files for synthesis
+Info: 2025.12.14.14:20:37 Info: qsys-generate C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL.qsys --synthesis=VERILOG --output-directory=C:\Users\karst\Documents\homemade_multifx\audio_loopback_only\AudioPLL\synthesis --family="Cyclone V" --part=5CSEMA5F31C6
+Info: 2025.12.14.14:20:37 Info: Loading audio_loopback_only
+Info: 2025.12.14.14:20:37 Info: Reading input file
+Info: 2025.12.14.14:20:37 Info: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info: 2025.12.14.14:20:37 Info: Parameterizing module audio_pll_0
+Info: 2025.12.14.14:20:37 Info: Building connections
+Info: 2025.12.14.14:20:37 Info: Parameterizing connections
+Info: 2025.12.14.14:20:37 Info: Validating
+Info: 2025.12.14.14:20:38 Info: Done reading input file
+Info: 2025.12.14.14:20:39 Info: AudioPLL: Generating AudioPLL "AudioPLL" for QUARTUS_SYNTH
+Info: 2025.12.14.14:20:43 Info: audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
+Info: 2025.12.14.14:20:43 Info: audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
+Info: 2025.12.14.14:20:43 Info: reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_reset_from_locked_signal "reset_from_locked"
+Info: 2025.12.14.14:20:43 Info: AudioPLL: Done "AudioPLL" with 4 modules, 5 files
+Info: 2025.12.14.14:20:43 Info: qsys-generate succeeded.
+Info: 2025.12.14.14:20:43 Info: Finished: Create HDL design files for synthesis
+Info (11131): Completed upgrading IP component altera_pll with file "AudioPLL.qsys"
+Info (23030): Evaluation of Tcl script c:/intelfpga_lite/18.1/quartus/common/tcl/internal/ip_regen/ip_regen.tcl was successful
+Info: Quartus Prime Shell was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 4890 megabytes
+    Info: Processing ended: Sun Dec 14 14:20:43 2025
+    Info: Elapsed time: 00:00:52
+    Info: Total CPU time (on all processors): 00:01:02
+
+

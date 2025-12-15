@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deploy
- date="2019.08.08.14:02:38"
- outputDirectory="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/">
+ date="2025.12.14.15:51:53"
+ outputDirectory="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/">
  <perimeter>
   <parameter
      name="AUTO_GENERATION_ID"
@@ -190,13 +190,13 @@
  </perimeter>
  <entity
    path=""
-   parameterizationKey="AudioCodec:1.0:AUTO_CLK_CLOCK_DOMAIN=-1,AUTO_CLK_CLOCK_RATE=-1,AUTO_CLK_RESET_DOMAIN=-1,AUTO_DEVICE=5CSEMA5F31C6,AUTO_DEVICE_FAMILY=Cyclone V,AUTO_DEVICE_SPEEDGRADE=6,AUTO_GENERATION_ID=1565298157,AUTO_UNIQUE_ID=(altera_up_avalon_audio:17.1:AUTO_CLK_CLOCK_RATE=0,AUTO_DEVICE_FAMILY=Cyclone V,audio_in=true,audio_out=true,avalon_bus_type=Streaming,dw=16)"
+   parameterizationKey="AudioCodec:1.0:AUTO_CLK_CLOCK_DOMAIN=-1,AUTO_CLK_CLOCK_RATE=-1,AUTO_CLK_RESET_DOMAIN=-1,AUTO_DEVICE=5CSEMA5F31C6,AUTO_DEVICE_FAMILY=Cyclone V,AUTO_DEVICE_SPEEDGRADE=6,AUTO_GENERATION_ID=1765756311,AUTO_UNIQUE_ID=(altera_up_avalon_audio:18.0:AUTO_CLK_CLOCK_RATE=0,AUTO_DEVICE_FAMILY=Cyclone V,audio_in=true,audio_out=true,avalon_bus_type=Streaming,dw=16)"
    instancePathKey="AudioCodec"
    kind="AudioCodec"
    version="1.0"
    name="AudioCodec">
   <parameter name="AUTO_CLK_CLOCK_RATE" value="-1" />
-  <parameter name="AUTO_GENERATION_ID" value="1565298157" />
+  <parameter name="AUTO_GENERATION_ID" value="1765756311" />
   <parameter name="AUTO_DEVICE" value="5CSEMA5F31C6" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="AUTO_CLK_RESET_DOMAIN" value="-1" />
@@ -205,46 +205,46 @@
   <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
   <generatedFiles>
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/AudioCodec.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/AudioCodec.v"
        type="VERILOG" />
   </generatedFiles>
   <childGeneratedFiles>
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_audio_bit_counter.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_audio_bit_counter.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_audio_in_deserializer.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_audio_in_deserializer.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_audio_out_serializer.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_audio_out_serializer.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_clock_edge.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_clock_edge.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_sync_fifo.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_sync_fifo.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/AudioCodec_audio_0.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/AudioCodec_audio_0.v"
        type="VERILOG" />
   </childGeneratedFiles>
   <sourceFiles>
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec.qsys" />
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec.qsys" />
   </sourceFiles>
   <childSourceFiles>
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/altera_up_avalon_audio_hw.tcl" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/altera_up_avalon_audio_hw.tcl" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_bit_counter.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_bit_counter.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_in_deserializer.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_in_deserializer.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_out_serializer.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_out_serializer.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_clock_edge.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_clock_edge.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_sync_fifo.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_sync_fifo.v" />
   </childSourceFiles>
   <messages>
    <message level="Debug" culprit="AudioCodec">queue size: 0 starting:AudioCodec "AudioCodec"</message>
@@ -268,10 +268,10 @@
  </entity>
  <entity
    path="submodules/"
-   parameterizationKey="altera_up_avalon_audio:17.1:AUTO_CLK_CLOCK_RATE=0,AUTO_DEVICE_FAMILY=Cyclone V,audio_in=true,audio_out=true,avalon_bus_type=Streaming,dw=16"
+   parameterizationKey="altera_up_avalon_audio:18.0:AUTO_CLK_CLOCK_RATE=0,AUTO_DEVICE_FAMILY=Cyclone V,audio_in=true,audio_out=true,avalon_bus_type=Streaming,dw=16"
    instancePathKey="AudioCodec:.:audio_0"
    kind="altera_up_avalon_audio"
-   version="17.1"
+   version="18.0"
    name="AudioCodec_audio_0">
   <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
   <parameter name="dw" value="16" />
@@ -281,38 +281,38 @@
   <parameter name="audio_out" value="true" />
   <generatedFiles>
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_audio_bit_counter.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_audio_bit_counter.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_audio_in_deserializer.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_audio_in_deserializer.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_audio_out_serializer.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_audio_out_serializer.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_clock_edge.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_clock_edge.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/altera_up_sync_fifo.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/altera_up_sync_fifo.v"
        type="VERILOG" />
    <file
-       path="D:/Documents/GitHub/De1-SoC-Verilog-Audio-Loopback/AudioCodec/synthesis/submodules/AudioCodec_audio_0.v"
+       path="C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioCodec/synthesis/submodules/AudioCodec_audio_0.v"
        type="VERILOG" />
   </generatedFiles>
   <childGeneratedFiles/>
   <sourceFiles>
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/altera_up_avalon_audio_hw.tcl" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/altera_up_avalon_audio_hw.tcl" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_bit_counter.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_bit_counter.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_in_deserializer.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_in_deserializer.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_out_serializer.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_audio_out_serializer.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_clock_edge.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_clock_edge.v" />
    <file
-       path="C:/intelfpga_lite/17.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_sync_fifo.v" />
+       path="C:/intelfpga_lite/18.1/ip/altera/university_program/audio_video/altera_up_avalon_audio/hdl/altera_up_sync_fifo.v" />
   </sourceFiles>
   <childSourceFiles/>
   <instantiator instantiator="AudioCodec" as="audio_0" />

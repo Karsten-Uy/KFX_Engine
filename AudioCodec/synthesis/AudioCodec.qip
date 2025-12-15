@@ -1,8 +1,8 @@
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_TOOL_NAME "Qsys"
-set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_TOOL_VERSION "17.1"
+set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_TOOL_VERSION "18.1"
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_TOOL_ENV "Qsys"
 set_global_assignment -library "AudioCodec" -name SOPCINFO_FILE [file join $::quartus(qip_path) "../../AudioCodec.sopcinfo"]
-set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name SLD_INFO "QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1565298157"
+set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name SLD_INFO "QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1765756311"
 set_global_assignment -library "AudioCodec" -name MISC_FILE [file join $::quartus(qip_path) "../AudioCodec.cmp"]
 set_global_assignment -library "AudioCodec" -name SLD_FILE [file join $::quartus(qip_path) "AudioCodec.debuginfo"]
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_TARGETED_DEVICE_FAMILY "Cyclone V"
@@ -15,7 +15,7 @@ set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPON
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_REPORT_HIERARCHY "On"
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_INTERNAL "Off"
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_VERSION "MS4w"
-set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_PARAMETER "QVVUT19HRU5FUkFUSU9OX0lE::MTU2NTI5ODE1Nw==::QXV0byBHRU5FUkFUSU9OX0lE"
+set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_PARAMETER "QVVUT19HRU5FUkFUSU9OX0lE::MTc2NTc1NjMxMQ==::QXV0byBHRU5FUkFUSU9OX0lE"
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0VfRkFNSUxZ::Q3ljbG9uZSBW::QXV0byBERVZJQ0VfRkFNSUxZ"
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0U=::NUNTRU1BNUYzMUM2::QXV0byBERVZJQ0U="
 set_global_assignment -entity "AudioCodec" -library "AudioCodec" -name IP_COMPONENT_PARAMETER "QVVUT19ERVZJQ0VfU1BFRURHUkFERQ==::Ng==::QXV0byBERVZJQ0VfU1BFRURHUkFERQ=="
@@ -27,7 +27,7 @@ set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name I
 set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_REPORT_HIERARCHY "Off"
 set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_INTERNAL "Off"
 set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_AUTHOR "SW50ZWwgRlBHQSBVbml2ZXJzaXR5IFByb2dyYW0="
-set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_VERSION "MTcuMQ=="
+set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_VERSION "MTguMA=="
 set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_DESCRIPTION "QXVkaW8gQ29udHJvbGxlciBmb3IgREUtc2VyaWVzIEJvYXJkcw=="
 set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_PARAMETER "YXZhbG9uX2J1c190eXBl::U3RyZWFtaW5n::QXZhbG9uIFR5cGU="
 set_global_assignment -entity "AudioCodec_audio_0" -library "AudioCodec" -name IP_COMPONENT_PARAMETER "YXVkaW9faW4=::dHJ1ZQ==::QXVkaW8gSW4="

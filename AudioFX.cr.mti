@@ -1,0 +1,40 @@
+C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_controller.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_controller.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module tb_controller
+-- Importing package lab_pkg
+
+Top level modules:
+	tb_controller
+
+} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/sevseg_display.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/sevseg_display.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module sevseg_display
+-- Importing package lab_pkg
+
+Top level modules:
+	sevseg_display
+
+} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling package lab_pkg
+
+Top level modules:
+	--none--
+
+} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/controller.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/controller.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module controller
+-- Importing package lab_pkg
+
+Top level modules:
+	controller
+
+} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module AudioFX
+-- Importing package lab_pkg
+
+Top level modules:
+	AudioFX
+
+} {} {}}
