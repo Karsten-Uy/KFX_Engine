@@ -7,7 +7,8 @@ module fx_gain #(
     input  logic                      reset_n,
     input  logic [1:0][DATA_W-1:0]    audio_in,   // Stereo input
     output logic [1:0][DATA_W-1:0]    audio_out,  // Stereo output
-    input  logic [PARAM_W-1:0]        gain        // Gain parameter
+    input  logic [PARAM_W-1:0]        fx_gain,        // Gain parameter
+    input  logic                      sample_en
 );
 
     // Trivial assignment for now

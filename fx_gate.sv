@@ -7,9 +7,10 @@ module fx_gate #(
     input  logic                      reset_n,
     input  logic [1:0][DATA_W-1:0]    audio_in,   // Stereo input
     output logic [1:0][DATA_W-1:0]    audio_out,  // Stereo output
-    input  logic [PARAM_W-1:0]        threshold,  // Gate threshold
-    input  logic [PARAM_W-1:0]        attack,     // Attack time
-    input  logic [PARAM_W-1:0]        release     // Release time
+    input  logic [PARAM_W-1:0]        fx_threshold,  // Gate threshold
+    input  logic [PARAM_W-1:0]        fx_attack,     // Attack time
+    input  logic [PARAM_W-1:0]        fx_release,     // Release time
+    input  logic                      sample_en
 );
     
     // Trivial assignment for now

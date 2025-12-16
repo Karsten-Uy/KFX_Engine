@@ -122,26 +122,26 @@ module AudioFX(
 		.to_dac_right_channel_ready   (DAC_Ready[1])    //                            .ready
 	);
 		
-	// Basic tie-back for audio ADC -> DAC
-	always@(posedge(CLOCK_50)) begin
-		// Mute Condition using switch 9
-		if(SW[0]==1) begin
-			DAC_Data[0] <= 0;
-			DAC_Data[1] <= 0;
-			DAC_Valid[0] <= ADC_Valid[1];
-			DAC_Valid[1] <= ADC_Valid[0];
-			ADC_Ready[0] <= DAC_Ready[1];
-			ADC_Ready[1] <= DAC_Ready[0];
-		end else begin
-			// Normal operation
-			DAC_Data[0] <= ADC_Data[0];
-			DAC_Data[1] <= ADC_Data[1];
-			DAC_Valid[0] <= ADC_Valid[0];
-			DAC_Valid[1] <= ADC_Valid[1];
-			ADC_Ready[0] <= DAC_Ready[0];
-			ADC_Ready[1] <= DAC_Ready[1];
-		end
-	end
+	// // Basic tie-back for audio ADC -> DAC
+	// always@(posedge(CLOCK_50)) begin
+	// 	// Mute Condition using switch 9
+	// 	if(SW[0]==1) begin
+	// 		DAC_Data[0] <= 0;
+	// 		DAC_Data[1] <= 0;
+	// 		DAC_Valid[0] <= ADC_Valid[1];
+	// 		DAC_Valid[1] <= ADC_Valid[0];
+	// 		ADC_Ready[0] <= DAC_Ready[1];
+	// 		ADC_Ready[1] <= DAC_Ready[0];
+	// 	end else begin
+	// 		// Normal operation
+	// 		DAC_Data[0] <= ADC_Data[0];
+	// 		DAC_Data[1] <= ADC_Data[1];
+	// 		DAC_Valid[0] <= ADC_Valid[0];
+	// 		DAC_Valid[1] <= ADC_Valid[1];
+	// 		ADC_Ready[0] <= DAC_Ready[0];
+	// 		ADC_Ready[1] <= DAC_Ready[1];
+	// 	end
+	// end
 
 	// Useful for signal tap or scope debugging and
 	assign GPIO_0[DATA_W-1:0] = DAC_Data[0];
@@ -188,7 +188,198 @@ module AudioFX(
 
     // ---------------- AUDIO FX INSTANTIATIONS ----------------
 
+	// FX Chain intermediate signals
+	logic [1:0][DATA_W-1:0] pre_fx; 
+	logic [1:0][DATA_W-1:0] gain_in_out; 
+	logic [1:0][DATA_W-1:0] gate_out; 
+	logic [1:0][DATA_W-1:0] eq_out; 
+	logic [1:0][DATA_W-1:0] comp_out;
+	logic [1:0][DATA_W-1:0] dist_out;
+	logic [1:0][DATA_W-1:0] chorus_out;
+	logic [1:0][DATA_W-1:0] delay_out;
+	logic [1:0][DATA_W-1:0] reverb_out;
+	logic [1:0][DATA_W-1:0] gain_out_out;
 
+	// Pipeline
+	logic [FX_STAGES:0] sample_en_pipe;
+
+	/*
+		How Audio is passed through the FX
+		
+		1. it is first turning into mono for a guitar input by duplicating the left channel
+		2. it then passes the signal to each effect, which takes 1 clk cycle to process once ADC_Valid[0] pulses
+		   which then is pipelined in a way such that the final processed audio will reach the DAC at the same
+		   time as the final sample_en_pipe pulse
+	*/
+
+	// Mono converter, needed for guitar
+	assign pre_fx[0] = ADC_Data[0];
+	assign pre_fx[1] = ADC_Data[0];
+
+	always_ff @(posedge CLOCK_50) begin: en_PIPELINE
+		if (!KEY[0]) begin
+			sample_en_pipe <= '0;
+		end else begin
+			sample_en_pipe[0] <= ADC_Valid[0];
+			for (int i = 1; i <= FX_STAGES; i++) begin
+				sample_en_pipe[i] <= sample_en_pipe[i-1];
+			end
+		end
+	end
+	
+	// Input Gain (FX 0)
+	fx_gain #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_INPUT_GAIN (
+		.clk       (CLOCK_50),
+		.reset_n   (KEY[0]),
+		.audio_in  (pre_fx),
+		.audio_out (gain_in_out),
+		.fx_gain   (params[0][0]),
+		.sample_en (sample_en_pipe[0])
+	);
+
+	// Gate (FX 1)
+	fx_gate #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_GATE (
+		.clk          (CLOCK_50),
+		.reset_n      (KEY[0]),
+		.audio_in     (gain_in_out),
+		.audio_out    (gate_out),
+		.fx_threshold (params[1][0]),
+		.fx_attack    (params[1][1]),
+		.fx_release   (params[1][2]),
+		.sample_en    (sample_en_pipe[1])
+	);
+
+	// EQ (FX 2)
+	fx_eq #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_EQ (
+		.clk          (CLOCK_50),
+		.reset_n      (KEY[0]),
+		.audio_in     (gate_out),
+		.audio_out    (eq_out),
+		.fx_low_gain  (params[2][0]),
+		.fx_mid_gain  (params[2][1]),
+		.fx_high_gain (params[2][2]),
+		.fx_presence  (params[2][3]),
+		.sample_en    (sample_en_pipe[2])
+	);
+
+	// Compressor (FX 3)
+	fx_compressor #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_COMPRESSOR (
+		.clk          (CLOCK_50),
+		.reset_n      (KEY[0]),
+		.audio_in     (eq_out),
+		.audio_out    (comp_out),
+		.fx_threshold (params[3][0]),
+		.fx_ratio     (params[3][1]),
+		.fx_attack    (params[3][2]),
+		.fx_release   (params[3][3]),
+		.sample_en    (sample_en_pipe[3])
+	);
+
+	// Distortion (FX 4)
+	fx_distortion #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_DISTORTION (
+		.clk       (CLOCK_50),
+		.reset_n   (KEY[0]),
+		.audio_in  (comp_out),
+		.audio_out (dist_out),
+		.fx_drive  (params[4][0]),
+		.fx_tone   (params[4][1]),
+		.fx_mix    (params[4][2]),
+		.sample_en (sample_en_pipe[4])
+	);
+
+	// Chorus (FX 5)
+	fx_chorus #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_CHORUS (
+		.clk       (CLOCK_50),
+		.reset_n   (KEY[0]),
+		.audio_in  (dist_out),
+		.audio_out (chorus_out),
+		.fx_rate   (params[5][0]),
+		.fx_depth  (params[5][1]),
+		.fx_mix    (params[5][2]),
+		.sample_en (sample_en_pipe[5])
+	);
+
+	// Delay (FX 6)
+	fx_delay #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_DELAY (
+		.clk         (CLOCK_50),
+		.reset_n     (KEY[0]),
+		.audio_in    (chorus_out),
+		.audio_out   (delay_out),
+		.fx_time     (params[6][0]),
+		.fx_feedback (params[6][1]),
+		.fx_mix      (params[6][2]),
+		.sample_en   (sample_en_pipe[6])
+	);
+
+	// Reverb (FX 7)
+	fx_reverb #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_REVERB (
+		.clk        (CLOCK_50),
+		.reset_n    (KEY[0]),
+		.audio_in   (delay_out),
+		.audio_out  (reverb_out),
+		.fx_size    (params[7][0]),
+		.fx_damping (params[7][1]),
+		.fx_mix     (params[7][2]),
+		.sample_en  (sample_en_pipe[7])
+	);
+
+	// Output Gain (FX 8)
+	fx_gain #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_OUTPUT_GAIN (
+		.clk       (CLOCK_50),
+		.reset_n   (KEY[0]),
+		.audio_in  (reverb_out),
+		.audio_out (gain_out_out),
+		.fx_gain   (params[8][0]),
+		.sample_en (sample_en_pipe[8])
+	);
+
+	// FX Chain output to DAC
+	always@(posedge(CLOCK_50)) begin
+		// Mute Condition using switch 0
+		if(SW[0]==1) begin
+			DAC_Data[0] <= 0;
+			DAC_Data[1] <= 0;
+			DAC_Valid[0] <= sample_en_pipe[8];
+			DAC_Valid[1] <= sample_en_pipe[8];
+			ADC_Ready[0] <= DAC_Ready[1];
+			ADC_Ready[1] <= DAC_Ready[0];
+		end else begin
+			// FX Chain output
+			DAC_Data[0] <= gain_out_out[0];
+			DAC_Data[1] <= gain_out_out[1];
+			DAC_Valid[0] <= sample_en_pipe[8];
+			DAC_Valid[1] <= sample_en_pipe[8];
+			ADC_Ready[0] <= DAC_Ready[0];
+			ADC_Ready[1] <= DAC_Ready[1];
+		end
+	end
 
 	
 endmodule

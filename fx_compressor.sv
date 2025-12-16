@@ -7,10 +7,11 @@ module fx_compressor #(
     input  logic                      reset_n,
     input  logic [1:0][DATA_W-1:0]    audio_in,   // Stereo input
     output logic [1:0][DATA_W-1:0]    audio_out,  // Stereo output
-    input  logic [PARAM_W-1:0]        threshold,  // Compression threshold
-    input  logic [PARAM_W-1:0]        ratio,      // Compression ratio
-    input  logic [PARAM_W-1:0]        attack,     // Attack time
-    input  logic [PARAM_W-1:0]        release     // Release time
+    input  logic [PARAM_W-1:0]        fx_threshold,  // Compression threshold
+    input  logic [PARAM_W-1:0]        fx_ratio,      // Compression ratio
+    input  logic [PARAM_W-1:0]        fx_attack,     // Attack time
+    input  logic [PARAM_W-1:0]        fx_release,     // Release time
+    input  logic                      sample_en
 );
 
     // Trivial assignment for now

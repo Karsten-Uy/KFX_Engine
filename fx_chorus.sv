@@ -7,9 +7,10 @@ module fx_chorus #(
     input  logic                      reset_n,
     input  logic [1:0][DATA_W-1:0]    audio_in,   // Stereo input
     output logic [1:0][DATA_W-1:0]    audio_out,  // Stereo output
-    input  logic [PARAM_W-1:0]        rate,       // LFO rate
-    input  logic [PARAM_W-1:0]        depth,      // Modulation depth
-    input  logic [PARAM_W-1:0]        mix         // Dry/wet mix
+    input  logic [PARAM_W-1:0]        fx_rate,       // LFO rate
+    input  logic [PARAM_W-1:0]        fx_depth,      // Modulation depth
+    input  logic [PARAM_W-1:0]        fx_mix,         // Dry/wet mix
+    input  logic                      sample_en
 );
 
     // Trivial assignment for now

@@ -62,6 +62,8 @@ package lab_pkg;
         end
     endfunction
 
+    parameter FX_STAGES = 9;
+
     // 7 Segment Display Definitions
                                 //  6543210
     parameter SEVSEG_SEG_BLANK = 7'b1111111;
