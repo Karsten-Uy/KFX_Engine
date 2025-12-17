@@ -1,5 +1,5 @@
 Flow report for AudioFX
-Tue Dec 16 16:08:05 2025
+Tue Dec 16 16:40:53 2025
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -40,15 +40,15 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Flow Summary                                                                  ;
 +---------------------------------+---------------------------------------------+
-; Flow Status                     ; Successful - Tue Dec 16 16:07:44 2025       ;
+; Flow Status                     ; Successful - Tue Dec 16 16:40:34 2025       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
 ; Family                          ; Cyclone V                                   ;
 ; Device                          ; 5CSEMA5F31C6                                ;
 ; Timing Models                   ; Final                                       ;
-; Logic utilization (in ALMs)     ; 1,447 / 32,070 ( 5 % )                      ;
-; Total registers                 ; 2690                                        ;
+; Logic utilization (in ALMs)     ; 1,454 / 32,070 ( 5 % )                      ;
+; Total registers                 ; 2688                                        ;
 ; Total pins                      ; 91 / 457 ( 20 % )                           ;
 ; Total virtual pins              ; 0                                           ;
 ; Total block memory bits         ; 11,776 / 4,065,280 ( < 1 % )                ;
@@ -67,7 +67,7 @@ refer to the applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 12/16/2025 16:04:23 ;
+; Start date & time ; 12/16/2025 16:37:27 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; AudioFX             ;
 +-------------------+---------------------+
@@ -78,7 +78,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------+-------------+------------------+
 ; Assignment Name                     ; Value                                                                                                                                                                        ; Default Value ; Entity Name ; Section Id       ;
 +-------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------+-------------+------------------+
-; COMPILER_SIGNATURE_ID               ; 91757564917.176592986327384                                                                                                                                                  ; --            ; --          ; --               ;
+; COMPILER_SIGNATURE_ID               ; 91757564917.176593184701140                                                                                                                                                  ; --            ; --          ; --               ;
 ; ENABLE_SIGNALTAP                    ; On                                                                                                                                                                           ; --            ; --          ; --               ;
 ; MAX_CORE_JUNCTION_TEMP              ; 85                                                                                                                                                                           ; --            ; --          ; --               ;
 ; MIN_CORE_JUNCTION_TEMP              ; 0                                                                                                                                                                            ; --            ; --          ; --               ;
@@ -142,11 +142,11 @@ refer to the applicable agreement for further details.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:01:30     ; 1.0                     ; 4962 MB             ; 00:02:23                           ;
-; Fitter               ; 00:01:28     ; 1.2                     ; 6760 MB             ; 00:03:00                           ;
-; Assembler            ; 00:00:15     ; 1.0                     ; 4857 MB             ; 00:00:13                           ;
-; Timing Analyzer      ; 00:00:19     ; 1.7                     ; 5244 MB             ; 00:00:30                           ;
-; Total                ; 00:03:32     ; --                      ; --                  ; 00:06:06                           ;
+; Analysis & Synthesis ; 00:01:29     ; 1.0                     ; 4971 MB             ; 00:02:33                           ;
+; Fitter               ; 00:01:19     ; 1.3                     ; 6786 MB             ; 00:02:56                           ;
+; Assembler            ; 00:00:09     ; 1.0                     ; 4857 MB             ; 00:00:08                           ;
+; Timing Analyzer      ; 00:00:18     ; 1.7                     ; 5247 MB             ; 00:00:29                           ;
+; Total                ; 00:03:15     ; --                      ; --                  ; 00:06:06                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 

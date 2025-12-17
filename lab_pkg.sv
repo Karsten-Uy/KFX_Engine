@@ -95,7 +95,10 @@ package lab_pkg;
 
     // ------------------- DSP Params -------------------
     parameter FX_STAGES = 9;
+
+    // Compressor
     parameter COMP_LOOKAHEAD = 64;
+    parameter ROUND_BIAS = 1 << 14;
 
     // ------------------- DSP Functions ---------------
     

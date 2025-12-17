@@ -173,14 +173,18 @@ module fx_compressor #(
     // APPLY GAIN TO DELAYED AUDIO
     // -----------------------------
     logic signed [31:0] prod_l, prod_r;
+    logic signed [31:0] raw_prod_l, raw_prod_r;
 
     always_comb begin
         // Multiply delayed audio by gain (both Q15)
         // prod_l = audio_delay[COMP_LOOKAHEAD][0] * $signed({1'b0, gain});
         // prod_r = audio_delay[COMP_LOOKAHEAD][1] * $signed({1'b0, gain});
 
-        prod_l = audio_in[0] * $signed({1'b0, gain});
-        prod_r = audio_in[1] * $signed({1'b0, gain});
+        raw_prod_l = $signed(audio_in[0]) * $signed(gain);
+        raw_prod_r = $signed(audio_in[1]) * $signed(gain);
+
+        prod_l = raw_prod_l + ROUND_BIAS;
+        prod_r = raw_prod_r + ROUND_BIAS;
     end
 
     always_ff @(posedge clk) begin
@@ -190,6 +194,8 @@ module fx_compressor #(
             // Shift down by 15 bits and saturate
             audio_out[0] <= sat16(prod_l >>> 15);
             audio_out[1] <= sat16(prod_r >>> 15);
+
+            // audio_out <= audio_in;
         end
     end
 

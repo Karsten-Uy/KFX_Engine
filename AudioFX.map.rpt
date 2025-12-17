@@ -1,5 +1,5 @@
 Analysis & Synthesis report for AudioFX
-Tue Dec 16 16:05:55 2025
+Tue Dec 16 16:39:00 2025
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -106,7 +106,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +---------------------------------+---------------------------------------------+
-; Analysis & Synthesis Status     ; Successful - Tue Dec 16 16:05:55 2025       ;
+; Analysis & Synthesis Status     ; Successful - Tue Dec 16 16:39:00 2025       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
@@ -353,14 +353,14 @@ refer to the applicable agreement for further details.
 +---------------------------------------------+----------------+
 ; Resource                                    ; Usage          ;
 +---------------------------------------------+----------------+
-; Estimate of Logic utilization (ALMs needed) ; 1701           ;
+; Estimate of Logic utilization (ALMs needed) ; 1697           ;
 ;                                             ;                ;
-; Combinational ALUT usage for logic          ; 1886           ;
-;     -- 7 input functions                    ; 4              ;
-;     -- 6 input functions                    ; 602            ;
-;     -- 5 input functions                    ; 194            ;
-;     -- 4 input functions                    ; 169            ;
-;     -- <=3 input functions                  ; 917            ;
+; Combinational ALUT usage for logic          ; 1882           ;
+;     -- 7 input functions                    ; 0              ;
+;     -- 6 input functions                    ; 603            ;
+;     -- 5 input functions                    ; 195            ;
+;     -- 4 input functions                    ; 172            ;
+;     -- <=3 input functions                  ; 912            ;
 ;                                             ;                ;
 ; Dedicated logic registers                   ; 2729           ;
 ;                                             ;                ;
@@ -375,7 +375,7 @@ refer to the applicable agreement for further details.
 ;                                             ;                ;
 ; Maximum fan-out node                        ; CLOCK_50~input ;
 ; Maximum fan-out                             ; 2382           ;
-; Total fan-out                               ; 18901          ;
+; Total fan-out                               ; 18873          ;
 ; Average fan-out                             ; 3.85           ;
 +---------------------------------------------+----------------+
 
@@ -385,7 +385,7 @@ refer to the applicable agreement for further details.
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------+--------------+
 ; Compilation Hierarchy Node                                                                                                              ; Combinational ALUTs ; Dedicated Logic Registers ; Block Memory Bits ; DSP Blocks ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                                                                                                                                                                                                                                 ; Entity Name                               ; Library Name ;
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------+--------------+
-; |AudioFX                                                                                                                                ; 1886 (5)            ; 2729 (43)                 ; 11776             ; 6          ; 91   ; 0            ; |AudioFX                                                                                                                                                                                                                                                                                                                                            ; AudioFX                                   ; work         ;
+; |AudioFX                                                                                                                                ; 1882 (5)            ; 2729 (43)                 ; 11776             ; 6          ; 91   ; 0            ; |AudioFX                                                                                                                                                                                                                                                                                                                                            ; AudioFX                                   ; work         ;
 ;    |AVConfig:u1|                                                                                                                        ; 122 (0)             ; 107 (0)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1                                                                                                                                                                                                                                                                                                                                ; AVConfig                                  ; AVConfig     ;
 ;       |AVConfig_audio_and_video_config_0:audio_and_video_config_0|                                                                      ; 122 (0)             ; 107 (0)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0                                                                                                                                                                                                                                                                     ; AVConfig_audio_and_video_config_0         ; AVConfig     ;
 ;          |altera_up_av_config_auto_init:AV_Config_Auto_Init|                                                                            ; 10 (10)             ; 26 (26)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init                                                                                                                                                                                                                   ; altera_up_av_config_auto_init             ; AVConfig     ;
@@ -430,14 +430,14 @@ refer to the applicable agreement for further details.
 ;       |AudioPLL_audio_pll_0:audio_pll_0|                                                                                                ; 0 (0)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0                                                                                                                                                                                                                                                                                               ; AudioPLL_audio_pll_0                      ; AudioPLL     ;
 ;          |AudioPLL_audio_pll_0_audio_pll:audio_pll|                                                                                     ; 0 (0)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll                                                                                                                                                                                                                                                      ; AudioPLL_audio_pll_0_audio_pll            ; AudioPLL     ;
 ;             |altera_pll:altera_pll_i|                                                                                                   ; 0 (0)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll|altera_pll:altera_pll_i                                                                                                                                                                                                                              ; altera_pll                                ; work         ;
-;    |controller:CONTROL|                                                                                                                 ; 951 (951)           ; 1166 (1166)               ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|controller:CONTROL                                                                                                                                                                                                                                                                                                                         ; controller                                ; work         ;
-;    |display:DISPLAY|                                                                                                                    ; 171 (29)            ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY                                                                                                                                                                                                                                                                                                                            ; display                                   ; work         ;
+;    |controller:CONTROL|                                                                                                                 ; 948 (948)           ; 1166 (1166)               ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|controller:CONTROL                                                                                                                                                                                                                                                                                                                         ; controller                                ; work         ;
+;    |display:DISPLAY|                                                                                                                    ; 170 (29)            ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY                                                                                                                                                                                                                                                                                                                            ; display                                   ; work         ;
 ;       |lpm_divide:Div0|                                                                                                                 ; 104 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|lpm_divide:Div0                                                                                                                                                                                                                                                                                                            ; lpm_divide                                ; work         ;
 ;          |lpm_divide_lbm:auto_generated|                                                                                                ; 104 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|lpm_divide:Div0|lpm_divide_lbm:auto_generated                                                                                                                                                                                                                                                                              ; lpm_divide_lbm                            ; work         ;
 ;             |sign_div_unsign_rlh:divider|                                                                                               ; 104 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|lpm_divide:Div0|lpm_divide_lbm:auto_generated|sign_div_unsign_rlh:divider                                                                                                                                                                                                                                                  ; sign_div_unsign_rlh                       ; work         ;
 ;                |alt_u_div_sve:divider|                                                                                                  ; 104 (104)           ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|lpm_divide:Div0|lpm_divide_lbm:auto_generated|sign_div_unsign_rlh:divider|alt_u_div_sve:divider                                                                                                                                                                                                                            ; alt_u_div_sve                             ; work         ;
 ;       |sevseg_display:H4|                                                                                                               ; 14 (14)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|sevseg_display:H4                                                                                                                                                                                                                                                                                                          ; sevseg_display                            ; work         ;
-;       |sevseg_display:H5|                                                                                                               ; 24 (24)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|sevseg_display:H5                                                                                                                                                                                                                                                                                                          ; sevseg_display                            ; work         ;
+;       |sevseg_display:H5|                                                                                                               ; 23 (23)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|sevseg_display:H5                                                                                                                                                                                                                                                                                                          ; sevseg_display                            ; work         ;
 ;    |fx_chorus:FX_CHORUS|                                                                                                                ; 1 (1)               ; 32 (32)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_chorus:FX_CHORUS                                                                                                                                                                                                                                                                                                                        ; fx_chorus                                 ; work         ;
 ;    |fx_compressor:FX_COMPRESSOR|                                                                                                        ; 31 (31)             ; 32 (32)                   ; 0                 ; 2          ; 0    ; 0            ; |AudioFX|fx_compressor:FX_COMPRESSOR                                                                                                                                                                                                                                                                                                                ; fx_compressor                             ; work         ;
 ;    |fx_delay:FX_DELAY|                                                                                                                  ; 1 (1)               ; 32 (32)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_delay:FX_DELAY                                                                                                                                                                                                                                                                                                                          ; fx_delay                                  ; work         ;
@@ -552,11 +552,11 @@ Note: For table entries with two numbers listed, the numbers in parentheses indi
 +-----------------------------------+-------------+
 ; Statistic                         ; Number Used ;
 +-----------------------------------+-------------+
-; Two Independent 18x18             ; 6           ;
+; Two Independent 18x18             ; 4           ;
+; Independent 18x18 plus 36         ; 2           ;
 ; Total number of DSP blocks        ; 6           ;
 ;                                   ;             ;
-; Fixed Point Unsigned Multiplier   ; 2           ;
-; Fixed Point Mixed Sign Multiplier ; 4           ;
+; Fixed Point Mixed Sign Multiplier ; 6           ;
 +-----------------------------------+-------------+
 
 
@@ -683,11 +683,11 @@ Encoding Type:  One-Hot
 ; Statistic                                    ; Value ;
 +----------------------------------------------+-------+
 ; Total registers                              ; 2729  ;
-; Number of registers using Synchronous Clear  ; 1840  ;
-; Number of registers using Synchronous Load   ; 163   ;
+; Number of registers using Synchronous Clear  ; 1827  ;
+; Number of registers using Synchronous Load   ; 164   ;
 ; Number of registers using Asynchronous Clear ; 305   ;
 ; Number of registers using Asynchronous Load  ; 0     ;
-; Number of registers using Clock Enable       ; 1828  ;
+; Number of registers using Clock Enable       ; 1827  ;
 ; Number of registers using Preset             ; 0     ;
 +----------------------------------------------+-------+
 
@@ -772,7 +772,7 @@ Encoding Type:  One-Hot
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][5][3]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][6][3]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][7][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][0][1]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][0][1]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][1][1]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][2][5]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][3][1]                                                                                                                              ;
@@ -1952,14 +1952,14 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; Type                  ; Count                       ;
 +-----------------------+-----------------------------+
 ; arriav_ff             ; 1775                        ;
-;     ENA               ; 11                          ;
-;     ENA SCLR          ; 1417                        ;
+;     ENA               ; 23                          ;
+;     ENA SCLR          ; 1404                        ;
 ;     SCLR              ; 322                         ;
 ;     SCLR SLD          ; 2                           ;
-;     SLD               ; 8                           ;
+;     SLD               ; 9                           ;
 ;     plain             ; 15                          ;
 ; arriav_io_obuf        ; 4                           ;
-; arriav_lcell_comb     ; 1536                        ;
+; arriav_lcell_comb     ; 1532                        ;
 ;     arith             ; 292                         ;
 ;         0 data inputs ; 8                           ;
 ;         1 data inputs ; 218                         ;
@@ -1967,23 +1967,21 @@ Note: In order to hide this table in the UI and the text report file, please set
 ;         3 data inputs ; 15                          ;
 ;         4 data inputs ; 17                          ;
 ;         5 data inputs ; 12                          ;
-;     extend            ; 4                           ;
-;         7 data inputs ; 4                           ;
 ;     normal            ; 1240                        ;
 ;         0 data inputs ; 2                           ;
 ;         1 data inputs ; 10                          ;
-;         2 data inputs ; 223                         ;
+;         2 data inputs ; 218                         ;
 ;         3 data inputs ; 279                         ;
-;         4 data inputs ; 115                         ;
-;         5 data inputs ; 86                          ;
-;         6 data inputs ; 525                         ;
+;         4 data inputs ; 118                         ;
+;         5 data inputs ; 87                          ;
+;         6 data inputs ; 526                         ;
 ; arriav_mac            ; 6                           ;
 ; boundary_port         ; 91                          ;
 ; generic_pll           ; 1                           ;
 ; stratixv_ram_block    ; 48                          ;
 ;                       ;                             ;
 ; Max LUT depth         ; 22.00                       ;
-; Average LUT depth     ; 10.27                       ;
+; Average LUT depth     ; 10.26                       ;
 +-----------------------+-----------------------------+
 
 
@@ -2131,33 +2129,33 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Tue Dec 16 16:04:22 2025
+    Info: Processing started: Tue Dec 16 16:37:26 2025
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off AudioFX -c AudioFX
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
 Info (12248): Elaborating Platform Designer system entity "AVConfig.qsys"
-Info (12250): 2025.12.16.16:04:37 Progress: Loading HaH_processor/AVConfig.qsys
-Info (12250): 2025.12.16.16:04:39 Progress: Reading input file
-Info (12250): 2025.12.16.16:04:39 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
-Info (12250): 2025.12.16.16:04:40 Progress: Parameterizing module audio_and_video_config_0
-Info (12250): 2025.12.16.16:04:40 Progress: Building connections
-Info (12250): 2025.12.16.16:04:40 Progress: Parameterizing connections
-Info (12250): 2025.12.16.16:04:40 Progress: Validating
-Info (12250): 2025.12.16.16:04:41 Progress: Done reading input file
+Info (12250): 2025.12.16.16:37:43 Progress: Loading HaH_processor/AVConfig.qsys
+Info (12250): 2025.12.16.16:37:44 Progress: Reading input file
+Info (12250): 2025.12.16.16:37:44 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
+Info (12250): 2025.12.16.16:37:46 Progress: Parameterizing module audio_and_video_config_0
+Info (12250): 2025.12.16.16:37:46 Progress: Building connections
+Info (12250): 2025.12.16.16:37:46 Progress: Parameterizing connections
+Info (12250): 2025.12.16.16:37:46 Progress: Validating
+Info (12250): 2025.12.16.16:37:46 Progress: Done reading input file
 Info (12250): AVConfig: Generating AVConfig "AVConfig" for QUARTUS_SYNTH
 Info (12250): Audio_and_video_config_0: Starting Generation of Audio and Video Config
 Info (12250): Audio_and_video_config_0: "AVConfig" instantiated altera_up_avalon_audio_and_video_config "audio_and_video_config_0"
 Info (12250): AVConfig: Done "AVConfig" with 2 modules, 16 files
 Info (12249): Finished elaborating Platform Designer system entity "AVConfig.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioPLL.qsys"
-Info (12250): 2025.12.16.16:04:49 Progress: Loading HaH_processor/AudioPLL.qsys
-Info (12250): 2025.12.16.16:04:51 Progress: Reading input file
-Info (12250): 2025.12.16.16:04:51 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
-Info (12250): 2025.12.16.16:04:51 Progress: Parameterizing module audio_pll_0
-Info (12250): 2025.12.16.16:04:51 Progress: Building connections
-Info (12250): 2025.12.16.16:04:51 Progress: Parameterizing connections
-Info (12250): 2025.12.16.16:04:51 Progress: Validating
-Info (12250): 2025.12.16.16:04:55 Progress: Done reading input file
+Info (12250): 2025.12.16.16:37:57 Progress: Loading HaH_processor/AudioPLL.qsys
+Info (12250): 2025.12.16.16:37:58 Progress: Reading input file
+Info (12250): 2025.12.16.16:37:58 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info (12250): 2025.12.16.16:37:58 Progress: Parameterizing module audio_pll_0
+Info (12250): 2025.12.16.16:37:58 Progress: Building connections
+Info (12250): 2025.12.16.16:37:58 Progress: Parameterizing connections
+Info (12250): 2025.12.16.16:37:59 Progress: Validating
+Info (12250): 2025.12.16.16:38:03 Progress: Done reading input file
 Info (12250): AudioPLL: Generating AudioPLL "AudioPLL" for QUARTUS_SYNTH
 Info (12250): Audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
 Info (12250): Audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
@@ -2165,14 +2163,14 @@ Info (12250): Reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_res
 Info (12250): AudioPLL: Done "AudioPLL" with 4 modules, 5 files
 Info (12249): Finished elaborating Platform Designer system entity "AudioPLL.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioCodec.qsys"
-Info (12250): 2025.12.16.16:05:10 Progress: Loading HaH_processor/AudioCodec.qsys
-Info (12250): 2025.12.16.16:05:11 Progress: Reading input file
-Info (12250): 2025.12.16.16:05:11 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
-Info (12250): 2025.12.16.16:05:12 Progress: Parameterizing module audio_0
-Info (12250): 2025.12.16.16:05:12 Progress: Building connections
-Info (12250): 2025.12.16.16:05:12 Progress: Parameterizing connections
-Info (12250): 2025.12.16.16:05:12 Progress: Validating
-Info (12250): 2025.12.16.16:05:13 Progress: Done reading input file
+Info (12250): 2025.12.16.16:38:15 Progress: Loading HaH_processor/AudioCodec.qsys
+Info (12250): 2025.12.16.16:38:17 Progress: Reading input file
+Info (12250): 2025.12.16.16:38:17 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
+Info (12250): 2025.12.16.16:38:18 Progress: Parameterizing module audio_0
+Info (12250): 2025.12.16.16:38:18 Progress: Building connections
+Info (12250): 2025.12.16.16:38:18 Progress: Parameterizing connections
+Info (12250): 2025.12.16.16:38:18 Progress: Validating
+Info (12250): 2025.12.16.16:38:19 Progress: Done reading input file
 Info (12250): AudioCodec: Generating AudioCodec "AudioCodec" for QUARTUS_SYNTH
 Info (12250): Audio_0: Starting Generation of Audio Controller
 Info (12250): Audio_0: "AudioCodec" instantiated altera_up_avalon_audio "audio_0"
@@ -2479,7 +2477,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr
     Info (12023): Found entity 1: cmpr_99c File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/cmpr_99c.tdf Line: 22
 Info (12033): Analysis and Synthesis generated Signal Tap or debug node instance "auto_signaltap_0"
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2025.12.16.16:05:32 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2025.12.16.16:38:38 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: Generating alt_sld_fab "alt_sld_fab" for QUARTUS_SYNTH
 Info (11172): Alt_sld_fab: "alt_sld_fab" instantiated alt_sld_fab "alt_sld_fab"
@@ -2577,19 +2575,19 @@ Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 16 node(s), including 0 DDIO, 1 PLL, 0 transceiver and 0 LCELL
 Warning (21074): Design contains 1 input pin(s) that do not drive logic
     Warning (15610): No output dependent on input pin "KEY[1]" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 43
-Info (21057): Implemented 4019 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 4015 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 19 input pins
     Info (21059): Implemented 72 output pins
     Info (21060): Implemented 4 bidirectional pins
-    Info (21061): Implemented 3824 logic cells
+    Info (21061): Implemented 3820 logic cells
     Info (21064): Implemented 92 RAM segments
     Info (21065): Implemented 1 PLLs
     Info (21062): Implemented 6 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 66 warnings
-    Info: Peak virtual memory: 4962 megabytes
-    Info: Processing ended: Tue Dec 16 16:05:55 2025
-    Info: Elapsed time: 00:01:33
-    Info: Total CPU time (on all processors): 00:02:26
+    Info: Peak virtual memory: 4971 megabytes
+    Info: Processing ended: Tue Dec 16 16:39:00 2025
+    Info: Elapsed time: 00:01:34
+    Info: Total CPU time (on all processors): 00:02:37
 
 
 +------------------------------------------+

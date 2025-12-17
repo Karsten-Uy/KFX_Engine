@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="AudioPLL" kind="AudioPLL" version="1.0" fabric="QSYS">
  <!-- Format version 18.1 625 (Future versions may contain additional information.) -->
- <!-- 2025.12.16.16:04:58 -->
+ <!-- 2025.12.16.16:38:04 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1765929898</value>
+  <value>1765931884</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
