@@ -133,8 +133,9 @@ module fx_compressor #(
 
     always_comb begin
         // Multiply delayed audio by gain (both Q15)
-        prod_l = $signed(audio_delay[COMP_LOOKAHEAD][0]) * $signed({1'b0, gain});
-        prod_r = $signed(audio_delay[COMP_LOOKAHEAD][1]) * $signed({1'b0, gain});
+        prod_l = $signed(audio_delay[COMP_LOOKAHEAD][0]) * $signed({1'b0,gain});
+        prod_r = $signed(audio_delay[COMP_LOOKAHEAD][1]) * $signed({1'b0,gain});
+
     end
 
     always_ff @(posedge clk) begin

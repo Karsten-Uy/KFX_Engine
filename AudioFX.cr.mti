@@ -73,13 +73,6 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 Top level modules:
 	controller
 
-} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv
-Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module fx_gate
-
-Top level modules:
-	fx_gate
-
 } {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
 -- Compiling module display
@@ -88,11 +81,11 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 Top level modules:
 	display
 
-} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv
+} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling package lab_pkg
+-- Compiling module fx_gate
 
 Top level modules:
-	--none--
+	fx_gate
 
 } {} {}}

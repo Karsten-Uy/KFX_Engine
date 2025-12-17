@@ -99,7 +99,8 @@ package lab_pkg;
     // Compressor
     parameter COMP_LOOKAHEAD = 16;
     parameter ROUND_BIAS = 1 << 14;
-    parameter logic [15:0] UNITY_Q15 = 16'd32766;  // SAFE unity
+    // parameter logic [15:0] UNITY_Q15 = 16'd32766;  // SAFE unity
+    parameter logic [15:0] UNITY_Q15 = 16'h7FFF;  // SAFE unity
     parameter logic [15:0] MIN_GAIN  = 16'd100;
 
     // ------------------- DSP Functions ---------------
