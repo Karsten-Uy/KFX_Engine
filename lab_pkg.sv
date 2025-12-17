@@ -48,10 +48,10 @@ package lab_pkg;
 
                 3: begin // Compressor
                     case (param)
-                        0: param_default = 8'd20;
+                        0: param_default = 8'd32;
                         1: param_default = 8'd4;
-                        2: param_default = 8'd10;
-                        3: param_default = 8'd50;
+                        2: param_default = 8'd64;
+                        3: param_default = 8'd64;
                     endcase
                 end
 
@@ -97,8 +97,10 @@ package lab_pkg;
     parameter FX_STAGES = 9;
 
     // Compressor
-    parameter COMP_LOOKAHEAD = 64;
+    parameter COMP_LOOKAHEAD = 16;
     parameter ROUND_BIAS = 1 << 14;
+    parameter logic [15:0] UNITY_Q15 = 16'd32766;  // SAFE unity
+    parameter logic [15:0] MIN_GAIN  = 16'd100;
 
     // ------------------- DSP Functions ---------------
     

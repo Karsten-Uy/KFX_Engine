@@ -1,5 +1,5 @@
 Analysis & Synthesis report for AudioFX
-Tue Dec 16 16:39:00 2025
+Tue Dec 16 17:51:22 2025
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -59,28 +59,29 @@ Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
  51. Parameter Settings for User Entity Instance: fx_gain:FX_OUTPUT_GAIN
  52. Parameter Settings for Inferred Entity Instance: sld_signaltap:auto_signaltap_0
  53. Parameter Settings for Inferred Entity Instance: display:DISPLAY|lpm_divide:Div0
- 54. scfifo Parameter Settings by Entity Instance
- 55. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H5"
- 56. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H4"
- 57. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H3"
- 58. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H2"
- 59. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H1"
- 60. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H0"
- 61. Port Connectivity Checks: "controller:CONTROL"
- 62. Port Connectivity Checks: "AudioCodec:u2"
- 63. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|altera_up_slow_clock_generator:Serial_Config_Clock_Generator"
- 64. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller"
- 65. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init"
- 66. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0"
- 67. Port Connectivity Checks: "AVConfig:u1"
- 68. Port Connectivity Checks: "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll|altera_pll:altera_pll_i"
- 69. Port Connectivity Checks: "AudioPLL:u0"
- 70. Signal Tap Logic Analyzer Settings
- 71. Post-Synthesis Netlist Statistics for Top Partition
- 72. Elapsed Time Per Partition
- 73. Connections to In-System Debugging Instance "auto_signaltap_0"
- 74. Analysis & Synthesis Messages
- 75. Analysis & Synthesis Suppressed Messages
+ 54. Parameter Settings for Inferred Entity Instance: fx_compressor:FX_COMPRESSOR|lpm_divide:Div0
+ 55. scfifo Parameter Settings by Entity Instance
+ 56. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H5"
+ 57. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H4"
+ 58. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H3"
+ 59. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H2"
+ 60. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H1"
+ 61. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H0"
+ 62. Port Connectivity Checks: "controller:CONTROL"
+ 63. Port Connectivity Checks: "AudioCodec:u2"
+ 64. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|altera_up_slow_clock_generator:Serial_Config_Clock_Generator"
+ 65. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller"
+ 66. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init"
+ 67. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0"
+ 68. Port Connectivity Checks: "AVConfig:u1"
+ 69. Port Connectivity Checks: "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll|altera_pll:altera_pll_i"
+ 70. Port Connectivity Checks: "AudioPLL:u0"
+ 71. Signal Tap Logic Analyzer Settings
+ 72. Post-Synthesis Netlist Statistics for Top Partition
+ 73. Elapsed Time Per Partition
+ 74. Connections to In-System Debugging Instance "auto_signaltap_0"
+ 75. Analysis & Synthesis Messages
+ 76. Analysis & Synthesis Suppressed Messages
 
 
 
@@ -106,17 +107,17 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +---------------------------------+---------------------------------------------+
-; Analysis & Synthesis Status     ; Successful - Tue Dec 16 16:39:00 2025       ;
+; Analysis & Synthesis Status     ; Successful - Tue Dec 16 17:51:22 2025       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
 ; Family                          ; Cyclone V                                   ;
 ; Logic utilization (in ALMs)     ; N/A                                         ;
-; Total registers                 ; 2729                                        ;
+; Total registers                 ; 3305                                        ;
 ; Total pins                      ; 91                                          ;
 ; Total virtual pins              ; 0                                           ;
 ; Total block memory bits         ; 11,776                                      ;
-; Total DSP Blocks                ; 6                                           ;
+; Total DSP Blocks                ; 7                                           ;
 ; Total HSSI RX PCSs              ; 0                                           ;
 ; Total HSSI PMA RX Deserializers ; 0                                           ;
 ; Total HSSI TX PCSs              ; 0                                           ;
@@ -345,6 +346,9 @@ refer to the applicable agreement for further details.
 ; db/lpm_divide_lbm.tdf                                                     ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/lpm_divide_lbm.tdf                                                     ;             ;
 ; db/sign_div_unsign_rlh.tdf                                                ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/sign_div_unsign_rlh.tdf                                                ;             ;
 ; db/alt_u_div_sve.tdf                                                      ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/alt_u_div_sve.tdf                                                      ;             ;
+; db/lpm_divide_nbm.tdf                                                     ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/lpm_divide_nbm.tdf                                                     ;             ;
+; db/sign_div_unsign_tlh.tdf                                                ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/sign_div_unsign_tlh.tdf                                                ;             ;
+; db/alt_u_div_00f.tdf                                                      ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/alt_u_div_00f.tdf                                                      ;             ;
 +---------------------------------------------------------------------------+-----------------+----------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------+-------------+
 
 
@@ -353,30 +357,30 @@ refer to the applicable agreement for further details.
 +---------------------------------------------+----------------+
 ; Resource                                    ; Usage          ;
 +---------------------------------------------+----------------+
-; Estimate of Logic utilization (ALMs needed) ; 1697           ;
+; Estimate of Logic utilization (ALMs needed) ; 2200           ;
 ;                                             ;                ;
-; Combinational ALUT usage for logic          ; 1882           ;
+; Combinational ALUT usage for logic          ; 2625           ;
 ;     -- 7 input functions                    ; 0              ;
-;     -- 6 input functions                    ; 603            ;
-;     -- 5 input functions                    ; 195            ;
-;     -- 4 input functions                    ; 172            ;
-;     -- <=3 input functions                  ; 912            ;
+;     -- 6 input functions                    ; 780            ;
+;     -- 5 input functions                    ; 344            ;
+;     -- 4 input functions                    ; 265            ;
+;     -- <=3 input functions                  ; 1236           ;
 ;                                             ;                ;
-; Dedicated logic registers                   ; 2729           ;
+; Dedicated logic registers                   ; 3305           ;
 ;                                             ;                ;
 ; I/O pins                                    ; 91             ;
 ; Total MLAB memory bits                      ; 0              ;
 ; Total block memory bits                     ; 11776          ;
 ;                                             ;                ;
-; Total DSP Blocks                            ; 6              ;
+; Total DSP Blocks                            ; 7              ;
 ;                                             ;                ;
 ; Total PLLs                                  ; 1              ;
 ;     -- PLLs                                 ; 1              ;
 ;                                             ;                ;
 ; Maximum fan-out node                        ; CLOCK_50~input ;
-; Maximum fan-out                             ; 2382           ;
-; Total fan-out                               ; 18873          ;
-; Average fan-out                             ; 3.85           ;
+; Maximum fan-out                             ; 2958           ;
+; Total fan-out                               ; 24241          ;
+; Average fan-out                             ; 3.89           ;
 +---------------------------------------------+----------------+
 
 
@@ -385,7 +389,7 @@ refer to the applicable agreement for further details.
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------+--------------+
 ; Compilation Hierarchy Node                                                                                                              ; Combinational ALUTs ; Dedicated Logic Registers ; Block Memory Bits ; DSP Blocks ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                                                                                                                                                                                                                                 ; Entity Name                               ; Library Name ;
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------+--------------+
-; |AudioFX                                                                                                                                ; 1882 (5)            ; 2729 (43)                 ; 11776             ; 6          ; 91   ; 0            ; |AudioFX                                                                                                                                                                                                                                                                                                                                            ; AudioFX                                   ; work         ;
+; |AudioFX                                                                                                                                ; 2625 (5)            ; 3305 (43)                 ; 11776             ; 7          ; 91   ; 0            ; |AudioFX                                                                                                                                                                                                                                                                                                                                            ; AudioFX                                   ; work         ;
 ;    |AVConfig:u1|                                                                                                                        ; 122 (0)             ; 107 (0)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1                                                                                                                                                                                                                                                                                                                                ; AVConfig                                  ; AVConfig     ;
 ;       |AVConfig_audio_and_video_config_0:audio_and_video_config_0|                                                                      ; 122 (0)             ; 107 (0)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0                                                                                                                                                                                                                                                                     ; AVConfig_audio_and_video_config_0         ; AVConfig     ;
 ;          |altera_up_av_config_auto_init:AV_Config_Auto_Init|                                                                            ; 10 (10)             ; 26 (26)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init                                                                                                                                                                                                                   ; altera_up_av_config_auto_init             ; AVConfig     ;
@@ -394,8 +398,8 @@ refer to the applicable agreement for further details.
 ;             |altera_up_av_config_auto_init_ob_audio:Auto_Init_Audio_ROM|                                                                ; 1 (1)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init_ob_de1_soc:Auto_Init_OB_Devices_ROM|altera_up_av_config_auto_init_ob_audio:Auto_Init_Audio_ROM                                                                                                                                        ; altera_up_av_config_auto_init_ob_audio    ; AVConfig     ;
 ;          |altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|                                                              ; 94 (78)             ; 81 (67)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller                                                                                                                                                                                                     ; altera_up_av_config_serial_bus_controller ; AVConfig     ;
 ;             |altera_up_slow_clock_generator:Serial_Config_Clock_Generator|                                                              ; 16 (16)             ; 14 (14)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|altera_up_slow_clock_generator:Serial_Config_Clock_Generator                                                                                                                                        ; altera_up_slow_clock_generator            ; AVConfig     ;
-;    |AudioCodec:u2|                                                                                                                      ; 184 (0)             ; 171 (0)                   ; 6144              ; 0          ; 0    ; 0            ; |AudioFX|AudioCodec:u2                                                                                                                                                                                                                                                                                                                              ; AudioCodec                                ; AudioCodec   ;
-;       |AudioCodec_audio_0:audio_0|                                                                                                      ; 184 (8)             ; 171 (2)                   ; 6144              ; 0          ; 0    ; 0            ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0                                                                                                                                                                                                                                                                                                   ; AudioCodec_audio_0                        ; AudioCodec   ;
+;    |AudioCodec:u2|                                                                                                                      ; 185 (0)             ; 171 (0)                   ; 6144              ; 0          ; 0    ; 0            ; |AudioFX|AudioCodec:u2                                                                                                                                                                                                                                                                                                                              ; AudioCodec                                ; AudioCodec   ;
+;       |AudioCodec_audio_0:audio_0|                                                                                                      ; 185 (9)             ; 171 (2)                   ; 6144              ; 0          ; 0    ; 0            ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0                                                                                                                                                                                                                                                                                                   ; AudioCodec_audio_0                        ; AudioCodec   ;
 ;          |altera_up_audio_in_deserializer:Audio_In_Deserializer|                                                                        ; 53 (3)              ; 63 (24)                   ; 2048              ; 0          ; 0    ; 0            ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer                                                                                                                                                                                                                                             ; altera_up_audio_in_deserializer           ; AudioCodec   ;
 ;             |altera_up_audio_bit_counter:Audio_Out_Bit_Counter|                                                                         ; 10 (10)             ; 6 (6)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|altera_up_audio_bit_counter:Audio_Out_Bit_Counter                                                                                                                                                                                           ; altera_up_audio_bit_counter               ; AudioCodec   ;
 ;             |altera_up_sync_fifo:Audio_In_Left_Channel_FIFO|                                                                            ; 40 (0)              ; 33 (0)                    ; 2048              ; 0          ; 0    ; 0            ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|altera_up_sync_fifo:Audio_In_Left_Channel_FIFO                                                                                                                                                                                              ; altera_up_sync_fifo                       ; AudioCodec   ;
@@ -430,7 +434,7 @@ refer to the applicable agreement for further details.
 ;       |AudioPLL_audio_pll_0:audio_pll_0|                                                                                                ; 0 (0)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0                                                                                                                                                                                                                                                                                               ; AudioPLL_audio_pll_0                      ; AudioPLL     ;
 ;          |AudioPLL_audio_pll_0_audio_pll:audio_pll|                                                                                     ; 0 (0)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll                                                                                                                                                                                                                                                      ; AudioPLL_audio_pll_0_audio_pll            ; AudioPLL     ;
 ;             |altera_pll:altera_pll_i|                                                                                                   ; 0 (0)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll|altera_pll:altera_pll_i                                                                                                                                                                                                                              ; altera_pll                                ; work         ;
-;    |controller:CONTROL|                                                                                                                 ; 948 (948)           ; 1166 (1166)               ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|controller:CONTROL                                                                                                                                                                                                                                                                                                                         ; controller                                ; work         ;
+;    |controller:CONTROL|                                                                                                                 ; 953 (953)           ; 1166 (1166)               ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|controller:CONTROL                                                                                                                                                                                                                                                                                                                         ; controller                                ; work         ;
 ;    |display:DISPLAY|                                                                                                                    ; 170 (29)            ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY                                                                                                                                                                                                                                                                                                                            ; display                                   ; work         ;
 ;       |lpm_divide:Div0|                                                                                                                 ; 104 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|lpm_divide:Div0                                                                                                                                                                                                                                                                                                            ; lpm_divide                                ; work         ;
 ;          |lpm_divide_lbm:auto_generated|                                                                                                ; 104 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|lpm_divide:Div0|lpm_divide_lbm:auto_generated                                                                                                                                                                                                                                                                              ; lpm_divide_lbm                            ; work         ;
@@ -439,7 +443,11 @@ refer to the applicable agreement for further details.
 ;       |sevseg_display:H4|                                                                                                               ; 14 (14)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|sevseg_display:H4                                                                                                                                                                                                                                                                                                          ; sevseg_display                            ; work         ;
 ;       |sevseg_display:H5|                                                                                                               ; 23 (23)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|display:DISPLAY|sevseg_display:H5                                                                                                                                                                                                                                                                                                          ; sevseg_display                            ; work         ;
 ;    |fx_chorus:FX_CHORUS|                                                                                                                ; 1 (1)               ; 32 (32)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_chorus:FX_CHORUS                                                                                                                                                                                                                                                                                                                        ; fx_chorus                                 ; work         ;
-;    |fx_compressor:FX_COMPRESSOR|                                                                                                        ; 31 (31)             ; 32 (32)                   ; 0                 ; 2          ; 0    ; 0            ; |AudioFX|fx_compressor:FX_COMPRESSOR                                                                                                                                                                                                                                                                                                                ; fx_compressor                             ; work         ;
+;    |fx_compressor:FX_COMPRESSOR|                                                                                                        ; 768 (544)           ; 608 (608)                 ; 0                 ; 3          ; 0    ; 0            ; |AudioFX|fx_compressor:FX_COMPRESSOR                                                                                                                                                                                                                                                                                                                ; fx_compressor                             ; work         ;
+;       |lpm_divide:Div0|                                                                                                                 ; 224 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_compressor:FX_COMPRESSOR|lpm_divide:Div0                                                                                                                                                                                                                                                                                                ; lpm_divide                                ; work         ;
+;          |lpm_divide_nbm:auto_generated|                                                                                                ; 224 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_compressor:FX_COMPRESSOR|lpm_divide:Div0|lpm_divide_nbm:auto_generated                                                                                                                                                                                                                                                                  ; lpm_divide_nbm                            ; work         ;
+;             |sign_div_unsign_tlh:divider|                                                                                               ; 224 (0)             ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_compressor:FX_COMPRESSOR|lpm_divide:Div0|lpm_divide_nbm:auto_generated|sign_div_unsign_tlh:divider                                                                                                                                                                                                                                      ; sign_div_unsign_tlh                       ; work         ;
+;                |alt_u_div_00f:divider|                                                                                                  ; 224 (224)           ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_compressor:FX_COMPRESSOR|lpm_divide:Div0|lpm_divide_nbm:auto_generated|sign_div_unsign_tlh:divider|alt_u_div_00f:divider                                                                                                                                                                                                                ; alt_u_div_00f                             ; work         ;
 ;    |fx_delay:FX_DELAY|                                                                                                                  ; 1 (1)               ; 32 (32)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_delay:FX_DELAY                                                                                                                                                                                                                                                                                                                          ; fx_delay                                  ; work         ;
 ;    |fx_distortion:FX_DISTORTION|                                                                                                        ; 1 (1)               ; 32 (32)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_distortion:FX_DISTORTION                                                                                                                                                                                                                                                                                                                ; fx_distortion                             ; work         ;
 ;    |fx_eq:FX_EQ|                                                                                                                        ; 1 (1)               ; 32 (32)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|fx_eq:FX_EQ                                                                                                                                                                                                                                                                                                                                ; fx_eq                                     ; work         ;
@@ -552,10 +560,10 @@ Note: For table entries with two numbers listed, the numbers in parentheses indi
 +-----------------------------------+-------------+
 ; Statistic                         ; Number Used ;
 +-----------------------------------+-------------+
-; Two Independent 18x18             ; 4           ;
-; Independent 18x18 plus 36         ; 2           ;
-; Total number of DSP blocks        ; 6           ;
+; Two Independent 18x18             ; 7           ;
+; Total number of DSP blocks        ; 7           ;
 ;                                   ;             ;
+; Fixed Point Unsigned Multiplier   ; 1           ;
 ; Fixed Point Mixed Sign Multiplier ; 6           ;
 +-----------------------------------+-------------+
 
@@ -682,12 +690,12 @@ Encoding Type:  One-Hot
 +----------------------------------------------+-------+
 ; Statistic                                    ; Value ;
 +----------------------------------------------+-------+
-; Total registers                              ; 2729  ;
-; Number of registers using Synchronous Clear  ; 1827  ;
-; Number of registers using Synchronous Load   ; 164   ;
+; Total registers                              ; 3305  ;
+; Number of registers using Synchronous Clear  ; 2393  ;
+; Number of registers using Synchronous Load   ; 175   ;
 ; Number of registers using Asynchronous Clear ; 305   ;
 ; Number of registers using Asynchronous Load  ; 0     ;
-; Number of registers using Clock Enable       ; 1827  ;
+; Number of registers using Clock Enable       ; 2398  ;
 ; Number of registers using Preset             ; 0     ;
 +----------------------------------------------+-------+
 
@@ -716,166 +724,171 @@ Encoding Type:  One-Hot
 +--------------------+-----------+---------------+----------------------+------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ; Multiplexer Inputs ; Bus Width ; Baseline Area ; Area if Restructured ; Saving if Restructured ; Registered ; Example Multiplexer Output                                                                                                                                               ;
 +--------------------+-----------+---------------+----------------------+------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][0][7]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][1][4]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][0][4]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][1][3]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][2][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][3][2]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][4][1]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][5][7]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][6][4]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][7][5]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][0][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][1][6]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][2][7]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][3][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][4][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][5][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][6][6]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[15][7][1]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][0][7]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][1][5]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][2][4]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][3][4]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][4][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][4][7]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][5][6]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][6][5]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][7][7]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][0][7]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][1][7]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][2][2]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][6][4]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[14][7][5]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][0][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][1][5]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][2][5]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][3][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][4][5]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][5][6]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][6][1]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][4][6]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][5][4]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][6][4]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[13][7][1]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][0][5]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][1][6]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][2][6]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][3][6]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][4][1]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][5][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][6][6]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][7][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][0][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][0][1]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][1][1]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][2][1]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][3][2]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][4][2]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][5][5]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][6][2]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[12][7][1]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][0][5]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][1][3]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][2][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][3][4]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][4][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][5][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][6][5]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][7][1]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][0][4]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][1][4]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][2][7]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][3][4]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][3][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][4][6]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][5][6]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][6][2]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[11][7][6]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][0][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][1][3]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][2][2]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][3][2]                                                                                                                             ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][4][4]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][5][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][6][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][7][3]                                                                                                                             ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][0][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][1][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][2][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][3][3]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][5][4]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][6][5]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[10][7][5]                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][0][5]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][1][5]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][2][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][3][7]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][4][3]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][5][3]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][6][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][7][3]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][0][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][1][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][2][5]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][3][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][4][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][5][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][6][7]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][7][7]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][0][2]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][1][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][2][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][3][2]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][4][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][5][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[9][7][5]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][0][5]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][1][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][2][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][3][3]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][4][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][5][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][6][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[8][7][1]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][0][1]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][1][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][2][3]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][3][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][4][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][5][3]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][6][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][7][7]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][0][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][1][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][2][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][3][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[7][7][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][0][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][1][5]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][2][5]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][3][5]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][4][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][5][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][6][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][7][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][0][3]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][5][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][6][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[6][7][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][0][5]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][1][7]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][2][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][2][3]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][3][4]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][4][5]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][5][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][6][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][7][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][0][2]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][1][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][2][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][3][7]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][4][5]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][5][7]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][6][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][7][7]                                                                                                                              ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][0][3]                                                                                                                              ;
-; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][0][4]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][1][4]                                                                                                                              ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][2][5]                                                                                                                              ;
-; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][2][3]                                                                                                                              ;
-; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][3][2]                                                                                                                              ;
-; 3:1                ; 3 bits    ; 6 LEs         ; 3 LEs                ; 3 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][3][5]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][4][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][5][4]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][6][5]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][7][6]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][0][7]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][1][6]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][2][6]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][3][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][4][3]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][5][2]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][6][2]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][7][3]                                                                                                                              ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][0][5]                                                                                                                              ;
-; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][0][3]                                                                                                                              ;
-; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][1][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][6][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[5][7][1]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][0][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][1][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][2][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][3][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][4][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][5][1]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][6][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[4][7][2]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][0][2]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][1][5]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][2][4]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][3][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][4][1]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][5][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][6][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[3][7][3]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][0][4]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][1][7]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][2][7]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][3][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][4][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][5][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][6][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[2][7][6]                                                                                                                              ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][0][6]                                                                                                                              ;
+; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][0][1]                                                                                                                              ;
+; 3:1                ; 5 bits    ; 10 LEs        ; 5 LEs                ; 5 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][1][4]                                                                                                                              ;
 ; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][1][5]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][2][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][3][6]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][2][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][3][3]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][4][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][5][5]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][6][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][5][6]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][6][1]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[1][7][4]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][0][5]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][1][5]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][2][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][3][1]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][4][6]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][5][6]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][0][2]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][1][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][2][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][3][4]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][4][7]                                                                                                                              ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][5][7]                                                                                                                              ;
 ; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][6][7]                                                                                                                              ;
-; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][7][4]                                                                                                                              ;
-; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init|rom_address[0]                         ;
-; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_reverb:FX_REVERB|audio_out[0][8]                                                                                                                             ;
-; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_delay:FX_DELAY|audio_out[0][5]                                                                                                                               ;
-; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_chorus:FX_CHORUS|audio_out[1][2]                                                                                                                             ;
-; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_distortion:FX_DISTORTION|audio_out[1][15]                                                                                                                    ;
-; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_eq:FX_EQ|audio_out[0][15]                                                                                                                                    ;
-; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_gate:FX_GATE|audio_out[0][15]                                                                                                                                ;
-; 3:1                ; 16 bits   ; 32 LEs        ; 0 LEs                ; 32 LEs                 ; Yes        ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|data_in_shift_reg[5]                                             ;
-; 4:1                ; 24 bits   ; 48 LEs        ; 0 LEs                ; 48 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|dec_hold_cnt[14]                                                                                                                             ;
-; 4:1                ; 24 bits   ; 48 LEs        ; 0 LEs                ; 48 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|inc_hold_cnt[6]                                                                                                                              ;
-; 4:1                ; 20 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|key_dec_cnt[15]                                                                                                                              ;
-; 4:1                ; 20 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|key_inc_cnt[14]                                                                                                                              ;
-; 4:1                ; 5 bits    ; 10 LEs        ; 10 LEs               ; 0 LEs                  ; Yes        ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|altera_up_audio_bit_counter:Audio_Out_Bit_Counter|bit_counter[1] ;
-; 5:1                ; 37 bits   ; 111 LEs       ; 74 LEs               ; 37 LEs                 ; Yes        ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|shiftreg_mask[25]        ;
-; 5:1                ; 21 bits   ; 63 LEs        ; 0 LEs                ; 63 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|dec_repeat_cnt[5]                                                                                                                            ;
-; 5:1                ; 21 bits   ; 63 LEs        ; 0 LEs                ; 63 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|inc_repeat_cnt[20]                                                                                                                           ;
-; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_OUTPUT_GAIN|audio_out[0][6]                                                                                                                          ;
-; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_OUTPUT_GAIN|audio_out[1][10]                                                                                                                         ;
-; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|audio_out[0][10]                                                                                                                    ;
-; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|audio_out[1][13]                                                                                                                    ;
-; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_INPUT_GAIN|audio_out[0][5]                                                                                                                           ;
-; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_INPUT_GAIN|audio_out[1][8]                                                                                                                           ;
-; 6:1                ; 20 bits   ; 80 LEs        ; 40 LEs               ; 40 LEs                 ; Yes        ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|shiftreg_data[7]         ;
-; 6:1                ; 15 bits   ; 60 LEs        ; 30 LEs               ; 30 LEs                 ; Yes        ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_out_serializer:Audio_Out_Serializer|data_out_shift_reg[2]                                              ;
-; 4:1                ; 4 bits    ; 8 LEs         ; 8 LEs                ; 0 LEs                  ; No         ; |AudioFX|display:DISPLAY|led_level[3]                                                                                                                                    ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |AudioFX|controller:CONTROL|params[0][7][7]                                                                                                                              ;
+; 3:1                ; 6 bits    ; 12 LEs        ; 6 LEs                ; 6 LEs                  ; Yes        ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init|rom_address[3]                         ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_reverb:FX_REVERB|audio_out[0][0]                                                                                                                             ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_delay:FX_DELAY|audio_out[0][14]                                                                                                                              ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_chorus:FX_CHORUS|audio_out[0][11]                                                                                                                            ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_distortion:FX_DISTORTION|audio_out[1][13]                                                                                                                    ;
+; 3:1                ; 544 bits  ; 1088 LEs      ; 0 LEs                ; 1088 LEs               ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|audio_delay[4][1][5]                                                                                                                ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_eq:FX_EQ|audio_out[1][0]                                                                                                                                     ;
+; 3:1                ; 32 bits   ; 64 LEs        ; 0 LEs                ; 64 LEs                 ; Yes        ; |AudioFX|fx_gate:FX_GATE|audio_out[1][5]                                                                                                                                 ;
+; 3:1                ; 16 bits   ; 32 LEs        ; 0 LEs                ; 32 LEs                 ; Yes        ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|data_in_shift_reg[0]                                             ;
+; 4:1                ; 24 bits   ; 48 LEs        ; 0 LEs                ; 48 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|dec_hold_cnt[22]                                                                                                                             ;
+; 4:1                ; 24 bits   ; 48 LEs        ; 0 LEs                ; 48 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|inc_hold_cnt[23]                                                                                                                             ;
+; 4:1                ; 20 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|key_dec_cnt[2]                                                                                                                               ;
+; 4:1                ; 20 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|key_inc_cnt[19]                                                                                                                              ;
+; 4:1                ; 4 bits    ; 8 LEs         ; 8 LEs                ; 0 LEs                  ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|gain[2]                                                                                                                             ;
+; 4:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|envelope[1]                                                                                                                         ;
+; 4:1                ; 5 bits    ; 10 LEs        ; 10 LEs               ; 0 LEs                  ; Yes        ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|altera_up_audio_bit_counter:Audio_Out_Bit_Counter|bit_counter[4] ;
+; 5:1                ; 37 bits   ; 111 LEs       ; 74 LEs               ; 37 LEs                 ; Yes        ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|counter[2]               ;
+; 5:1                ; 21 bits   ; 63 LEs        ; 0 LEs                ; 63 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|dec_repeat_cnt[6]                                                                                                                            ;
+; 5:1                ; 21 bits   ; 63 LEs        ; 0 LEs                ; 63 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|inc_repeat_cnt[6]                                                                                                                            ;
+; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_OUTPUT_GAIN|audio_out[0][15]                                                                                                                         ;
+; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_OUTPUT_GAIN|audio_out[1][4]                                                                                                                          ;
+; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|audio_out[0][3]                                                                                                                     ;
+; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|audio_out[1][1]                                                                                                                     ;
+; 5:1                ; 2 bits    ; 6 LEs         ; 4 LEs                ; 2 LEs                  ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|envelope[3]                                                                                                                         ;
+; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_INPUT_GAIN|audio_out[1][14]                                                                                                                          ;
+; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_INPUT_GAIN|audio_out[0][1]                                                                                                                           ;
+; 6:1                ; 20 bits   ; 80 LEs        ; 40 LEs               ; 40 LEs                 ; Yes        ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|shiftreg_data[6]         ;
+; 6:1                ; 15 bits   ; 60 LEs        ; 30 LEs               ; 30 LEs                 ; Yes        ; |AudioFX|AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_out_serializer:Audio_Out_Serializer|data_out_shift_reg[12]                                             ;
+; 6:1                ; 2 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|gain[6]                                                                                                                             ;
+; 7:1                ; 8 bits    ; 32 LEs        ; 16 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|gain[14]                                                                                                                            ;
+; 7:1                ; 12 bits   ; 48 LEs        ; 24 LEs               ; 24 LEs                 ; Yes        ; |AudioFX|fx_compressor:FX_COMPRESSOR|envelope[8]                                                                                                                         ;
+; 4:1                ; 4 bits    ; 8 LEs         ; 8 LEs                ; 0 LEs                  ; No         ; |AudioFX|display:DISPLAY|led_level[2]                                                                                                                                    ;
 ; 4:1                ; 7 bits    ; 14 LEs        ; 14 LEs               ; 0 LEs                  ; No         ; |AudioFX|controller:CONTROL|params                                                                                                                                       ;
-; 128:1              ; 8 bits    ; 680 LEs       ; 680 LEs              ; 0 LEs                  ; No         ; |AudioFX|controller:CONTROL|Mux134                                                                                                                                       ;
+; 4:1                ; 16 bits   ; 32 LEs        ; 32 LEs               ; 0 LEs                  ; No         ; |AudioFX|fx_compressor:FX_COMPRESSOR|target_gain[8]                                                                                                                      ;
+; 128:1              ; 8 bits    ; 680 LEs       ; 680 LEs              ; 0 LEs                  ; No         ; |AudioFX|controller:CONTROL|Mux130                                                                                                                                       ;
 +--------------------+-----------+---------------+----------------------+------------------------+------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
@@ -1709,6 +1722,29 @@ Note: In order to hide this table in the UI and the text report file, please set
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
 
++----------------------------------------------------------------------------------------------+
+; Parameter Settings for Inferred Entity Instance: fx_compressor:FX_COMPRESSOR|lpm_divide:Div0 ;
++------------------------+----------------+----------------------------------------------------+
+; Parameter Name         ; Value          ; Type                                               ;
++------------------------+----------------+----------------------------------------------------+
+; LPM_WIDTHN             ; 15             ; Untyped                                            ;
+; LPM_WIDTHD             ; 8              ; Untyped                                            ;
+; LPM_NREPRESENTATION    ; UNSIGNED       ; Untyped                                            ;
+; LPM_DREPRESENTATION    ; UNSIGNED       ; Untyped                                            ;
+; LPM_PIPELINE           ; 0              ; Untyped                                            ;
+; LPM_REMAINDERPOSITIVE  ; TRUE           ; Untyped                                            ;
+; MAXIMIZE_SPEED         ; 5              ; Untyped                                            ;
+; CBXI_PARAMETER         ; lpm_divide_nbm ; Untyped                                            ;
+; CARRY_CHAIN            ; MANUAL         ; Untyped                                            ;
+; OPTIMIZE_FOR_SPEED     ; 5              ; Untyped                                            ;
+; AUTO_CARRY_CHAINS      ; ON             ; AUTO_CARRY                                         ;
+; IGNORE_CARRY_BUFFERS   ; OFF            ; IGNORE_CARRY                                       ;
+; AUTO_CASCADE_CHAINS    ; ON             ; AUTO_CASCADE                                       ;
+; IGNORE_CASCADE_BUFFERS ; OFF            ; IGNORE_CASCADE                                     ;
++------------------------+----------------+----------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
 +----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ; scfifo Parameter Settings by Entity Instance                                                                                                                                                 ;
 +----------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -1951,37 +1987,43 @@ Note: In order to hide this table in the UI and the text report file, please set
 +-----------------------+-----------------------------+
 ; Type                  ; Count                       ;
 +-----------------------+-----------------------------+
-; arriav_ff             ; 1775                        ;
-;     ENA               ; 23                          ;
-;     ENA SCLR          ; 1404                        ;
-;     SCLR              ; 322                         ;
+; arriav_ff             ; 2351                        ;
+;     ENA               ; 22                          ;
+;     ENA SCLR          ; 1968                        ;
+;     ENA SLD           ; 8                           ;
+;     SCLR              ; 324                         ;
 ;     SCLR SLD          ; 2                           ;
-;     SLD               ; 9                           ;
+;     SLD               ; 12                          ;
 ;     plain             ; 15                          ;
 ; arriav_io_obuf        ; 4                           ;
-; arriav_lcell_comb     ; 1532                        ;
-;     arith             ; 292                         ;
-;         0 data inputs ; 8                           ;
-;         1 data inputs ; 218                         ;
-;         2 data inputs ; 22                          ;
-;         3 data inputs ; 15                          ;
-;         4 data inputs ; 17                          ;
-;         5 data inputs ; 12                          ;
-;     normal            ; 1240                        ;
+; arriav_lcell_comb     ; 2275                        ;
+;     arith             ; 581                         ;
+;         0 data inputs ; 37                          ;
+;         1 data inputs ; 324                         ;
+;         2 data inputs ; 38                          ;
+;         3 data inputs ; 26                          ;
+;         4 data inputs ; 54                          ;
+;         5 data inputs ; 102                         ;
+;     normal            ; 1670                        ;
 ;         0 data inputs ; 2                           ;
 ;         1 data inputs ; 10                          ;
-;         2 data inputs ; 218                         ;
-;         3 data inputs ; 279                         ;
-;         4 data inputs ; 118                         ;
-;         5 data inputs ; 87                          ;
-;         6 data inputs ; 526                         ;
-; arriav_mac            ; 6                           ;
+;         2 data inputs ; 298                         ;
+;         3 data inputs ; 340                         ;
+;         4 data inputs ; 171                         ;
+;         5 data inputs ; 146                         ;
+;         6 data inputs ; 703                         ;
+;     shared            ; 24                          ;
+;         0 data inputs ; 3                           ;
+;         1 data inputs ; 8                           ;
+;         2 data inputs ; 10                          ;
+;         4 data inputs ; 3                           ;
+; arriav_mac            ; 7                           ;
 ; boundary_port         ; 91                          ;
 ; generic_pll           ; 1                           ;
 ; stratixv_ram_block    ; 48                          ;
 ;                       ;                             ;
-; Max LUT depth         ; 22.00                       ;
-; Average LUT depth     ; 10.26                       ;
+; Max LUT depth         ; 28.60                       ;
+; Average LUT depth     ; 10.49                       ;
 +-----------------------+-----------------------------+
 
 
@@ -1990,7 +2032,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+--------------+
 ; Partition Name ; Elapsed Time ;
 +----------------+--------------+
-; Top            ; 00:00:05     ;
+; Top            ; 00:00:07     ;
 +----------------+--------------+
 
 
@@ -2129,33 +2171,33 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Tue Dec 16 16:37:26 2025
+    Info: Processing started: Tue Dec 16 17:49:49 2025
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off AudioFX -c AudioFX
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
 Info (12248): Elaborating Platform Designer system entity "AVConfig.qsys"
-Info (12250): 2025.12.16.16:37:43 Progress: Loading HaH_processor/AVConfig.qsys
-Info (12250): 2025.12.16.16:37:44 Progress: Reading input file
-Info (12250): 2025.12.16.16:37:44 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
-Info (12250): 2025.12.16.16:37:46 Progress: Parameterizing module audio_and_video_config_0
-Info (12250): 2025.12.16.16:37:46 Progress: Building connections
-Info (12250): 2025.12.16.16:37:46 Progress: Parameterizing connections
-Info (12250): 2025.12.16.16:37:46 Progress: Validating
-Info (12250): 2025.12.16.16:37:46 Progress: Done reading input file
+Info (12250): 2025.12.16.17:50:05 Progress: Loading HaH_processor/AVConfig.qsys
+Info (12250): 2025.12.16.17:50:07 Progress: Reading input file
+Info (12250): 2025.12.16.17:50:07 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
+Info (12250): 2025.12.16.17:50:08 Progress: Parameterizing module audio_and_video_config_0
+Info (12250): 2025.12.16.17:50:08 Progress: Building connections
+Info (12250): 2025.12.16.17:50:08 Progress: Parameterizing connections
+Info (12250): 2025.12.16.17:50:08 Progress: Validating
+Info (12250): 2025.12.16.17:50:08 Progress: Done reading input file
 Info (12250): AVConfig: Generating AVConfig "AVConfig" for QUARTUS_SYNTH
 Info (12250): Audio_and_video_config_0: Starting Generation of Audio and Video Config
 Info (12250): Audio_and_video_config_0: "AVConfig" instantiated altera_up_avalon_audio_and_video_config "audio_and_video_config_0"
 Info (12250): AVConfig: Done "AVConfig" with 2 modules, 16 files
 Info (12249): Finished elaborating Platform Designer system entity "AVConfig.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioPLL.qsys"
-Info (12250): 2025.12.16.16:37:57 Progress: Loading HaH_processor/AudioPLL.qsys
-Info (12250): 2025.12.16.16:37:58 Progress: Reading input file
-Info (12250): 2025.12.16.16:37:58 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
-Info (12250): 2025.12.16.16:37:58 Progress: Parameterizing module audio_pll_0
-Info (12250): 2025.12.16.16:37:58 Progress: Building connections
-Info (12250): 2025.12.16.16:37:58 Progress: Parameterizing connections
-Info (12250): 2025.12.16.16:37:59 Progress: Validating
-Info (12250): 2025.12.16.16:38:03 Progress: Done reading input file
+Info (12250): 2025.12.16.17:50:17 Progress: Loading HaH_processor/AudioPLL.qsys
+Info (12250): 2025.12.16.17:50:18 Progress: Reading input file
+Info (12250): 2025.12.16.17:50:18 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info (12250): 2025.12.16.17:50:19 Progress: Parameterizing module audio_pll_0
+Info (12250): 2025.12.16.17:50:19 Progress: Building connections
+Info (12250): 2025.12.16.17:50:19 Progress: Parameterizing connections
+Info (12250): 2025.12.16.17:50:19 Progress: Validating
+Info (12250): 2025.12.16.17:50:24 Progress: Done reading input file
 Info (12250): AudioPLL: Generating AudioPLL "AudioPLL" for QUARTUS_SYNTH
 Info (12250): Audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
 Info (12250): Audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
@@ -2163,14 +2205,14 @@ Info (12250): Reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_res
 Info (12250): AudioPLL: Done "AudioPLL" with 4 modules, 5 files
 Info (12249): Finished elaborating Platform Designer system entity "AudioPLL.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioCodec.qsys"
-Info (12250): 2025.12.16.16:38:15 Progress: Loading HaH_processor/AudioCodec.qsys
-Info (12250): 2025.12.16.16:38:17 Progress: Reading input file
-Info (12250): 2025.12.16.16:38:17 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
-Info (12250): 2025.12.16.16:38:18 Progress: Parameterizing module audio_0
-Info (12250): 2025.12.16.16:38:18 Progress: Building connections
-Info (12250): 2025.12.16.16:38:18 Progress: Parameterizing connections
-Info (12250): 2025.12.16.16:38:18 Progress: Validating
-Info (12250): 2025.12.16.16:38:19 Progress: Done reading input file
+Info (12250): 2025.12.16.17:50:36 Progress: Loading HaH_processor/AudioCodec.qsys
+Info (12250): 2025.12.16.17:50:37 Progress: Reading input file
+Info (12250): 2025.12.16.17:50:37 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
+Info (12250): 2025.12.16.17:50:39 Progress: Parameterizing module audio_0
+Info (12250): 2025.12.16.17:50:39 Progress: Building connections
+Info (12250): 2025.12.16.17:50:39 Progress: Parameterizing connections
+Info (12250): 2025.12.16.17:50:39 Progress: Validating
+Info (12250): 2025.12.16.17:50:39 Progress: Done reading input file
 Info (12250): AudioCodec: Generating AudioCodec "AudioCodec" for QUARTUS_SYNTH
 Info (12250): Audio_0: Starting Generation of Audio Controller
 Info (12250): Audio_0: "AudioCodec" instantiated altera_up_avalon_audio "audio_0"
@@ -2189,7 +2231,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file fx_dist
 Info (12021): Found 1 design units, including 1 entities, in source file fx_delay.sv
     Info (12023): Found entity 1: fx_delay File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 2
 Info (12021): Found 1 design units, including 1 entities, in source file fx_compressor.sv
-    Info (12023): Found entity 1: fx_compressor File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 15
+    Info (12023): Found entity 1: fx_compressor File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 2
 Info (12021): Found 1 design units, including 1 entities, in source file fx_chorus.sv
     Info (12023): Found entity 1: fx_chorus File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv Line: 2
 Info (12021): Found 1 design units, including 1 entities, in source file sevseg_display.sv
@@ -2449,7 +2491,6 @@ Info (12128): Elaborating entity "fx_gain" for hierarchy "fx_gain:FX_INPUT_GAIN"
 Info (12128): Elaborating entity "fx_gate" for hierarchy "fx_gate:FX_GATE" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 235
 Info (12128): Elaborating entity "fx_eq" for hierarchy "fx_eq:FX_EQ" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 251
 Info (12128): Elaborating entity "fx_compressor" for hierarchy "fx_compressor:FX_COMPRESSOR" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 267
-Warning (10036): Verilog HDL or VHDL warning at fx_compressor.sv(109): object "target_gain" assigned a value but never read File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 109
 Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "audio_delay" into its bus
 Info (12128): Elaborating entity "fx_distortion" for hierarchy "fx_distortion:FX_DISTORTION" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 282
 Info (12128): Elaborating entity "fx_chorus" for hierarchy "fx_chorus:FX_CHORUS" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 297
@@ -2477,7 +2518,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr
     Info (12023): Found entity 1: cmpr_99c File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/cmpr_99c.tdf Line: 22
 Info (12033): Analysis and Synthesis generated Signal Tap or debug node instance "auto_signaltap_0"
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2025.12.16.16:38:38 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2025.12.16.17:50:57 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: Generating alt_sld_fab "alt_sld_fab" for QUARTUS_SYNTH
 Info (11172): Alt_sld_fab: "alt_sld_fab" instantiated alt_sld_fab "alt_sld_fab"
@@ -2520,8 +2561,9 @@ Warning (14284): Synthesized away the following node(s):
         Warning (14320): Synthesized away node "AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|altera_up_sync_fifo:Audio_In_Right_Channel_FIFO|scfifo:Sync_FIFO|scfifo_9ba1:auto_generated|a_dpfifo_s2a1:dpfifo|altsyncram_r3i1:FIFOram|q_b[15]" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/altsyncram_r3i1.tdf Line: 487
 Info (276014): Found 1 instances of uninferred RAM logic
     Info (276004): RAM logic "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init_ob_de1_soc:Auto_Init_OB_Devices_ROM|altera_up_av_config_auto_init_ob_adv7180:Auto_Init_Video_ROM|Ram0" is uninferred due to inappropriate RAM size File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AVConfig/synthesis/submodules/altera_up_av_config_auto_init_ob_adv7180.v Line: 142
-Info (278001): Inferred 1 megafunctions from design logic
+Info (278001): Inferred 2 megafunctions from design logic
     Info (278004): Inferred divider/modulo megafunction ("lpm_divide") from the following logic: "display:DISPLAY|Div0" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv Line: 82
+    Info (278004): Inferred divider/modulo megafunction ("lpm_divide") from the following logic: "fx_compressor:FX_COMPRESSOR|Div0" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 99
 Info (12130): Elaborated megafunction instantiation "display:DISPLAY|lpm_divide:Div0" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv Line: 82
 Info (12133): Instantiated megafunction "display:DISPLAY|lpm_divide:Div0" with the following parameter: File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv Line: 82
     Info (12134): Parameter "LPM_WIDTHN" = "13"
@@ -2534,6 +2576,18 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/sign
     Info (12023): Found entity 1: sign_div_unsign_rlh File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/sign_div_unsign_rlh.tdf Line: 24
 Info (12021): Found 1 design units, including 1 entities, in source file db/alt_u_div_sve.tdf
     Info (12023): Found entity 1: alt_u_div_sve File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/alt_u_div_sve.tdf Line: 22
+Info (12130): Elaborated megafunction instantiation "fx_compressor:FX_COMPRESSOR|lpm_divide:Div0" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 99
+Info (12133): Instantiated megafunction "fx_compressor:FX_COMPRESSOR|lpm_divide:Div0" with the following parameter: File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 99
+    Info (12134): Parameter "LPM_WIDTHN" = "15"
+    Info (12134): Parameter "LPM_WIDTHD" = "8"
+    Info (12134): Parameter "LPM_NREPRESENTATION" = "UNSIGNED"
+    Info (12134): Parameter "LPM_DREPRESENTATION" = "UNSIGNED"
+Info (12021): Found 1 design units, including 1 entities, in source file db/lpm_divide_nbm.tdf
+    Info (12023): Found entity 1: lpm_divide_nbm File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/lpm_divide_nbm.tdf Line: 24
+Info (12021): Found 1 design units, including 1 entities, in source file db/sign_div_unsign_tlh.tdf
+    Info (12023): Found entity 1: sign_div_unsign_tlh File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/sign_div_unsign_tlh.tdf Line: 24
+Info (12021): Found 1 design units, including 1 entities, in source file db/alt_u_div_00f.tdf
+    Info (12023): Found entity 1: alt_u_div_00f File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/alt_u_div_00f.tdf Line: 22
 Warning (12241): 4 hierarchies have connectivity warnings - see the Connectivity Checks report folder
 Warning (13039): The following bidirectional pins have no drivers
     Warning (13040): bidirectional pin "AUD_BCLK" has no driver File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 46
@@ -2575,19 +2629,19 @@ Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 16 node(s), including 0 DDIO, 1 PLL, 0 transceiver and 0 LCELL
 Warning (21074): Design contains 1 input pin(s) that do not drive logic
     Warning (15610): No output dependent on input pin "KEY[1]" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 43
-Info (21057): Implemented 4015 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 5302 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 19 input pins
     Info (21059): Implemented 72 output pins
     Info (21060): Implemented 4 bidirectional pins
-    Info (21061): Implemented 3820 logic cells
+    Info (21061): Implemented 5106 logic cells
     Info (21064): Implemented 92 RAM segments
     Info (21065): Implemented 1 PLLs
-    Info (21062): Implemented 6 DSP elements
-Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 66 warnings
-    Info: Peak virtual memory: 4971 megabytes
-    Info: Processing ended: Tue Dec 16 16:39:00 2025
-    Info: Elapsed time: 00:01:34
-    Info: Total CPU time (on all processors): 00:02:37
+    Info (21062): Implemented 7 DSP elements
+Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 65 warnings
+    Info: Peak virtual memory: 4979 megabytes
+    Info: Processing ended: Tue Dec 16 17:51:22 2025
+    Info: Elapsed time: 00:01:33
+    Info: Total CPU time (on all processors): 00:02:42
 
 
 +------------------------------------------+

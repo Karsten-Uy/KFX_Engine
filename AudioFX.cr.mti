@@ -21,6 +21,13 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 Top level modules:
 	fx_gain
 
+} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_fx_compressor.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_fx_compressor.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling module tb_fx_compressor
+
+Top level modules:
+	tb_fx_compressor
+
 } {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
 -- Compiling module AudioFX
@@ -80,5 +87,12 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 
 Top level modules:
 	display
+
+} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+-- Compiling package lab_pkg
+
+Top level modules:
+	--none--
 
 } {} {}}

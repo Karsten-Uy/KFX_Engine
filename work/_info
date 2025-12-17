@@ -10,11 +10,11 @@ cModel Technology
 dC:/intelFPGA/18.1
 vAudioFX
 Z0 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
-Z1 DXx4 work 7 lab_pkg 0 22 83B>T?A29WEoT[dBE2:^H0
-Z2 !s110 1765930408
+Z1 DXx4 work 7 lab_pkg 0 22 DNmJfM_9ajJ6aW?bgJ4DA1
+Z2 !s110 1765936156
 !i10b 1
 !s100 dl@>cde6EcZNHmUX:WUQh0
-Iz2:D^`VaC0o3nXeR:^dlI0
+IPD[_k4NAM[53Wkag2KkWc2
 Z3 VDg1SIo80bB@j0V0VzS_@n1
 !s105 AudioFX_sv_unit
 S1
@@ -27,7 +27,7 @@ Z6 OV;L;10.5b;63
 r1
 !s85 0
 31
-Z7 !s108 1765930408.000000
+Z7 !s108 1765936156.000000
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv|
 !i113 1
@@ -40,7 +40,7 @@ R1
 R2
 !i10b 1
 !s100 0]M``R2fNM;migLEPJ_bc0
-Ie45S>6g<[=X7ga1RJh7kH2
+I:^BBcXIhEfLSdgBMKKINS1
 R3
 Z10 !s105 controller_sv_unit
 S1
@@ -65,7 +65,7 @@ R1
 R2
 !i10b 1
 !s100 ]VTloO8?UU1WeE_;jg1bi3
-I=Wl[z1NJ73ecLc@6j?HhC0
+ILKXV6QYj7BzjL>O>;K;S42
 R3
 !s105 display_sv_unit
 S1
@@ -113,16 +113,16 @@ R0
 R1
 R2
 !i10b 1
-!s100 h3zX>ehQKnCK0lKLlNN483
-I6^RzMiZUIGS<3DSQbczGk1
+!s100 mT1;3Am2mD@^nFYK9MA<83
+IQUln00SE]gid3BW4C1YiV2
 R3
 !s105 fx_compressor_sv_unit
 S1
 R4
-w1765930229
+w1765936131
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv
-L0 15
+L0 2
 R6
 r1
 !s85 0
@@ -184,7 +184,7 @@ R8
 R9
 vfx_delay
 R0
-Z20 !s110 1765930409
+R2
 !i10b 1
 !s100 gX`dR4Zf`1bb;zCQA]5jZ3
 ILXUmRA;AQETfzN`MVf]Vi0
@@ -200,7 +200,7 @@ R6
 r1
 !s85 0
 31
-Z21 !s108 1765930409.000000
+R7
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv|
 !i113 1
@@ -208,7 +208,7 @@ R8
 R9
 vfx_eq
 R0
-R20
+R2
 !i10b 1
 !s100 OLh^RMY7@641;E6B^;MzR3
 ImW`I2DGLTVkGdWVATkO=e0
@@ -224,7 +224,7 @@ R6
 r1
 !s85 0
 31
-R21
+R7
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv|
 !i113 1
@@ -233,10 +233,10 @@ R9
 vfx_gain
 R0
 R1
-R20
+Z20 !s110 1765936157
 !i10b 1
 !s100 ZZ3i:jPFnY9CC?4QmQ`OA2
-I]X8_c^i2R??UUfZ_@?P;i1
+IAo3WJ0jnC5QO4m7@G?2iC3
 R3
 !s105 fx_gain_sv_unit
 S1
@@ -249,7 +249,7 @@ R6
 r1
 !s85 0
 31
-R21
+R7
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv|
 !i113 1
@@ -273,7 +273,7 @@ R6
 r1
 !s85 0
 31
-R21
+Z21 !s108 1765936157.000000
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv|
 !i113 1
@@ -307,12 +307,12 @@ Xlab_pkg
 R0
 R2
 !i10b 1
-!s100 hU:j1?zTgk8zg?FlYPG4=1
-I83B>T?A29WEoT[dBE2:^H0
-V83B>T?A29WEoT[dBE2:^H0
+!s100 d05LEK:GYW1m`<M7d4Rcd3
+IDNmJfM_9ajJ6aW?bgJ4DA1
+VDNmJfM_9ajJ6aW?bgJ4DA1
 S1
 R4
-w1765930165
+w1765935784
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/lab_pkg.sv
 L0 3
@@ -332,7 +332,7 @@ R1
 R2
 !i10b 1
 !s100 EP2BRjBkVT:kho9>79^fI0
-I2]YjCC3;Z4CFgm3iH`b`N3
+IDjW_AmIlhnZ7^k13=<NTC0
 R3
 !s105 sevseg_display_sv_unit
 S1
@@ -357,7 +357,7 @@ R1
 R2
 !i10b 1
 !s100 jP?^SWB82ChKBOFR@jokJ1
-IkTjIZ_Bl2R=Dh41L_KbQ;0
+IziaVPlHFiHCV`c52[zCKS1
 R3
 !s105 tb_controller_sv_unit
 S1
@@ -370,7 +370,7 @@ R6
 r1
 !s85 0
 31
-!s108 1765930407.000000
+R7
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_controller.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_controller.sv|
 !i113 1
@@ -380,13 +380,13 @@ vtb_fx_compressor
 R0
 R20
 !i10b 1
-!s100 1W861JelINA?aUVliLF;n1
-IdkHnDR8XD>WmFi5:6RW3T3
+!s100 SEl?GSXjF:<lRW?L[i03W1
+ICz5[geoF^c1]0gNCVkSEb2
 R3
 R16
 S1
 R4
-w1765930404
+w1765935587
 R17
 R18
 L0 3

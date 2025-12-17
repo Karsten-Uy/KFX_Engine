@@ -1,17 +1,4 @@
 
-/*
-
-    debug
-        - tested
-            - unity gain at end
-
-
-
-*/
-
-
-
-
 module fx_compressor #(
     parameter DATA_W  = 16,
     parameter PARAM_W = 8
@@ -60,131 +47,94 @@ module fx_compressor #(
     end
 
     // -----------------------------
-    // PEAK ENVELOPE FOLLOWER
+    // ENVELOPE FOLLOWER
     // -----------------------------
     logic [15:0] envelope;
     logic [15:0] att_step, rel_step;
 
-    // Convert attack/release parameters to step sizes
     always_comb begin
-        // Faster attack = larger step
-        att_step = 16'd256 + ({8'd0, fx_attack} << 3);  // Range: 256-2304
-        // Slower release = smaller step  
-        rel_step = 16'd8 + ({8'd0, fx_release} << 1);   // Range: 8-518
+        att_step = 16'd512 + ({8'd0, fx_attack} << 4);
+        rel_step = 16'd16  + ({8'd0, fx_release} << 2);
     end
 
     always_ff @(posedge clk) begin
-        if (!reset_n) begin
+        if (!reset_n)
             envelope <= 16'd0;
-        end else if (sample_en) begin
-            if (peak_level > envelope) begin
-                // Attack: rise quickly toward peak
-                if ((peak_level - envelope) > att_step)
-                    envelope <= envelope + att_step;
-                else
-                    envelope <= peak_level;
-            end else if (peak_level < envelope) begin
-                // Release: fall slowly toward peak
-                if ((envelope - peak_level) > rel_step)
-                    envelope <= envelope - rel_step;
-                else
-                    envelope <= peak_level;
-            end
-            // If equal, envelope stays the same
+        else if (sample_en) begin
+            if (peak_level > envelope)
+                envelope <= (peak_level - envelope > att_step) ? envelope + att_step : peak_level;
+            else if (peak_level < envelope)
+                envelope <= (envelope - peak_level > rel_step) ? envelope - rel_step : peak_level;
         end
     end
 
     // -----------------------------
-    // GAIN COMPUTATION (Hard Knee)
+    // GAIN COMPUTATION (SAFE)
     // -----------------------------
-    // Scale threshold from 0-255 to 0-32767
     logic [15:0] threshold_scaled;
-    assign threshold_scaled = {fx_threshold, 7'd0} + {7'd0, fx_threshold, 1'b0};
-
-    // Calculate how much signal exceeds threshold
     logic signed [16:0] over_threshold;
-    assign over_threshold = $signed({1'b0, envelope}) - $signed({1'b0, threshold_scaled});
-
-    // Calculate target gain
     logic [15:0] target_gain;
-    
+
+    // assign threshold_scaled = {fx_threshold, 7'd0};
+    assign threshold_scaled = ({8'd0, fx_threshold} * 16'd96);  // 0-255 -> 0-24480
+
+    assign over_threshold  = $signed({1'b0, envelope}) - $signed({1'b0, threshold_scaled});
+
+    // Fix 2: Simplify compression factor calculation
+    // For ratio R, we want: gain_reduction = (level_over_threshold) * (1 - 1/R)
     always_comb begin
         if (over_threshold <= 0) begin
-            // Below threshold: unity gain (1.0 in Q15)
-            target_gain = 16'd32767;
+            target_gain = UNITY_Q15;
         end else begin
-            // Above threshold: apply compression ratio
-            // Formula: gain_reduction = over * (1 - 1/ratio)
-            
-            logic [15:0] compression_factor;
             logic [31:0] reduction_amount;
             
-            // Calculate (1 - 1/ratio) in Q15 fixed-point
+            // Calculate: reduction = over_threshold * (ratio - 1) / ratio
+            // In Q15: multiply by (32768 * (ratio-1) / ratio)
             if (fx_ratio <= 8'd1) begin
-                compression_factor = 16'd0;  // No compression (ratio 1:1)
-            end else if (fx_ratio >= 8'd100) begin
-                compression_factor = 16'd32440;  // Near-infinite ratio
+                // No compression (ratio 1:1)
+                target_gain = UNITY_Q15;
             end else begin
-                // compression_factor = 1 - 1/ratio = (ratio-1)/ratio
-                // In Q15: 32768 * (ratio-1)/ratio = 32768 - 32768/ratio
-                compression_factor = 16'd32768 - (16'd32768 / {8'd0, fx_ratio});
-            end
-            
-            // Calculate gain reduction
-            reduction_amount = $unsigned(over_threshold) * compression_factor;
-            
-            // Subtract from unity gain
-            if (reduction_amount[30:15] >= 16'd32767) begin
-                target_gain = 16'd100;  // Minimum gain floor
-            end else begin
-                target_gain = 16'd32767 - reduction_amount[30:15];
+                // Simplified: gain_reduction_factor in Q15
+                logic [15:0] comp_factor;
+                comp_factor = UNITY_Q15 - (UNITY_Q15 / {8'd0, fx_ratio});
+                
+                reduction_amount = ($unsigned(over_threshold) * comp_factor) >> 15;
+                
+                if (reduction_amount >= UNITY_Q15)
+                    target_gain = MIN_GAIN;
+                else
+                    target_gain = UNITY_Q15 - reduction_amount[15:0];
             end
         end
     end
 
     // -----------------------------
-    // GAIN SMOOTHING
+    // GAIN SMOOTHING (CLAMPED)
     // -----------------------------
     logic [15:0] gain;
 
-    // always_ff @(posedge clk) begin
-    //     if (!reset_n) begin
-    //         gain <= 16'd32767;  // Unity gain
-    //     end else if (sample_en) begin
-    //         if (gain < target_gain) begin
-    //             // Release: gain increasing (slower)
-    //             if ((target_gain - gain) > 16'd32)
-    //                 gain <= gain + 16'd32;
-    //             else
-    //                 gain <= target_gain;
-    //         end else if (gain > target_gain) begin
-    //             // Attack: gain decreasing (faster)
-    //             if ((gain - target_gain) > 16'd128)
-    //                 gain <= gain - 16'd128;
-    //             else
-    //                 gain <= target_gain;
-    //         end
-    //     end
-    // end
+    always_ff @(posedge clk) begin
+        if (!reset_n)
+            gain <= UNITY_Q15;
+        else if (sample_en) begin
+            if (gain < target_gain)
+                gain <= (gain + 16'd32 > UNITY_Q15) ? UNITY_Q15 : gain + 16'd32;
+            else if (gain > target_gain)
+                gain <= (gain - target_gain > 16'd128) ? gain - 16'd128 : target_gain;
+        end
+    end
 
-    assign gain = 16'h7FFF;
+    // assign gain = 16'h7FFF;
 
     // -----------------------------
     // APPLY GAIN TO DELAYED AUDIO
     // -----------------------------
     logic signed [31:0] prod_l, prod_r;
-    logic signed [31:0] raw_prod_l, raw_prod_r;
 
     always_comb begin
         // Multiply delayed audio by gain (both Q15)
-        // prod_l = audio_delay[COMP_LOOKAHEAD][0] * $signed({1'b0, gain});
-        // prod_r = audio_delay[COMP_LOOKAHEAD][1] * $signed({1'b0, gain});
-
-        raw_prod_l = $signed(audio_in[0]) * $signed(gain);
-        raw_prod_r = $signed(audio_in[1]) * $signed(gain);
-
-        prod_l = raw_prod_l + ROUND_BIAS;
-        prod_r = raw_prod_r + ROUND_BIAS;
+        prod_l = $signed(audio_delay[COMP_LOOKAHEAD][0]) * $signed({1'b0, gain});
+        prod_r = $signed(audio_delay[COMP_LOOKAHEAD][1]) * $signed({1'b0, gain});
     end
 
     always_ff @(posedge clk) begin
