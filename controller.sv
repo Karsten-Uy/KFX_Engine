@@ -10,7 +10,7 @@
 module controller #(
     parameter FX_COUNT    = 16,
     parameter PARAM_COUNT = 8,
-    parameter PARAM_W     = 7,
+    parameter PARAM_W     = 8,
 
     // Debounce + repeat timing (50 MHz)
     parameter DEBOUNCE_CNT_MAX = 1_000_000,   // ~20 ms

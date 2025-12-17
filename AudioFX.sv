@@ -121,27 +121,6 @@ module AudioFX(
 		.to_dac_right_channel_valid   (DAC_Valid[1]),   //                            .valid
 		.to_dac_right_channel_ready   (DAC_Ready[1])    //                            .ready
 	);
-		
-	// // Basic tie-back for audio ADC -> DAC
-	// always@(posedge(CLOCK_50)) begin
-	// 	// Mute Condition using switch 9
-	// 	if(SW[0]==1) begin
-	// 		DAC_Data[0] <= 0;
-	// 		DAC_Data[1] <= 0;
-	// 		DAC_Valid[0] <= ADC_Valid[1];
-	// 		DAC_Valid[1] <= ADC_Valid[0];
-	// 		ADC_Ready[0] <= DAC_Ready[1];
-	// 		ADC_Ready[1] <= DAC_Ready[0];
-	// 	end else begin
-	// 		// Normal operation
-	// 		DAC_Data[0] <= ADC_Data[0];
-	// 		DAC_Data[1] <= ADC_Data[1];
-	// 		DAC_Valid[0] <= ADC_Valid[0];
-	// 		DAC_Valid[1] <= ADC_Valid[1];
-	// 		ADC_Ready[0] <= DAC_Ready[0];
-	// 		ADC_Ready[1] <= DAC_Ready[1];
-	// 	end
-	// end
 
 	// Useful for signal tap or scope debugging and
 	assign GPIO_0[DATA_W-1:0] = DAC_Data[0];
@@ -380,6 +359,5 @@ module AudioFX(
 			ADC_Ready[1] <= DAC_Ready[1];
 		end
 	end
-
 	
 endmodule

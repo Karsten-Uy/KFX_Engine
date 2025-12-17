@@ -7,7 +7,7 @@
 module display #(
     parameter FX_COUNT    = 16,
     parameter PARAM_COUNT = 8,
-    parameter PARAM_W     = 7
+    parameter PARAM_W     = 8
 )(
     
     input logic [$clog2(FX_COUNT)-1:0]    fx_sel,    // 4 bits

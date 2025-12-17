@@ -1,1 +1,6 @@
+Warning (10268): Verilog HDL information at fx_reverb.sv(16): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv Line: 16
+Warning (10268): Verilog HDL information at fx_gate.sv(16): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv Line: 16
+Warning (10268): Verilog HDL information at fx_eq.sv(17): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 17
 Warning (10268): Verilog HDL information at fx_distortion.sv(17): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 17
+Warning (10268): Verilog HDL information at fx_delay.sv(16): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 16
+Warning (10268): Verilog HDL information at fx_chorus.sv(16): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv Line: 16

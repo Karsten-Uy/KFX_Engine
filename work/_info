@@ -11,7 +11,7 @@ dC:/intelFPGA/18.1
 vAudioFX
 Z0 DXx6 sv_std 3 std 0 22 AD7iAPLo6nTIKk<N0eo=D3
 Z1 DXx4 work 7 lab_pkg 0 22 <JfL]oS:^3JTlYUhIk98S3
-Z2 !s110 1765927075
+Z2 !s110 1765928249
 !i10b 1
 !s100 3QNjhCWX_BXbLcS;cHdMW2
 I<EWG;WT=zW4ONcZc>hZ=M0
@@ -27,7 +27,7 @@ Z6 OV;L;10.5b;63
 r1
 !s85 0
 31
-Z7 !s108 1765927075.000000
+Z7 !s108 1765928249.000000
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv|
 !i113 1
@@ -62,7 +62,7 @@ R9
 vdisplay
 R0
 R1
-R2
+Z16 !s110 1765928250
 !i10b 1
 !s100 :?Vb<=NnUObnnVDak>G7X0
 Io5>0C0@Qz`;lUoEE?T>_R1
@@ -78,7 +78,7 @@ R6
 r1
 !s85 0
 31
-R7
+Z17 !s108 1765928250.000000
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv|
 !i113 1
@@ -86,15 +86,15 @@ R8
 R9
 vfx_chorus
 R0
-R2
+R16
 !i10b 1
-!s100 7AF4RAnfDmHzoND=`9oje2
-IMPCKNKY<Ti15g3fhS=2SZ2
+!s100 DAhB94f?RQ?zY^UX;=M1k2
+ITfd33e:1H>XaW[KBP9F5U2
 R3
 !s105 fx_chorus_sv_unit
 S1
 R4
-w1765926982
+w1765928211
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv
 L0 2
@@ -102,7 +102,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv|
 !i113 1
@@ -110,15 +110,15 @@ R8
 R9
 vfx_compressor
 R0
-R2
+R16
 !i10b 1
-!s100 41:Z^`JTGTbNVn`E1zjcL1
-Ina=mVS01NFTeG`hiLP29f2
+!s100 EP^S07YZ7T12MBI]9DWBR3
+I_=m:D@9ZN:8>>VSYEZ=Xk0
 R3
 !s105 fx_compressor_sv_unit
 S1
 R4
-w1765926977
+w1765928214
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv
 L0 2
@@ -126,7 +126,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv|
 !i113 1
@@ -159,15 +159,15 @@ R8
 R9
 vfx_delay
 R0
-R2
+R16
 !i10b 1
-!s100 WFi0hGK]3kcj74VlIQUj_2
-I3>F`jE=IQGQmc3[OjZi[43
+!s100 =Q7@Z2`GUa>V0=CMUWK=Z1
+IJZBYUTb5E:n>l;U[?CoB63
 R3
 !s105 fx_delay_sv_unit
 S1
 R4
-w1765926988
+w1765928218
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv
 L0 2
@@ -175,7 +175,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv|
 !i113 1
@@ -183,15 +183,15 @@ R8
 R9
 vfx_eq
 R0
-R2
+R16
 !i10b 1
-!s100 zZP[g1==_P9YGoo]`<J_F3
-IG:6K_9a9ecYFO06i06Ak30
+!s100 MCGYn4AdkCeI[YXS08GU@3
+I`dz54_30RB23z1UeB4>o?2
 R3
 !s105 fx_eq_sv_unit
 S1
 R4
-w1765927028
+w1765928236
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv
 L0 2
@@ -199,7 +199,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv|
 !i113 1
@@ -207,15 +207,15 @@ R8
 R9
 vfx_gain
 R0
-R2
+R16
 !i10b 1
-!s100 I5l_]n4a6l4Ie>jZZ;ceJ3
-I8Lc7lHWi@BNaVGTZb7oWQ1
+!s100 fAK3bde4gPoh19_e8Bz@I1
+I<P]2@<Ja]I?g9lFI<?Gfj3
 R3
 !s105 fx_gain_sv_unit
 S1
 R4
-w1765927042
+w1765928224
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv
 L0 2
@@ -223,7 +223,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv|
 !i113 1
@@ -231,15 +231,15 @@ R8
 R9
 vfx_gate
 R0
-R2
+R16
 !i10b 1
-!s100 NZQo19fCCZ=T5HF=PA]Ja3
-IL1o[H1oJWPkfcC0bal]:Z0
+!s100 6XG]L1Mcl1AY7Bl>8Db7Y2
+IDLXIjlBHa<ASD4ChmaSYK0
 R3
 !s105 fx_gate_sv_unit
 S1
 R4
-w1765927057
+w1765928227
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv
 L0 2
@@ -247,7 +247,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv|
 !i113 1
@@ -255,15 +255,15 @@ R8
 R9
 vfx_reverb
 R0
-R2
+R16
 !i10b 1
-!s100 ;@HmhPN3hf9[<hLILP7GR1
-IFZ875g9ob^DEX<bPG;?UU0
+!s100 ^@AN_^46FW_fZHFLJiWBP0
+IMkPR?Xb3eK>?hc9?2BoG23
 R3
 !s105 fx_reverb_sv_unit
 S1
 R4
-w1765927069
+w1765928231
 8C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv
 FC:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv
 L0 2
@@ -271,7 +271,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv|
 !i113 1
@@ -279,7 +279,7 @@ R8
 R9
 Xlab_pkg
 R0
-R2
+R16
 !i10b 1
 !s100 g`IF81zi3[N=5KG:oBm0f3
 I<JfL]oS:^3JTlYUhIk98S3
@@ -303,7 +303,7 @@ R9
 vsevseg_display
 R0
 R1
-R2
+R16
 !i10b 1
 !s100 EP2BRjBkVT:kho9>79^fI0
 INz17z@9GFLY[6X@n0KBCF3
@@ -319,7 +319,7 @@ R6
 r1
 !s85 0
 31
-R7
+R17
 !s107 C:/Users/karst/Documents/homemade_multifx/HaH_processor/sevseg_display.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/Users/karst/Documents/homemade_multifx/HaH_processor/sevseg_display.sv|
 !i113 1

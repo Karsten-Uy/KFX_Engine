@@ -1,7 +1,7 @@
 // Chorus (FX 5)
 module fx_chorus #(
     parameter DATA_W  = 16,
-    parameter PARAM_W = 7
+    PARAM_W = 8
 )(
     input  logic                      clk,
     input  logic                      reset_n,
@@ -13,8 +13,13 @@ module fx_chorus #(
     input  logic                      sample_en
 );
 
-    // Trivial assignment for now
-    assign audio_out = audio_in;
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            audio_out <= '0;
+        end else if (sample_en) begin
+            audio_out = audio_in;
+        end
+    end
 
 endmodule
 

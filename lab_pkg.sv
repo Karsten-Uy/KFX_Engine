@@ -8,8 +8,8 @@ package lab_pkg;
     // Controller
     parameter FX_COUNT    = 16;
     parameter PARAM_COUNT = 8;
-    parameter PARAM_W     = 7;
-    parameter PARAM_MAX   = 127; // 2^7 - 1
+    parameter PARAM_W     = 8;
+    parameter PARAM_MAX   = 255; // 2^7 - 1
     parameter PARAM_MIN   = 0;   // 2^0 - 1
     parameter DEBOUNCE_CNT_MAX = 1_000_000;
     parameter REPEAT_START_CNT = 15_000_000;  // ~300 ms
@@ -26,7 +26,7 @@ package lab_pkg;
 
             case (fx)
                 0: begin // Input gain
-                    if (param == 0) param_default = 8'd64;
+                    if (param == 0) param_default = 8'd127;
                 end
 
                 1: begin // Gate
@@ -55,6 +55,10 @@ package lab_pkg;
                     endcase
                 end
 
+                8: begin // Output gain
+                    if (param == 0) param_default = 8'd127;
+                end
+
                 default: begin
                     param_default = '0;
                 end
@@ -62,7 +66,6 @@ package lab_pkg;
         end
     endfunction
 
-    parameter FX_STAGES = 9;
 
     // 7 Segment Display Definitions
                                 //  6543210
@@ -90,6 +93,21 @@ package lab_pkg;
     parameter SEVSEG_BLANK_INDEX = 5'd16;
     parameter SEVSEG_LINE_INDEX  = 5'd17;
 
+    // ------------------- DSP Params -------------------
+    parameter FX_STAGES = 9;
+    parameter COMP_LOOKAHEAD = 64;
+
+    // ------------------- DSP Functions ---------------
     
+    // Saturate to 16-bit signed range
+    // NOTE: value needs to be shifted correctly in x to be in the first 16 bits of x
+    function automatic signed [15:0] sat16(input signed [31:0] x);
+        if (x > 32'sd32767)
+            sat16 = 16'sh7FFF;
+        else if (x < -32'sd32768)
+            sat16 = -16'sh8000;
+        else
+            sat16 = x[15:0];
+    endfunction
 
 endpackage
