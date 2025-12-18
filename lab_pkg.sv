@@ -56,7 +56,8 @@ package lab_pkg;
                 end
 
                 8: begin // Output gain
-                    if (param == 0) param_default = 8'd127;
+                    // if (param == 0) param_default = 8'd127;
+                    if (param == 0) param_default = 8'd32;
                 end
 
                 default: begin
@@ -102,6 +103,21 @@ package lab_pkg;
     // parameter logic [15:0] UNITY_Q15 = 16'd32766;  // SAFE unity
     parameter logic [15:0] UNITY_Q15 = 16'h7FFF;  // SAFE unity
     parameter logic [15:0] MIN_GAIN  = 16'd100;
+
+    // EQ
+    parameter signed [15:0] LOW_A1 = -16'sd31921;
+    parameter signed [15:0] LOW_B0 = 16'sd423;
+    parameter signed [15:0] LOW_B1 = 16'sd423;
+
+    parameter signed [15:0] HIGH_A1 = -16'sd21894;
+    parameter signed [15:0] HIGH_B0 = 16'sd27331;
+    parameter signed [15:0] HIGH_B1 = 16'sd27331;
+
+    parameter signed [15:0] PRES_B0 = 16'sd38127;
+    parameter signed [15:0] PRES_B1 = -16'sd45536;
+    parameter signed [15:0] PRES_B2 = 16'sd16638;
+    parameter signed [15:0] PRES_A1 = -16'sd45536;
+    parameter signed [15:0] PRES_A2 = 16'sd21997;
 
     // ------------------- DSP Functions ---------------
     
