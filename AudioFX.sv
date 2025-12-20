@@ -246,7 +246,7 @@ module AudioFX(
 		.fx_low_gain  (params[2][0]),
 		.fx_mid_gain  (params[2][1]),
 		.fx_high_gain (params[2][2]),
-		.fx_presence  (params[2][3]),
+		// .fx_presence  (params[2][3]),
 		.sample_en    (sample_en_pipe[2])
 	);
 
