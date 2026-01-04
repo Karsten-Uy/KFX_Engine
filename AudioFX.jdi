@@ -75,21 +75,21 @@
     <sld_info hpath="AVConfig:u1" name="u1">
       <assignment_values>
         <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1766002041"/>
-        <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1767535114"/>
+        <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1767535878"/>
       </assignment_values>
       <parameters/>
     </sld_info>
     <sld_info hpath="AudioCodec:u2" name="u2">
       <assignment_values>
         <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1766001971"/>
-        <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1767535143"/>
+        <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1767535907"/>
       </assignment_values>
       <parameters/>
     </sld_info>
     <sld_info hpath="AudioPLL:u0" name="u0">
       <assignment_values>
         <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1766002006"/>
-        <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1767535130"/>
+        <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1767535893"/>
       </assignment_values>
       <parameters/>
     </sld_info>

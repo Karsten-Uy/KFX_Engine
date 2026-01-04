@@ -1,3 +1,11 @@
+/*
+
+    Based of design described here:
+        https://www.kvraudio.com/forum/viewtopic.php?t=112226
+
+*/
+
+
 module fx_eq #(
     parameter DATA_W  = 16,
     parameter PARAM_W = 8
@@ -61,9 +69,9 @@ module fx_eq #(
 
     // Gain (Q15, 128 = unity = 1.0)
     logic signed [15:0] g_high, g_mid, g_low;
-    assign g_high = fx_high_gain << 8;
-    assign g_mid  = fx_mid_gain  << 8;
-    assign g_low  = fx_low_gain  << 8;
+    assign g_high = fx_high_gain << 7; // NOTE: has to be 7, not 8 to have 128 be unity
+    assign g_mid  = fx_mid_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
+    assign g_low  = fx_low_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
 
     // Output accumulator
     logic signed [31:0] temp_high[1:0];
