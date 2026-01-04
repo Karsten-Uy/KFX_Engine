@@ -39,10 +39,9 @@ package lab_pkg;
 
                 2: begin // EQ
                     case (param)
-                        0: param_default = 8'd32;
-                        1: param_default = 8'd32;
-                        2: param_default = 8'd32;
-                        3: param_default = 8'd32;
+                        0: param_default = 8'd128;
+                        1: param_default = 8'd128;
+                        2: param_default = 8'd128;
                     endcase
                 end
 
