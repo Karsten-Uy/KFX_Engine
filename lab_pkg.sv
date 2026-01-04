@@ -54,6 +54,13 @@ package lab_pkg;
                     endcase
                 end
 
+                4: begin // Distortion
+                    case (param)
+                        0: param_default = 8'd0;
+                        1: param_default = 8'd0;
+                    endcase
+                end
+
                 8: begin // Output gain
                     // if (param == 0) param_default = 8'd127;
                     if (param == 0) param_default = 8'd32;

@@ -276,8 +276,7 @@ module AudioFX(
 		.audio_in  (comp_out),
 		.audio_out (dist_out),
 		.fx_drive  (params[4][0]),
-		.fx_tone   (params[4][1]),
-		.fx_mix    (params[4][2]),
+		.fx_mix    (params[4][1]),
 		.sample_en (sample_en_pipe[4])
 	);
 
