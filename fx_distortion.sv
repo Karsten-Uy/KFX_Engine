@@ -17,6 +17,8 @@ module fx_distortion #(
     output logic signed [1:0][DATA_W-1:0]    audio_out,  // Stereo output
     input  logic [PARAM_W-1:0]        fx_drive,       // Distortion amount
     input  logic [PARAM_W-1:0]        fx_mix,         // Dry/wet mix
+    input  logic [PARAM_W-1:0]        fx_makeup_gain,       
+    input  logic [PARAM_W-1:0]        fx_threshold,         
     input  logic                      sample_en
 );
 
@@ -28,79 +30,71 @@ module fx_distortion #(
 
     // Map 0-255 to 1x-4x gain
     logic [15:0] drive_gain;
-    assign drive_gain = 16'h0100 + ({8'h00, fx_drive} << 2); // shift by 2 instead of 5
+    assign drive_gain = 16'h0100 + ({8'h00, fx_drive} << 2); 
 
-    logic signed [31:0] scaled_signal[1:0];
     logic signed [31:0] distorted_signal[1:0];
-    logic signed [31:0] mixed_signal[1:0];
+    logic signed [63:0] mixed_signal[1:0];
+    
+    localparam signed [31:0] ONE      = 32'sd32768;
+    localparam signed [31:0] NEG_ONE  = -32'sd32768;
+    localparam signed [31:0] TWO_THRD = 32'sd21845;
+    localparam signed [31:0] ONE_THRD = 32'sd10923;
 
-    // ------------------------------------------------------------
-    // Distortion Function
-    // ------------------------------------------------------------
-    function automatic logic signed [31:0] tanh_distortion(logic signed [31:0] x);
-        logic signed [63:0] x_sq;
-        logic signed [63:0] x_cubed;
-        logic signed [31:0] soft_clip;
-        
-        // Fixed-point constants (Q15: 1.0 = 32768)
-        localparam signed [31:0] ONE      = 32'sd32768;
-        localparam signed [31:0] NEG_ONE  = -32'sd32768;
-        localparam signed [31:0] TWO_THRD = 32'sd21845; // ~0.66
-        localparam signed [31:0] ONE_THRD = 32'sd10923; // ~0.33
-
-        if (x > ONE) begin
-            soft_clip = TWO_THRD;
-        end 
-        else if (x < NEG_ONE) begin
-            soft_clip = -TWO_THRD;
-        end 
-        else begin
-            // Polynomial: x - (x^3 / 3)
-            // Use 64-bit intermediates to prevent overflow before the shift
-            x_sq = (64'(x) * x) >>> 15;
-            x_cubed = (x_sq[31:0] * x) >>> 15;
-            
-            soft_clip = x - ((x_cubed[31:0] * ONE_THRD) >>> 15);
-        end
-
-        // trivial to isolate issue
-        soft_clip = x;
-
-        return soft_clip;
-    endfunction
+    logic signed [31:0] x[1:0];
+    logic signed [63:0] mix_res[1:0];
+    logic signed [63:0] makeup_scaled[1:0];
 
     // ------------------------------------------------------------
     // Per Sample Distortion Calculation
     // ------------------------------------------------------------
-    // always_comb begin
-    //     for (int i = 0; i < 2; i++) begin
-    //         // 1. Apply Gain: (Audio * Gain) >>> 8 
-    //         // We shift right by 8 because drive_gain uses 8 bits for fraction (256 = 1.0)
-    //         scaled_signal[i] = (64'(audio_in[i]) * drive_gain) >>> 8;
-            
-    //         // 2. Distort
-    //         distorted_signal[i] = tanh_distortion(scaled_signal[i]);
-            
-    //         // 3. Mix: Dry + ((Wet - Dry) * Mix) >>> 8
-    //         // We treat fx_mix as a Q8 fraction (0 to 255/256)
-    //         mixed_signal[i] = $signed(audio_in[i]) + 
-    //                          ((($signed(distorted_signal[i]) - $signed(audio_in[i])) * $signed({1'b0, fx_mix})) >>> 8);
-    //     end
-    // end
+
+    logic signed [31:0] threshold_pos;
+    logic signed [31:0] threshold_neg;
+    logic signed [31:0] clip_output_pos;
+    logic signed [31:0] clip_output_neg;
+
+    always_comb begin
+
+        // // Map fx_threshold (0-255) to a threshold range
+        threshold_pos = 32'sd8192 + (({24'd0, fx_threshold} * 32'd96) >>> 0);
+        threshold_neg = -threshold_pos;
+
+        // Map fx_threshold (0-255) to threshold range with lower floor
+        // Range: 2048 (0.0625) to 32768 (1.0)
+        // Formula: floor + (range * fx_threshold / 256)
+        // threshold_pos = 32'sd2048 + (({24'd0, fx_threshold} * 32'd120) >>> 0);
+        // threshold_neg = -threshold_pos;
+        
+        // Clip output should be proportional to threshold (traditional ~2/3 of threshold)
+        clip_output_pos = (threshold_pos * 32'sd21845) >>> 15; // ~0.66 of threshold
+        clip_output_neg = -clip_output_pos;
+
+    end
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
-            logic signed [31:0] audio_in_32;
             
-            audio_in_32 = 32'($signed(audio_in[i]));
+            // 1. Gain Stage (Q8 drive_gain)
+            x[i] = (64'($signed(audio_in[i])) * drive_gain) >>> 8;
             
-            scaled_signal[i] = (64'(audio_in_32) * drive_gain) >>> 8;
-            distorted_signal[i] = tanh_distortion(scaled_signal[i]);
+            // 2. Distortion with adjustable threshold
+            if (x[i] > threshold_pos) begin
+                distorted_signal[i] = clip_output_pos;
+            end else if (x[i] < threshold_neg) begin
+                distorted_signal[i] = clip_output_neg;
+            end else begin
+                distorted_signal[i] = x[i];
+            end
+
+            // 3. Mixing and Makeup
+            // Use 64-bit for the makeup gain to prevent wrap-around noise
+            mix_res[i] = $signed(audio_in[i]) + $signed(((distorted_signal[i] - $signed(audio_in[i])) * $signed({1'b0, fx_mix})) >>> 8);
             
-            mixed_signal[i] = audio_in_32 + 
-                            (((distorted_signal[i] - audio_in_32) * $signed({1'b0, fx_mix})) >>> 8);
+            // mixed_signal[i] = (mix_res[i] * $signed({1'd0, fx_makeup_gain})) >>> 7;
+            mixed_signal[i] = (mix_res[i]);
         end
     end
+
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
@@ -108,6 +102,7 @@ module fx_distortion #(
         end else if (sample_en) begin
             for (int i = 0; i < 2; i++) begin
                 // audio_out[i] <= sat16(distorted_signal[i]);
+                // audio_out[i] <= sat16(mixed_signal[i] >>> 7); // L side buzz is coming from here
                 audio_out[i] <= sat16(mixed_signal[i]);
             end
             // audio_out = audio_in;
