@@ -14,6 +14,7 @@ module tb_fx_distortion;
     logic signed [1:0][DATA_W-1:0] audio_out;
     logic [PARAM_W-1:0] fx_drive;
     logic [PARAM_W-1:0] fx_mix;
+    logic [PARAM_W-1:0] fx_makeup_gain;
     logic sample_en;
     
     // Instantiate DUT
@@ -27,6 +28,7 @@ module tb_fx_distortion;
         .audio_out(audio_out),
         .fx_drive(fx_drive),
         .fx_mix(fx_mix),
+        .fx_makeup_gain(fx_makeup_gain),
         .sample_en(sample_en)
     );
     
@@ -43,6 +45,7 @@ module tb_fx_distortion;
         audio_in = '{default: '0};
         fx_drive = 0;
         fx_mix = 0;
+        fx_makeup_gain = 128;
         sample_en = 0;
         
         // Reset
