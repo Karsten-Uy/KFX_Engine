@@ -1,3 +1,21 @@
+/*
+
+    Compressor that uses a peak envelope that reduces signals that exceed the 
+    threshold by a ratio while leaving signals that are below the threshold unchanged.
+
+    Parameters:
+        fx_threshold - Threshold for signal that is scaled to have a range
+                       of 0-24480 in relation to audio_in
+        fx_ratio     - Ratio of gain reduction spanning from 1:1 (fx_ratio = 0) to 20:1
+                       (fx_ratio = 255)
+        fx_attack    - Time it takes for the compressor to apply gain reduction. 
+                       Higher value means it takes longer to start gain reduction
+                       once the envelope exceeds the threshold
+        fx_release   - Time it takes for the compressor to release gain reduction. 
+                       Higher value means it takes longer to release gain reduction
+                       once the envelope drops below the threshold
+
+ */
 
 module fx_compressor #(
     parameter DATA_W  = 16,
@@ -14,13 +32,34 @@ module fx_compressor #(
     input  logic                          sample_en
 );
 
+    // ---------------- PACKAGE IMPORTS ----------------
     import lab_pkg::*;
 
-    // ========================================
-    // STAGE 1: INPUT + DELAY LINE
-    // ========================================
+    // ---------------- INTERNAL SIGNALS ----------------
+
+    // Simple Delay Line
     logic signed [1:0][DATA_W-1:0] audio_delay [0:COMP_LOOKAHEAD];
-    
+
+    // Peak Detection
+    logic [15:0] abs_l, abs_r;
+    logic [15:0] peak_level;
+
+    // Envelope
+    logic [15:0] envelope;
+    logic [15:0] att_step, rel_step;
+
+    // Threshold + Gain Reduction
+    logic [15:0] threshold_scaled;
+    logic [15:0] comp_factor;  // Pre-calculated compression factor
+    logic signed [16:0] over_threshold;
+    logic [31:0] reduction_amount;
+    logic [15:0] target_gain;
+    logic [15:0] gain;
+    logic signed [31:0] prod_l, prod_r;
+
+    // ---------------- MAIN LOGIC -------------------
+
+    // STAGE 1: INPUT + DELAY LINE    
     integer i;
     always_ff @(posedge clk) begin
         if (!reset_n) begin
@@ -33,12 +72,7 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
-    // STAGE 2: PEAK DETECTION (Registered)
-    // ========================================
-    logic [15:0] abs_l, abs_r;
-    logic [15:0] peak_level;
-    
+    // STAGE 2: PEAK DETECTION (Registered)W  
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             peak_level <= '0;
@@ -49,17 +83,13 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
-    // STAGE 3: ENVELOPE FOLLOWER (Registered)
-    // ========================================
-    logic [15:0] envelope;
-    logic [15:0] att_step, rel_step;
-
+    // Attack/Release Calculation
     always_comb begin
         att_step = 16'd512 + ({8'd0, fx_attack} << 4);
         rel_step = 16'd16  + ({8'd0, fx_release} << 2);
     end
 
+    // STAGE 3: ENVELOPE FOLLOWER (Registered)
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             envelope <= 16'd0;
@@ -71,13 +101,7 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
-    // PARAMETER PRE-CALCULATION (Registered)
-    // Avoid division in critical path!
-    // ========================================
-    logic [15:0] threshold_scaled;
-    logic [15:0] comp_factor;  // Pre-calculated compression factor
-    
+    // PARAMETER PRE-CALCULATION
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             threshold_scaled <= '0;
@@ -87,7 +111,6 @@ module fx_compressor #(
             threshold_scaled <= ({8'd0, fx_threshold} * 16'd96);
             
             // Pre-calculate compression factor using LOOKUP TABLE
-            // This avoids expensive division!
             case (fx_ratio)
                 8'd0, 8'd1: comp_factor <= 16'd0;      // 1:1 (no compression)
                 8'd2: comp_factor <= 16'd16384;        // 2:1 (0.5)
@@ -111,11 +134,7 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
-    // STAGE 4: THRESHOLD COMPARISON (Registered)
-    // ========================================
-    logic signed [16:0] over_threshold;
-    
+    // STAGE 4: THRESHOLD COMPARISON (Registered)    
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             over_threshold <= '0;
@@ -124,11 +143,7 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
-    // STAGE 5: GAIN REDUCTION (Registered multiply)
-    // ========================================
-    logic [31:0] reduction_amount;
-    
+    // STAGE 5: GAIN REDUCTION (Registered multiply)   
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             reduction_amount <= '0;
@@ -140,11 +155,7 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
-    // STAGE 6: TARGET GAIN CALCULATION (Registered)
-    // ========================================
-    logic [15:0] target_gain;
-    
+    // STAGE 6: TARGET GAIN CALCULATION (Registered)    
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             target_gain <= UNITY_Q15;
@@ -163,11 +174,7 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
     // STAGE 7: GAIN SMOOTHING (Registered)
-    // ========================================
-    logic [15:0] gain;
-
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             gain <= UNITY_Q15;
@@ -186,13 +193,7 @@ module fx_compressor #(
         end
     end
 
-    // assign gain = UNITY_Q15;
-
-    // ========================================
     // STAGE 8: APPLY GAIN (Registered multiply)
-    // ========================================
-    logic signed [31:0] prod_l, prod_r;
-
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             prod_l <= '0;
@@ -203,9 +204,8 @@ module fx_compressor #(
         end
     end
 
-    // ========================================
     // STAGE 9: OUTPUT (Registered)
-    // ========================================
+    // -------------------- OUTPUT -------------------------
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;

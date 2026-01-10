@@ -1,9 +1,24 @@
 
 /*
 
-    Algorithm from:
-        https://dsp.stackexchange.com/questions/13142/digital-distortion-effect-algorithm
+    Distortion of a signal using a non-linear 3rd-order-polynomial approxiation
+    of the tanh(x) function that is described below:
 
+        *NOTE: input x is scaled to fit values accordingly
+
+               { 2/3       , x => 1 }
+        f(x) = { x - x^3/3 , -1 < x < 1}
+               { 2/3       , x <= -1 }
+
+    Parameters:
+        fx_drive       - Gain multiplier controlling input into non-linearity where
+                         (fx_drive == 0) => UNITY and (fx_drive == 255) => 32.875x
+        fx_mix         - Mix control determining how much of the wet signal is in
+                         the output of this FX. (fx_mix == 0) => all dry, 
+                         (fx_mix == 255) => all wet
+        fx_makeup_gain - Gain multiplier controlling output gain where 
+                         (fx_makeup_gain == 128) => UNITY
+        fx_threshold   - CURRENTLY UNUSED
 */
 
 // Distortion (FX 4)
@@ -28,7 +43,7 @@ module fx_distortion #(
     // Local Signals
     // ------------------------------------------------------------
 
-    // Map 0-255 to 1x-4x gain
+    // Map 0-255 to 1x-32.875x gain
     logic [15:0] drive_gain;
     assign drive_gain = 16'h0100 + ({8'h00, fx_drive} << 5); 
 
@@ -101,10 +116,17 @@ module fx_distortion #(
         for (int i = 0; i < 2; i++) begin
             
             // 2. Distortion with adjustable threshold, for now hard code
-            if (x[i] > TWO_THRD) begin
-                distorted_signal[i] = ONE;
-            end else if (x[i] < -TWO_THRD) begin
-                distorted_signal[i] = -ONE;
+            // if (x[i] > TWO_THRD) begin
+            //     distorted_signal[i] = ONE;
+            // end else if (x[i] < -TWO_THRD) begin
+            //     distorted_signal[i] = -ONE;
+
+            if (x[i] >= ONE) begin
+                // Clip at the maximum value of the polynomial: 2/3
+                distorted_signal[i] = TWO_THRD; 
+            end else if (x[i] <= NEG_ONE) begin
+                // Clip at the minimum value: -2/3
+                distorted_signal[i] = -TWO_THRD;
             end else begin
                 distorted_signal[i] = x[i] - (($signed(cubic_term[i]) * $signed(ONE_THRD)) >>> 15);
             end

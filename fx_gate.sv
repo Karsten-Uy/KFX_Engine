@@ -15,7 +15,6 @@
 
  */
 
-
 module fx_gate #(
     parameter DATA_W  = 16,
     PARAM_W = 8
