@@ -188,23 +188,11 @@
 					"strict" : false
 				},
 				{
-					"name" : "SW[9]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[7]",
-					"strict" : false
-				},
-				{
 					"name" : "SW[8]",
 					"strict" : false
 				},
 				{
-					"name" : "SW[2]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[3]",
+					"name" : "SW[9]",
 					"strict" : false
 				},
 				{
@@ -212,11 +200,23 @@
 					"strict" : false
 				},
 				{
-					"name" : "SW[1]",
+					"name" : "SW[7]",
 					"strict" : false
 				},
 				{
 					"name" : "SW[0]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[3]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[2]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[1]",
 					"strict" : false
 				},
 				{
