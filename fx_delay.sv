@@ -31,7 +31,6 @@ module fx_delay #(
     import lab_pkg::*;
     
     // ---------------- CONSTANTS ----------------
-    localparam SAMPLE_RATE = 48000;
     localparam MAX_SAMPLES = 24000;
     localparam ADDR_W = $clog2(MAX_SAMPLES);
 
@@ -41,7 +40,6 @@ module fx_delay #(
     localparam MIN_DELAY_SAMPLES = (MIN_DELAY_MS * SAMPLE_RATE) / 1000;
     localparam MAX_DELAY_SAMPLES_PARAM = (MAX_DELAY_MS * SAMPLE_RATE) / 1000;
     localparam DELAY_RANGE = MAX_DELAY_SAMPLES_PARAM - MIN_DELAY_SAMPLES;  // 21600 
-
 
     // ---------------- INTERNAL SIGNALS ----------------
 
@@ -115,8 +113,7 @@ module fx_delay #(
 
     // Mix Calculation
     always_comb begin
-        // Calculate dry gain (256 - fx_mix) to maintain unity gain
-        dry_gain = 9'sd256 - $signed({1'b0, fx_mix});
+        dry_gain = 9'sd255 - $signed({1'b0, fx_mix});
         
         // Mix calculation with proper bit widths
         // wet = delayed * fx_mix / 256
