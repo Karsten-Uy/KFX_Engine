@@ -1,3 +1,20 @@
+/*
+
+    Gate with Peak Envelope Smoothing that allows signals that exceed the 
+    threshold through while muting signals that are below the threshold.
+
+    Parameters:
+        fx_threshold - Threshold for signal that is scaled to have a range
+                       of 0-24480 in relation to audio_in
+        fx_attack    - Time it takes for the gate to open. Higher value means
+                       it takes longer to open once the envelope exceeds the 
+                       threshold
+        fx_release   - Time it takes for the gate to close. Higher value means
+                       it takes longer to close once the envelope dips below the 
+                       threshold 
+
+ */
+
 
 module fx_gate #(
     parameter DATA_W  = 16,
@@ -16,30 +33,41 @@ module fx_gate #(
     // ---------------- PACKAGE IMPORTS ----------------
     import lab_pkg::*;
 
+    // ---------------- INTERNAL SIGNALS ----------------
 
-    // -----------------------------
-    // PEAK LEVEL DETECTOR (Stereo-linked)
-    // -----------------------------
+    // Peak Detector
     logic [15:0] abs_l, abs_r;
     logic [15:0] peak_level;
 
+    // Envelope Follower
+    logic [15:0] envelope;
+    logic [15:0] att_step, rel_step;
+
+    // Gate Decision
+    logic [15:0] threshold_val;
+    logic gate_open;
+    logic [15:0] open_threshold, close_threshold;
+
+    // Gate Gain
+    logic [15:0] gate_gain;
+    logic signed [31:0] prod_l, prod_r;
+
+    // ---------------- ENVELOPE ----------------    
+
+    // Peak Level Detector (Stereo-linked)
     always_comb begin
         abs_l = audio_in[0][15] ? -audio_in[0] : audio_in[0];
         abs_r = audio_in[1][15] ? -audio_in[1] : audio_in[1];
         peak_level = (abs_l > abs_r) ? abs_l : abs_r;  // Max of stereo
     end
 
-    // -----------------------------
-    // ENVELOPE FOLLOWER
-    // -----------------------------
-    logic [15:0] envelope;
-    logic [15:0] att_step, rel_step;
-
+    // Envelope Follower
     always_comb begin
         att_step = 16'd512 + ({8'd0, fx_attack} << 4);
         rel_step = 16'd16  + ({8'd0, fx_release} << 2);
     end
 
+    // Envelope FF
     always_ff @(posedge clk) begin
         if (!reset_n)
             envelope <= 16'd0;
@@ -52,16 +80,13 @@ module fx_gate #(
     end
 
     // ---------------- GATE DECISION ----------------
-    
-    logic [15:0] threshold_val;
-    logic gate_open;
-    logic [15:0] open_threshold, close_threshold;
 
-    assign threshold_val = ({8'd0, fx_threshold} * 16'd96);  // 0-255 -> 0-24480
-    
+    // Threshold Calculation
+    assign threshold_val = ({8'd0, fx_threshold} * 16'd96);  // 0-255 -> 0-24480    
     assign open_threshold = threshold_val;
     assign close_threshold = (threshold_val >>> 1); // 50% hysteresis
     
+    // Gate Decision FF
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             gate_open <= 1'b0;
@@ -76,10 +101,9 @@ module fx_gate #(
         end
     end
 
-    // ---------------- GATE GAIN SMOOTHING ----------------
+    // ---------------- GATE GAIN APPLICATION ----------------    
     
-    logic [15:0] gate_gain;
-    
+    // Gain Smoothing FF
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             gate_gain <= MIN_GAIN;
@@ -102,41 +126,22 @@ module fx_gate #(
         end
     end
 
-    // assign gate_gain = UNITY_Q15;
-
-    // -----------------------------
-    // APPLY GAIN TO DELAYED AUDIO
-    // -----------------------------
-    logic signed [31:0] prod_l, prod_r;
-
+    // Gain Application
     always_comb begin
-        // Multiply delayed audio by gain (both Q15)
         prod_l = $signed(audio_in[0]) * $signed({1'b0,gate_gain});
         prod_r = $signed(audio_in[1]) * $signed({1'b0,gate_gain});
 
     end
 
+    // Audio Out FF
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
-            // Shift down by 15 bits and saturate
+            // Right Shift 15 to resolve gain multiplication
             audio_out[0] <= sat16(prod_l >>> 15);
             audio_out[1] <= sat16(prod_r >>> 15);
-
-            // audio_out = audio_in;
         end
     end
-
-
-
-    
-    // always_ff @(posedge clk) begin
-    //     if (!reset_n) begin
-    //         audio_out <= '0;
-    //     end else if (sample_en) begin
-    //         audio_out = audio_in;
-    //     end
-    // end
 
 endmodule

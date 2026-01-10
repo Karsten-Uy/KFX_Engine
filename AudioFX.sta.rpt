@@ -1,5 +1,5 @@
 Timing Analyzer report for AudioFX
-Sat Jan 10 11:15:03 2026
+Sat Jan 10 11:59:36 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -118,7 +118,7 @@ refer to the applicable agreement for further details.
 +---------------+--------+--------------------------+
 ; SDC File Path ; Status ; Read at                  ;
 +---------------+--------+--------------------------+
-; AudioFX.sdc   ; OK     ; Sat Jan 10 11:14:23 2026 ;
+; AudioFX.sdc   ; OK     ; Sat Jan 10 11:58:57 2026 ;
 +---------------+--------+--------------------------+
 
 
@@ -1129,7 +1129,7 @@ No non-DPA dedicated SERDES Receiver circuitry present in device or used in desi
 Info: *******************************************************************
 Info: Running Quartus Prime Timing Analyzer
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Sat Jan 10 11:14:18 2026
+    Info: Processing started: Sat Jan 10 11:58:52 2026
 Info: Command: quartus_sta AudioFX -c AudioFX
 Info: qsta_default_script.tcl version: #1
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -1443,9 +1443,9 @@ Info (332114): Report Metastability: Found 83 synchronizer chains.
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
 Info: Quartus Prime Timing Analyzer was successful. 0 errors, 100 warnings
-    Info: Peak virtual memory: 5497 megabytes
-    Info: Processing ended: Sat Jan 10 11:15:03 2026
-    Info: Elapsed time: 00:00:45
-    Info: Total CPU time (on all processors): 00:02:07
+    Info: Peak virtual memory: 5490 megabytes
+    Info: Processing ended: Sat Jan 10 11:59:36 2026
+    Info: Elapsed time: 00:00:44
+    Info: Total CPU time (on all processors): 00:02:02
 
 
