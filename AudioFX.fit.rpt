@@ -1,5 +1,5 @@
 Fitter report for AudioFX
-Sat Jan 10 11:13:59 2026
+Sat Jan 10 11:58:32 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -69,7 +69,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Fitter Summary                                                                ;
 +---------------------------------+---------------------------------------------+
-; Fitter Status                   ; Successful - Sat Jan 10 11:13:59 2026       ;
+; Fitter Status                   ; Successful - Sat Jan 10 11:58:32 2026       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
@@ -159,14 +159,14 @@ refer to the applicable agreement for further details.
 ; Number detected on machine ; 8           ;
 ; Maximum allowed            ; 4           ;
 ;                            ;             ;
-; Average used               ; 1.23        ;
+; Average used               ; 1.25        ;
 ; Maximum used               ; 4           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   8.4%      ;
-;     Processor 3            ;   7.6%      ;
-;     Processor 4            ;   7.3%      ;
+;     Processor 2            ;   8.8%      ;
+;     Processor 3            ;   8.3%      ;
+;     Processor 4            ;   8.0%      ;
 +----------------------------+-------------+
 
 
@@ -9151,7 +9151,7 @@ Info (128002): Starting physical synthesis algorithm register retiming
 Info (128003): Physical synthesis algorithm register retiming complete: estimated slack improvement of 0 ps
 Info (128002): Starting physical synthesis algorithm combinational resynthesis using boolean division
 Info (128003): Physical synthesis algorithm combinational resynthesis using boolean division complete: estimated slack improvement of 0 ps
-Info (128001): Physical synthesis optimizations for speed complete: elapsed time is 00:00:12
+Info (128001): Physical synthesis optimizations for speed complete: elapsed time is 00:00:10
 Info (176233): Starting register packing
 Info (176235): Finished register packing
     Extra Info (176219): No registers were packed into other blocks
@@ -9323,22 +9323,22 @@ Warning (15705): Ignored locations or region assignments to the following nodes
     Warning (15706): Node "VGA_R[7]" is assigned to location or region, but does not exist in design
     Warning (15706): Node "VGA_SYNC_N" is assigned to location or region, but does not exist in design
     Warning (15706): Node "VGA_VS" is assigned to location or region, but does not exist in design
-Info (11798): Fitter preparation operations ending: elapsed time is 00:00:33
+Info (11798): Fitter preparation operations ending: elapsed time is 00:00:30
 Info (170189): Fitter placement preparation operations beginning
 Info (14951): The Fitter is using Advanced Physical Optimization.
-Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:32
+Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:23
 Info (170191): Fitter placement operations beginning
 Info (170137): Fitter placement was successful
-Info (170192): Fitter placement operations ending: elapsed time is 00:00:47
+Info (170192): Fitter placement operations ending: elapsed time is 00:00:36
 Info (170193): Fitter routing operations beginning
 Info (170089): 3e+03 ns of routing delay (approximately 1.8% of available device routing delay) has been added to meet hold timing. For more information, refer to the Estimated Delay Added for Hold Timing section in the Fitter report.
 Info (170195): Router estimated average interconnect usage is 7% of the available device resources
     Info (170196): Router estimated peak interconnect usage is 28% of the available device resources in the region that extends from location X56_Y11 to location X66_Y22
-Info (170194): Fitter routing operations ending: elapsed time is 00:00:17
-Info (11888): Total time spent on timing analysis during the Fitter is 28.46 seconds.
+Info (170194): Fitter routing operations ending: elapsed time is 00:00:40
+Info (11888): Total time spent on timing analysis during the Fitter is 23.50 seconds.
 Info (334003): Started post-fitting delay annotation
 Info (334004): Delay annotation completed successfully
-Info (11801): Fitter post-fit operations ending: elapsed time is 00:00:21
+Info (11801): Fitter post-fit operations ending: elapsed time is 00:00:24
 Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments panel in the Fitter Compilation Report for more information.
 Warning (169064): Following 3 pins have no output enable or a GND or VCC output enable - later changes to this connectivity may change fitting results
     Info (169065): Pin AUD_BCLK has a permanently disabled output enable File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 46
@@ -9346,10 +9346,10 @@ Warning (169064): Following 3 pins have no output enable or a GND or VCC output 
     Info (169065): Pin AUD_DACLRCK has a permanently disabled output enable File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 48
 Info (144001): Generated suppressed messages file C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.fit.smsg
 Info: Quartus Prime Fitter was successful. 0 errors, 273 warnings
-    Info: Peak virtual memory: 6897 megabytes
-    Info: Processing ended: Sat Jan 10 11:14:03 2026
-    Info: Elapsed time: 00:03:27
-    Info: Total CPU time (on all processors): 00:09:18
+    Info: Peak virtual memory: 6894 megabytes
+    Info: Processing ended: Sat Jan 10 11:58:37 2026
+    Info: Elapsed time: 00:03:22
+    Info: Total CPU time (on all processors): 00:08:16
 
 
 +----------------------------+

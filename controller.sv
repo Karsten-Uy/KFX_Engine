@@ -1,10 +1,23 @@
 
 
 /*
- * FX parameter controller
- * - Debounced inc / dec keys
- * - Single-step on press
- * - Auto-repeat on hold
+    
+    Allows the user to control the parameters of the FX using SW[9:0] and KEY[3:2]
+
+        SW[9:7]:
+            - Selects which FX is currently selected for view/modification
+
+        SW[3:1]:
+            - For the selected FX, selects which parameter is currently selected 
+            for view/modification
+
+        KEY[3:2]
+            - Buttons that are debounded and made such that pressing them 
+            increases/decreases the current value and holding them down will 
+            continuously increase/decrease the value
+                - KEY[2] => increase
+                - KEY[3] => decrease
+
  */
 
 module controller #(
@@ -38,27 +51,28 @@ module controller #(
     // ---------------- PACKAGE IMPORTS ----------------
     import lab_pkg::*;
 
+    // ---------------- INTERNAL SIGNALS ----------------
+
+    // Debounce Signals
+    logic key_inc_sync0, key_inc_sync1, key_inc_stable;
+    logic key_dec_sync0, key_dec_sync1, key_dec_stable;
+    logic [$clog2(DEBOUNCE_CNT_MAX)-1:0] key_inc_cnt, key_dec_cnt;
+
+    // Edge Detection
+    logic key_inc_prev, key_dec_prev;
+    logic key_inc_pulse, key_dec_pulse;
+
+    // Auto Repeat
+    logic [$clog2(REPEAT_START_CNT)-1:0] inc_hold_cnt, dec_hold_cnt;
+    logic [$clog2(REPEAT_RATE_CNT)-1:0]  inc_repeat_cnt, dec_repeat_cnt;
+    logic inc_repeat_pulse, dec_repeat_pulse;
+
     // ---------------- Selection ----------------
     assign fx_sel        = sw_fx_sel;
     assign param_sel     = sw_param_sel;
     assign current_value = params[fx_sel][param_sel];
 
-    // ---------------- Debounce Signals ----------------
-    logic key_inc_sync0, key_inc_sync1, key_inc_stable;
-    logic key_dec_sync0, key_dec_sync1, key_dec_stable;
-
-    logic [$clog2(DEBOUNCE_CNT_MAX)-1:0] key_inc_cnt, key_dec_cnt;
-
-    // ---------------- Edge Detect ----------------
-    logic key_inc_prev, key_dec_prev;
-    logic key_inc_pulse, key_dec_pulse;
-
-    // ---------------- Auto Repeat ----------------
-    logic [$clog2(REPEAT_START_CNT)-1:0] inc_hold_cnt, dec_hold_cnt;
-    logic [$clog2(REPEAT_RATE_CNT)-1:0]  inc_repeat_cnt, dec_repeat_cnt;
-    logic inc_repeat_pulse, dec_repeat_pulse;
-
-    // ---------------- PARAM STORAGE ----------------
+    // ---------------- Parameter Storage ----------------
     integer fx, p;
     always_ff @(posedge clk) begin
         if (!reset_n) begin
@@ -66,6 +80,7 @@ module controller #(
                 for (p = 0; p < PARAM_COUNT; p++)
                     params[fx][p] <= param_default(fx, p);
         end else begin
+
             // Increment (saturating)
             if (key_inc_pulse || inc_repeat_pulse) begin
                 if (params[fx_sel][param_sel] >= PARAM_MAX - INCDEC_AMOUNT)

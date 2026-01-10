@@ -1,8 +1,24 @@
 /*
- * Displays paremeter value that is currently being edited
- */
+    
+    Makes the LEDRs and HEX0 display meaningful information.
 
-// TODO: Make it actaully display something meaningful and not just numbers
+        LEDR[9:0]:
+            - shows the current parameter value using the LEDs as
+            a bar, with all 10 LEDs on representing 255 and just 1
+            LED showing means a very low or 0 value
+        
+        HEX5 & HEX4:
+            - Shows the current FX selected, HEX5 will always show "F"
+            and HEX4 will display a number between "0" and "F" which
+            represents which FX in the chain is selected for view/modification
+
+        HEX3 & HEX2:
+            - From the selected FX, shows which parameter is currently
+            selected. HEX3 will always show "P" and HEX2 will display a 
+            number between "0" and "7" which FX parameter is selected
+            for view/modification
+
+ */
 
 module display #(
     parameter FX_COUNT    = 16,

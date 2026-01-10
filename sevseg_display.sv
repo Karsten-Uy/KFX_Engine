@@ -1,3 +1,7 @@
+/*
+    Display Module for an individual Seven Segment Display on the DE1-SoC
+ */
+
 module sevseg_display(
     input logic [4:0] value,
     output logic [6:0] HEX
