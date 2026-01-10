@@ -1,7 +1,7 @@
 /*
 
     3 Band EQ that splits the signals into High, Mid, and Low bands and then
-    applies a gain to 
+    applies a gain to each band
 
     Parameters:
         fx_low_gain  - gain multiplier for the low band where 128 => UNITY
