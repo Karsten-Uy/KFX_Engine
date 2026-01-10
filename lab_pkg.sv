@@ -133,8 +133,14 @@ package lab_pkg;
     parameter SEVSEG_SEG_E     = 7'b0000110;
     parameter SEVSEG_SEG_F     = 7'b0001110;
 
+                                //  6543210
+    parameter SEVSEG_SEG_X     = 7'b0001001;
+    parameter SEVSEG_SEG_P     = 7'b0001100;
+
     parameter SEVSEG_BLANK_INDEX = 5'd16;
     parameter SEVSEG_LINE_INDEX  = 5'd17;
+    parameter SEVSEG_X_INDEX     = 5'd18;
+    parameter SEVSEG_P_INDEX     = 5'd19;
 
     // ------------------- DSP Params -------------------
     parameter FX_STAGES = 9;
@@ -145,21 +151,6 @@ package lab_pkg;
     // parameter logic [15:0] UNITY_Q15 = 16'd32766;  // SAFE unity
     parameter logic [15:0] UNITY_Q15 = 16'h7FFF;  // SAFE unity
     parameter logic [15:0] MIN_GAIN  = 16'd100;
-
-    // EQ
-    // parameter signed [15:0] LOW_A1 = 16'sd31921;
-    // parameter signed [15:0] LOW_B0 = 16'sd423;
-    // parameter signed [15:0] LOW_B1 = 16'sd423;
-
-    // parameter signed [15:0] HIGH_A1 = 16'sd21894;
-    // parameter signed [15:0] HIGH_B0 = 16'sd27331;
-    // parameter signed [15:0] HIGH_B1 = 16'sd27331;
-
-    // parameter signed [15:0] PRES_B0 = 16'sd38127;
-    // parameter signed [15:0] PRES_B1 = -16'sd22768;
-    // parameter signed [15:0] PRES_B2 = 16'sd16638;
-    // parameter signed [15:0] PRES_A1 = -16'sd22768;
-    // parameter signed [15:0] PRES_A2 = 16'sd21997;
 
     // ------------------- DSP Functions ---------------
     

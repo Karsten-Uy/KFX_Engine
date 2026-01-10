@@ -61,11 +61,15 @@ module display #(
         val_HEX4 = SEVSEG_BLANK_INDEX;
         val_HEX5 = SEVSEG_BLANK_INDEX;
 
+        // Static Letters on Display
+        val_HEX5 = 5'hF;
+        val_HEX3 = SEVSEG_P_INDEX;
+
         // FX Selected
-        val_HEX5 = fx_sel;
+        val_HEX4 = fx_sel;
 
         // Param Selected
-        val_HEX4 = {1'd0,param_sel};
+        val_HEX2 = {1'd0,param_sel};
 
         if (SW[0]) begin
             val_HEX0 = SEVSEG_LINE_INDEX;
