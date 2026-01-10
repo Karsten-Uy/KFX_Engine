@@ -171,7 +171,8 @@ module AudioFX(
 	logic [1:0][DATA_W-1:0] pre_fx; 
 	logic [1:0][DATA_W-1:0] gain_in_out; 
 	logic [1:0][DATA_W-1:0] gate_out; 
-	logic [1:0][DATA_W-1:0] eq_out; 
+	logic [1:0][DATA_W-1:0] eq_out_1; 
+	logic [1:0][DATA_W-1:0] eq_out_2; 
 	logic [1:0][DATA_W-1:0] comp_out;
 	logic [1:0][DATA_W-1:0] dist_out;
 	logic [1:0][DATA_W-1:0] chorus_out;
@@ -234,19 +235,18 @@ module AudioFX(
 		.sample_en    (sample_en_pipe[1])
 	);
 
-	// EQ (FX 2)
+	// EQ 1(FX 2)
 	fx_eq #(
 		.DATA_W(DATA_W),
 		.PARAM_W(PARAM_W)
-	) FX_EQ (
+	) FX_EQ_1 (
 		.clk          (CLOCK_50),
 		.reset_n      (KEY[0]),
 		.audio_in     (gate_out),
-		.audio_out    (eq_out),
+		.audio_out    (eq_out_1),
 		.fx_low_gain  (params[2][0]),
 		.fx_mid_gain  (params[2][1]),
 		.fx_high_gain (params[2][2]),
-		// .fx_presence  (params[2][3]),
 		.sample_en    (sample_en_pipe[2])
 	);
 
@@ -257,7 +257,7 @@ module AudioFX(
 	) FX_COMPRESSOR (
 		.clk          (CLOCK_50),
 		.reset_n      (KEY[0]),
-		.audio_in     (eq_out),
+		.audio_in     (eq_out_1),
 		.audio_out    (comp_out),
 		.fx_threshold (params[3][0]),
 		.fx_ratio     (params[3][1]),
@@ -282,22 +282,38 @@ module AudioFX(
 		.sample_en (sample_en_pipe[4])
 	);
 
-	// Chorus (FX 5)
+	// // EQ 2 (FX 5)
+	// fx_eq #(
+	// 	.DATA_W(DATA_W),
+	// 	.PARAM_W(PARAM_W)
+	// ) FX_EQ_2 (
+	// 	.clk          (CLOCK_50),
+	// 	.reset_n      (KEY[0]),
+	// 	.audio_in     (dist_out),
+	// 	.audio_out    (eq_out_2),
+	// 	.fx_low_gain  (params[5][0]),
+	// 	.fx_mid_gain  (params[5][1]),
+	// 	.fx_high_gain (params[5][2]),
+	// 	.sample_en    (sample_en_pipe[5])
+	// );
+
+	// Chorus (FX 6)
 	fx_chorus #(
 		.DATA_W(DATA_W),
 		.PARAM_W(PARAM_W)
 	) FX_CHORUS (
 		.clk       (CLOCK_50),
 		.reset_n   (KEY[0]),
+		// .audio_in  (eq_out_2),
 		.audio_in  (dist_out),
 		.audio_out (chorus_out),
-		.fx_rate   (params[5][0]),
-		.fx_depth  (params[5][1]),
-		.fx_mix    (params[5][2]),
-		.sample_en (sample_en_pipe[5])
+		.fx_rate   (params[6][0]),
+		.fx_depth  (params[6][1]),
+		.fx_mix    (params[6][2]),
+		.sample_en (sample_en_pipe[6])
 	);
 
-	// Delay (FX 6)
+	// Delay (FX 7)
 	fx_delay #(
 		.DATA_W(DATA_W),
 		.PARAM_W(PARAM_W)
@@ -306,13 +322,13 @@ module AudioFX(
 		.reset_n     (KEY[0]),
 		.audio_in    (chorus_out),
 		.audio_out   (delay_out),
-		.fx_time     (params[6][0]),
-		.fx_feedback (params[6][1]),
-		.fx_mix      (params[6][2]),
-		.sample_en   (sample_en_pipe[6])
+		.fx_time     (params[7][0]),
+		.fx_feedback (params[7][1]),
+		.fx_mix      (params[7][2]),
+		.sample_en   (sample_en_pipe[7])
 	);
 
-	// Reverb (FX 7)
+	// Reverb (FX 8)
 	fx_reverb #(
 		.DATA_W(DATA_W),
 		.PARAM_W(PARAM_W)
@@ -321,13 +337,13 @@ module AudioFX(
 		.reset_n    (KEY[0]),
 		.audio_in   (delay_out),
 		.audio_out  (reverb_out),
-		.fx_size    (params[7][0]),
-		.fx_damping (params[7][1]),
-		.fx_mix     (params[7][2]),
-		.sample_en  (sample_en_pipe[7])
+		.fx_size    (params[8][0]),
+		.fx_damping (params[8][1]),
+		.fx_mix     (params[8][2]),
+		.sample_en  (sample_en_pipe[8])
 	);
 
-	// Output Gain (FX 8)
+	// Output Gain (FX 9)
 	fx_gain #(
 		.DATA_W(DATA_W),
 		.PARAM_W(PARAM_W)
@@ -336,8 +352,8 @@ module AudioFX(
 		.reset_n   (KEY[0]),
 		.audio_in  (reverb_out),
 		.audio_out (gain_out_out),
-		.fx_gain   (params[8][0]),
-		.sample_en (sample_en_pipe[8])
+		.fx_gain   (params[9][0]),
+		.sample_en (sample_en_pipe[9])
 	);
 
 	// FX Chain output to DAC
@@ -346,16 +362,16 @@ module AudioFX(
 		if(SW[0]==1) begin
 			DAC_Data[0] <= 0;
 			DAC_Data[1] <= 0;
-			DAC_Valid[0] <= sample_en_pipe[8];
-			DAC_Valid[1] <= sample_en_pipe[8];
+			DAC_Valid[0] <= sample_en_pipe[9];
+			DAC_Valid[1] <= sample_en_pipe[9];
 			ADC_Ready[0] <= DAC_Ready[1];
 			ADC_Ready[1] <= DAC_Ready[0];
 		end else begin
 			// FX Chain output
 			DAC_Data[0] <= gain_out_out[0];
 			DAC_Data[1] <= gain_out_out[1];
-			DAC_Valid[0] <= sample_en_pipe[8];
-			DAC_Valid[1] <= sample_en_pipe[8];
+			DAC_Valid[0] <= sample_en_pipe[9];
+			DAC_Valid[1] <= sample_en_pipe[9];
 			ADC_Ready[0] <= DAC_Ready[0];
 			ADC_Ready[1] <= DAC_Ready[1];
 		end
