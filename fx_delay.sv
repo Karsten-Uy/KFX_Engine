@@ -14,16 +14,40 @@ module fx_delay #(
 );
     import lab_pkg::*;
     
+    localparam SAMPLE_RATE = 48000;
     localparam MAX_SAMPLES = 24000;
     localparam ADDR_W = $clog2(MAX_SAMPLES);
+
+    // Option 2: Medium delays (typical delay pedal) - 50ms to 500ms
+    localparam MIN_DELAY_MS = 50;
+    localparam MAX_DELAY_MS = 500;
 
     logic [ADDR_W-1:0] target_delay;
     logic signed [DATA_W-1:0] delayed_L, delayed_R;
     logic signed [DATA_W-1:0] fb_in_L, fb_in_R;
     logic signed [31:0] fb_scaled_L, fb_scaled_R;
 
-    // Map fx_time with minimum delay to avoid artifacts
-    assign target_delay = 480 + ((fx_time * (MAX_SAMPLES - 480)) >> 8);  // 10ms minimum
+    // // Map fx_time with minimum delay to avoid artifacts
+    localparam MIN_DELAY_SAMPLES = (MIN_DELAY_MS * SAMPLE_RATE) / 1000;
+    localparam MAX_DELAY_SAMPLES_PARAM = (MAX_DELAY_MS * SAMPLE_RATE) / 1000;
+    localparam DELAY_RANGE = MAX_DELAY_SAMPLES_PARAM - MIN_DELAY_SAMPLES;  // 21600 
+
+    // Simple linear mapping from fx_time to delay time
+    logic [31:0] delay_range;
+    logic [23:0] scaled_delay;
+    // Fixed delay calculation with proper bit widths
+    always_comb begin
+        // Use wider intermediate to prevent overflow        
+        scaled_delay = fx_time * DELAY_RANGE[14:0];  // 8-bit * 15-bit = 23-bit
+        
+        // Shift right by 8 to divide by 256, then add minimum
+        // Result fits in ADDR_W bits
+        target_delay = MIN_DELAY_SAMPLES[ADDR_W-1:0] + scaled_delay[23:8];
+        
+        // Safety clamp (should never trigger with correct parameters)
+        if (target_delay > MAX_SAMPLES[ADDR_W-1:0])
+            target_delay = MAX_SAMPLES[ADDR_W-1:0];
+    end
 
     // --- FEEDBACK PATH ---
     always_comb begin
