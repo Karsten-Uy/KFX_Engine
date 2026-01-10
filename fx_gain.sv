@@ -1,9 +1,9 @@
 /*
 
-    Applys a gain multiplier to the signal
+    Applies a gain multiplier to the signal
 
     Parameters:
-        fx_gain -> Gain multiplier from 0 to 255, 128 => UNITY
+        fx_gain - Gain multiplier from 0 to 255, 128 => UNITY
 
  */
 
