@@ -76,14 +76,15 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        2: param_default = 8'd255;
+                        // 2: param_default = 8'd255;
+                        2: param_default = 8'd0;
                     endcase
                 end
 
                 7: begin // Delay
                     case (param)
-                        0: param_default = 8'd128;
-                        1: param_default = 8'd128;
+                        0: param_default = 8'd0;
+                        1: param_default = 8'd0;
                         // 2: param_default = 8'd128;
                         2: param_default = 8'd0;
                     endcase
