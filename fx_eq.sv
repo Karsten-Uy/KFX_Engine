@@ -1,10 +1,17 @@
 /*
 
+    3 Band EQ that splits the signals into High, Mid, and Low bands and then
+    applies a gain to 
+
+    Parameters:
+        fx_low_gain  - gain multiplier for the low band where 128 => UNITY
+        fx_mid_gain  - gain multiplier for the mid band where 128 => UNITY
+        fx_high_gain - gain multiplier for the high band where 128 => UNITY
+
     Based of design described here:
         https://www.kvraudio.com/forum/viewtopic.php?t=112226
 
 */
-
 
 module fx_eq #(
     parameter DATA_W  = 16,
@@ -22,21 +29,22 @@ module fx_eq #(
     input  logic                          sample_en
 );
 
-    import lab_pkg::*; // sat16()
+    // ---------------- PACKAGE IMPORTS ----------------
+    import lab_pkg::*;
 
-    // ------------------------------------------------------------
+    // ---------------- CONSTANTS ----------------
+
     // COEFFICIENTS (Q16 fixed-point for better precision on slow filter)
     // a: 13312/48000 = 0.277333 -> Q16 = 18186
     // b: 1664/48000  = 0.034667 -> Q16 = 2273
     // c: 104/48000   = 0.002167 -> Q16 = 142
-    // ------------------------------------------------------------
     localparam signed [31:0] COEFF_A = 32'sd18186;
     localparam signed [31:0] COEFF_B = 32'sd2273;
     localparam signed [31:0] COEFF_C = 32'sd142;
 
-    // ------------------------------------------------------------
-    // FILTER STATE (Q16 internally for precision)
-    // ------------------------------------------------------------
+    // ---------------- INTERNAL SIGNALS ----------------
+
+    // FIlter State (Q16 internally for precision)
     logic signed [31:0] a_state[1:0];
     logic signed [31:0] b_state[1:0];
     logic signed [31:0] c_state[1:0];
@@ -47,12 +55,10 @@ module fx_eq #(
     // Intermediate calculations
     logic signed [47:0] diff_a[1:0];
     logic signed [47:0] diff_b[1:0]; 
-    logic signed [47:0] diff_c[1:0];
-    
+    logic signed [47:0] diff_c[1:0];    
     logic signed [47:0] mult_a[1:0];
     logic signed [47:0] mult_b[1:0];
     logic signed [47:0] mult_c[1:0];
-
     logic signed [31:0] a_next[1:0];
     logic signed [31:0] b_next[1:0];
     logic signed [31:0] c_next[1:0];
@@ -60,8 +66,7 @@ module fx_eq #(
     // Band signals (extract from NEXT state, not current)
     logic signed [15:0] a_q15[1:0];
     logic signed [15:0] b_q15[1:0];
-    logic signed [15:0] c_q15[1:0];
-    
+    logic signed [15:0] c_q15[1:0];    
     logic signed [15:0] band_high[1:0];
     logic signed [15:0] band_mid[1:0];
     logic signed [15:0] band_low[1:0];
@@ -69,9 +74,6 @@ module fx_eq #(
 
     // Gain (Q15, 128 = unity = 1.0)
     logic signed [15:0] g_high, g_mid, g_low;
-    assign g_high = fx_high_gain << 7; // NOTE: has to be 7, not 8 to have 128 be unity
-    assign g_mid  = fx_mid_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
-    assign g_low  = fx_low_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
 
     // Output accumulator
     logic signed [31:0] temp_high[1:0];
@@ -86,12 +88,18 @@ module fx_eq #(
     logic signed [15:0] b_q15_reg[1:0];
     logic signed [15:0] c_q15_reg[1:0];
 
-    // ------------------------------------------------------------
+    // ---------------- FILTER PARAM LOGIC ----------------
     // FILTER UPDATE LOGIC
     // a += coeff * (input - a)
     // b += coeff * (input - b)  
     // c += coeff * (input - c)
-    // ------------------------------------------------------------
+
+    // Gain Application
+    assign g_high = fx_high_gain << 7; // NOTE: has to be 7, not 8 to have 128 be unity
+    assign g_mid  = fx_mid_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
+    assign g_low  = fx_low_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
+
+    // Band Section Calculation
     always_comb begin
         for (int ch = 0; ch < 2; ch++) begin
             // Convert input to Q16 (shift left by 1)
@@ -117,14 +125,7 @@ module fx_eq #(
             b_q15[ch] = b_next[ch][31:16];
             c_q15[ch] = c_next[ch][31:16];
 
-            // // Extract frequency bands using NEXT state
-            // band_high[ch]    = audio_in[ch] - a_q15[ch];
-            // band_mid[ch]     = a_q15[ch] - b_q15[ch];
-            // band_low[ch]     = b_q15[ch] - c_q15[ch];
-            // band_lowpass[ch] = c_q15[ch];
-
             // Extract frequency bands using NEXT state
-            // band_high[ch]    = audio_in[ch] - a_q15_reg[ch];
             band_high[ch]    = audio_in_reg[ch] - a_q15_reg[ch];
             band_mid[ch]     = a_q15_reg[ch] - b_q15_reg[ch];
             band_low[ch]     = b_q15_reg[ch] - c_q15_reg[ch];
@@ -141,9 +142,7 @@ module fx_eq #(
         end
     end
 
-    // ------------------------------------------------------------
-    // STATE UPDATE + OUTPUT
-    // ------------------------------------------------------------
+    // ------------------ STATE UPDATE + OUTPUT ------------------    
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;

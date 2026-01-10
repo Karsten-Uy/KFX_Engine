@@ -36,14 +36,6 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 Top level modules:
 	tb_controller
 
-} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv
-Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module fx_eq
--- Importing package lab_pkg
-
-Top level modules:
-	fx_eq
-
 } {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
 -- Compiling module fx_delay

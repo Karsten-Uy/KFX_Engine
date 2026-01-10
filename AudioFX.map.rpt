@@ -1,5 +1,5 @@
 Analysis & Synthesis report for AudioFX
-Sat Jan 10 11:55:14 2026
+Sat Jan 10 12:14:58 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -141,7 +141,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +---------------------------------+---------------------------------------------+
-; Analysis & Synthesis Status     ; Successful - Sat Jan 10 11:55:13 2026       ;
+; Analysis & Synthesis Status     ; Successful - Sat Jan 10 12:14:58 2026       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
@@ -257,10 +257,11 @@ refer to the applicable agreement for further details.
 ; Maximum allowed            ; 4           ;
 ;                            ;             ;
 ; Average used               ; 1.00        ;
-; Maximum used               ; 1           ;
+; Maximum used               ; 2           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
+;     Processor 2            ;   0.0%      ;
 +----------------------------+-------------+
 
 
@@ -6948,7 +6949,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Sat Jan 10 11:53:47 2026
+    Info: Processing started: Sat Jan 10 12:13:31 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off AudioFX -c AudioFX
 Info (16303): High Performance Effort optimization mode selected -- timing performance will be prioritized at the potential cost of increased compilation time
     Info (16304): Mode behavior is affected by advanced setting Physical Synthesis Effort Level (default for this mode is Normal)
@@ -6956,28 +6957,28 @@ Info (16303): High Performance Effort optimization mode selected -- timing perfo
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
 Info (12248): Elaborating Platform Designer system entity "AVConfig.qsys"
-Info (12250): 2026.01.10.11:54:00 Progress: Loading HaH_processor/AVConfig.qsys
-Info (12250): 2026.01.10.11:54:01 Progress: Reading input file
-Info (12250): 2026.01.10.11:54:01 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
-Info (12250): 2026.01.10.11:54:02 Progress: Parameterizing module audio_and_video_config_0
-Info (12250): 2026.01.10.11:54:02 Progress: Building connections
-Info (12250): 2026.01.10.11:54:02 Progress: Parameterizing connections
-Info (12250): 2026.01.10.11:54:02 Progress: Validating
-Info (12250): 2026.01.10.11:54:02 Progress: Done reading input file
+Info (12250): 2026.01.10.12:13:44 Progress: Loading HaH_processor/AVConfig.qsys
+Info (12250): 2026.01.10.12:13:45 Progress: Reading input file
+Info (12250): 2026.01.10.12:13:45 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
+Info (12250): 2026.01.10.12:13:46 Progress: Parameterizing module audio_and_video_config_0
+Info (12250): 2026.01.10.12:13:46 Progress: Building connections
+Info (12250): 2026.01.10.12:13:46 Progress: Parameterizing connections
+Info (12250): 2026.01.10.12:13:46 Progress: Validating
+Info (12250): 2026.01.10.12:13:46 Progress: Done reading input file
 Info (12250): AVConfig: Generating AVConfig "AVConfig" for QUARTUS_SYNTH
 Info (12250): Audio_and_video_config_0: Starting Generation of Audio and Video Config
 Info (12250): Audio_and_video_config_0: "AVConfig" instantiated altera_up_avalon_audio_and_video_config "audio_and_video_config_0"
 Info (12250): AVConfig: Done "AVConfig" with 2 modules, 16 files
 Info (12249): Finished elaborating Platform Designer system entity "AVConfig.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioPLL.qsys"
-Info (12250): 2026.01.10.11:54:09 Progress: Loading HaH_processor/AudioPLL.qsys
-Info (12250): 2026.01.10.11:54:10 Progress: Reading input file
-Info (12250): 2026.01.10.11:54:10 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
-Info (12250): 2026.01.10.11:54:10 Progress: Parameterizing module audio_pll_0
-Info (12250): 2026.01.10.11:54:10 Progress: Building connections
-Info (12250): 2026.01.10.11:54:10 Progress: Parameterizing connections
-Info (12250): 2026.01.10.11:54:10 Progress: Validating
-Info (12250): 2026.01.10.11:54:13 Progress: Done reading input file
+Info (12250): 2026.01.10.12:13:53 Progress: Loading HaH_processor/AudioPLL.qsys
+Info (12250): 2026.01.10.12:13:54 Progress: Reading input file
+Info (12250): 2026.01.10.12:13:54 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info (12250): 2026.01.10.12:13:54 Progress: Parameterizing module audio_pll_0
+Info (12250): 2026.01.10.12:13:54 Progress: Building connections
+Info (12250): 2026.01.10.12:13:54 Progress: Parameterizing connections
+Info (12250): 2026.01.10.12:13:54 Progress: Validating
+Info (12250): 2026.01.10.12:13:58 Progress: Done reading input file
 Info (12250): AudioPLL: Generating AudioPLL "AudioPLL" for QUARTUS_SYNTH
 Info (12250): Audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
 Info (12250): Audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
@@ -6985,14 +6986,14 @@ Info (12250): Reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_res
 Info (12250): AudioPLL: Done "AudioPLL" with 4 modules, 5 files
 Info (12249): Finished elaborating Platform Designer system entity "AudioPLL.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioCodec.qsys"
-Info (12250): 2026.01.10.11:54:25 Progress: Loading HaH_processor/AudioCodec.qsys
-Info (12250): 2026.01.10.11:54:26 Progress: Reading input file
-Info (12250): 2026.01.10.11:54:26 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
-Info (12250): 2026.01.10.11:54:26 Progress: Parameterizing module audio_0
-Info (12250): 2026.01.10.11:54:26 Progress: Building connections
-Info (12250): 2026.01.10.11:54:26 Progress: Parameterizing connections
-Info (12250): 2026.01.10.11:54:26 Progress: Validating
-Info (12250): 2026.01.10.11:54:27 Progress: Done reading input file
+Info (12250): 2026.01.10.12:14:09 Progress: Loading HaH_processor/AudioCodec.qsys
+Info (12250): 2026.01.10.12:14:10 Progress: Reading input file
+Info (12250): 2026.01.10.12:14:10 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
+Info (12250): 2026.01.10.12:14:11 Progress: Parameterizing module audio_0
+Info (12250): 2026.01.10.12:14:11 Progress: Building connections
+Info (12250): 2026.01.10.12:14:11 Progress: Parameterizing connections
+Info (12250): 2026.01.10.12:14:11 Progress: Validating
+Info (12250): 2026.01.10.12:14:11 Progress: Done reading input file
 Info (12250): AudioCodec: Generating AudioCodec "AudioCodec" for QUARTUS_SYNTH
 Info (12250): Audio_0: Starting Generation of Audio Controller
 Info (12250): Audio_0: "AudioCodec" instantiated altera_up_avalon_audio "audio_0"
@@ -7004,11 +7005,11 @@ Warning (10259): Verilog HDL error at fx_reverb.sv(238): constant value overflow
 Info (12021): Found 1 design units, including 1 entities, in source file fx_reverb.sv
     Info (12023): Found entity 1: fx_reverb File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv Line: 2
 Info (12021): Found 1 design units, including 1 entities, in source file fx_gate.sv
-    Info (12023): Found entity 1: fx_gate File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv Line: 2
+    Info (12023): Found entity 1: fx_gate File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv Line: 19
 Info (12021): Found 1 design units, including 1 entities, in source file fx_gain.sv
-    Info (12023): Found entity 1: fx_gain File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv Line: 7
+    Info (12023): Found entity 1: fx_gain File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gain.sv Line: 10
 Info (12021): Found 1 design units, including 1 entities, in source file fx_eq.sv
-    Info (12023): Found entity 1: fx_eq File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 9
+    Info (12023): Found entity 1: fx_eq File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 16
 Info (12021): Found 1 design units, including 1 entities, in source file fx_distortion.sv
     Info (12023): Found entity 1: fx_distortion File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 10
 Warning (10259): Verilog HDL error at fx_delay.sv(102): constant value overflow File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 102
@@ -7274,9 +7275,9 @@ Info (12128): Elaborating entity "sevseg_display" for hierarchy "display:DISPLAY
 Info (12128): Elaborating entity "fx_gain" for hierarchy "fx_gain:FX_INPUT_GAIN" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 221
 Info (12128): Elaborating entity "fx_gate" for hierarchy "fx_gate:FX_GATE" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 236
 Info (12128): Elaborating entity "fx_eq" for hierarchy "fx_eq:FX_EQ_1" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 251
-Warning (10230): Verilog HDL assignment warning at fx_eq.sv(111): truncated value with size 48 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 111
-Warning (10230): Verilog HDL assignment warning at fx_eq.sv(112): truncated value with size 48 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 112
-Warning (10230): Verilog HDL assignment warning at fx_eq.sv(113): truncated value with size 48 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 113
+Warning (10230): Verilog HDL assignment warning at fx_eq.sv(119): truncated value with size 48 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 119
+Warning (10230): Verilog HDL assignment warning at fx_eq.sv(120): truncated value with size 48 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 120
+Warning (10230): Verilog HDL assignment warning at fx_eq.sv(121): truncated value with size 48 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 121
 Info (12128): Elaborating entity "fx_compressor" for hierarchy "fx_compressor:FX_COMPRESSOR" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 267
 Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "audio_delay" into its bus
 Info (12128): Elaborating entity "fx_distortion" for hierarchy "fx_distortion:FX_DISTORTION" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 283
@@ -7328,7 +7329,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr
     Info (12023): Found entity 1: cmpr_99c File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/cmpr_99c.tdf Line: 22
 Info (12033): Analysis and Synthesis generated Signal Tap or debug node instance "auto_signaltap_0"
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.01.10.11:54:50 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.01.10.12:14:34 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: Generating alt_sld_fab "alt_sld_fab" for QUARTUS_SYNTH
 Info (11172): Alt_sld_fab: "alt_sld_fab" instantiated alt_sld_fab "alt_sld_fab"
@@ -7724,7 +7725,7 @@ Info (21057): Implemented 18366 device resources after synthesis - the final res
     Info (21062): Implemented 98 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 87 warnings
     Info: Peak virtual memory: 5124 megabytes
-    Info: Processing ended: Sat Jan 10 11:55:14 2026
+    Info: Processing ended: Sat Jan 10 12:14:58 2026
     Info: Elapsed time: 00:01:27
     Info: Total CPU time (on all processors): 00:01:57
 
