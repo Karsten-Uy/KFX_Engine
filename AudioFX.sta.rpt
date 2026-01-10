@@ -1,5 +1,5 @@
 Timing Analyzer report for AudioFX
-Fri Jan 09 22:18:48 2026
+Fri Jan 09 22:45:09 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -102,14 +102,14 @@ refer to the applicable agreement for further details.
 ; Number detected on machine ; 8           ;
 ; Maximum allowed            ; 4           ;
 ;                            ;             ;
-; Average used               ; 3.09        ;
+; Average used               ; 3.16        ;
 ; Maximum used               ; 4           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;  70.0%      ;
-;     Processor 3            ;  69.7%      ;
-;     Processor 4            ;  69.7%      ;
+;     Processor 2            ;  72.2%      ;
+;     Processor 3            ;  71.9%      ;
+;     Processor 4            ;  71.7%      ;
 +----------------------------+-------------+
 
 
@@ -118,7 +118,7 @@ refer to the applicable agreement for further details.
 +---------------+--------+--------------------------+
 ; SDC File Path ; Status ; Read at                  ;
 +---------------+--------+--------------------------+
-; AudioFX.sdc   ; OK     ; Fri Jan 09 22:18:06 2026 ;
+; AudioFX.sdc   ; OK     ; Fri Jan 09 22:44:16 2026 ;
 +---------------+--------+--------------------------+
 
 
@@ -139,8 +139,8 @@ refer to the applicable agreement for further details.
 +-----------+-----------------+---------------------+------+
 ; Fmax      ; Restricted Fmax ; Clock Name          ; Note ;
 +-----------+-----------------+---------------------+------+
-; 42.75 MHz ; 42.75 MHz       ; CLOCK_50            ;      ;
-; 65.66 MHz ; 65.66 MHz       ; altera_reserved_tck ;      ;
+; 63.15 MHz ; 63.15 MHz       ; altera_reserved_tck ;      ;
+; 64.44 MHz ; 64.44 MHz       ; CLOCK_50            ;      ;
 +-----------+-----------------+---------------------+------+
 This panel reports FMAX for every clock in the design, regardless of the user-specified clock periods.  FMAX is only computed for paths where the source and destination registers or ports are driven by the same clock.  Paths of different clocks, including generated clocks, are ignored.  For paths between a clock and its inversion, FMAX is computed as if the rising and falling edges are scaled along with FMAX, such that the duty cycle (in terms of a percentage) is maintained. Altera recommends that you always use clock constraints and other slack reports for sign-off analysis.
 
@@ -151,14 +151,14 @@ This panel reports FMAX for every clock in the design, regardless of the user-sp
 HTML report is unavailable in plain text report export.
 
 
-+----------------------------------------------+
-; Slow 1100mV 85C Model Setup Summary          ;
-+---------------------+--------+---------------+
-; Clock               ; Slack  ; End Point TNS ;
-+---------------------+--------+---------------+
-; CLOCK_50            ; -3.393 ; -69.010       ;
-; altera_reserved_tck ; 10.171 ; 0.000         ;
-+---------------------+--------+---------------+
++---------------------------------------------+
+; Slow 1100mV 85C Model Setup Summary         ;
++---------------------+-------+---------------+
+; Clock               ; Slack ; End Point TNS ;
++---------------------+-------+---------------+
+; CLOCK_50            ; 4.481 ; 0.000         ;
+; altera_reserved_tck ; 8.749 ; 0.000         ;
++---------------------+-------+---------------+
 
 
 +---------------------------------------------+
@@ -166,8 +166,8 @@ HTML report is unavailable in plain text report export.
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; CLOCK_50            ; 0.219 ; 0.000         ;
-; altera_reserved_tck ; 0.372 ; 0.000         ;
+; CLOCK_50            ; 0.221 ; 0.000         ;
+; altera_reserved_tck ; 0.370 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -176,7 +176,7 @@ HTML report is unavailable in plain text report export.
 +---------------------+--------+---------------+
 ; Clock               ; Slack  ; End Point TNS ;
 +---------------------+--------+---------------+
-; altera_reserved_tck ; 25.653 ; 0.000         ;
+; altera_reserved_tck ; 26.396 ; 0.000         ;
 +---------------------+--------+---------------+
 
 
@@ -185,7 +185,7 @@ HTML report is unavailable in plain text report export.
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; altera_reserved_tck ; 1.124 ; 0.000         ;
+; altera_reserved_tck ; 1.006 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -195,8 +195,8 @@ HTML report is unavailable in plain text report export.
 ; Clock                                                                         ; Slack  ; End Point TNS ;
 +-------------------------------------------------------------------------------+--------+---------------+
 ; u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; 0.689  ; 0.000         ;
-; CLOCK_50                                                                      ; 8.864  ; 0.000         ;
-; altera_reserved_tck                                                           ; 15.278 ; 0.000         ;
+; CLOCK_50                                                                      ; 8.862  ; 0.000         ;
+; altera_reserved_tck                                                           ; 15.467 ; 0.000         ;
 +-------------------------------------------------------------------------------+--------+---------------+
 
 
@@ -207,7 +207,7 @@ The design MTBF is not calculated because there are no specified synchronizers i
 Number of Synchronizer Chains Found: 17
 Shortest Synchronizer Chain: 2 Registers
 Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-Worst Case Available Settling Time: 18.643 ns
+Worst Case Available Settling Time: 18.526 ns
 
 
 
@@ -217,20 +217,20 @@ Worst Case Available Settling Time: 18.643 ns
 +-----------+-----------------+---------------------+------+
 ; Fmax      ; Restricted Fmax ; Clock Name          ; Note ;
 +-----------+-----------------+---------------------+------+
-; 42.86 MHz ; 42.86 MHz       ; CLOCK_50            ;      ;
-; 68.08 MHz ; 68.08 MHz       ; altera_reserved_tck ;      ;
+; 64.26 MHz ; 64.26 MHz       ; CLOCK_50            ;      ;
+; 64.67 MHz ; 64.67 MHz       ; altera_reserved_tck ;      ;
 +-----------+-----------------+---------------------+------+
 This panel reports FMAX for every clock in the design, regardless of the user-specified clock periods.  FMAX is only computed for paths where the source and destination registers or ports are driven by the same clock.  Paths of different clocks, including generated clocks, are ignored.  For paths between a clock and its inversion, FMAX is computed as if the rising and falling edges are scaled along with FMAX, such that the duty cycle (in terms of a percentage) is maintained. Altera recommends that you always use clock constraints and other slack reports for sign-off analysis.
 
 
-+----------------------------------------------+
-; Slow 1100mV 0C Model Setup Summary           ;
-+---------------------+--------+---------------+
-; Clock               ; Slack  ; End Point TNS ;
-+---------------------+--------+---------------+
-; CLOCK_50            ; -3.330 ; -68.863       ;
-; altera_reserved_tck ; 10.299 ; 0.000         ;
-+---------------------+--------+---------------+
++---------------------------------------------+
+; Slow 1100mV 0C Model Setup Summary          ;
++---------------------+-------+---------------+
+; Clock               ; Slack ; End Point TNS ;
++---------------------+-------+---------------+
+; CLOCK_50            ; 4.439 ; 0.000         ;
+; altera_reserved_tck ; 8.935 ; 0.000         ;
++---------------------+-------+---------------+
 
 
 +---------------------------------------------+
@@ -238,8 +238,8 @@ This panel reports FMAX for every clock in the design, regardless of the user-sp
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; CLOCK_50            ; 0.206 ; 0.000         ;
-; altera_reserved_tck ; 0.384 ; 0.000         ;
+; CLOCK_50            ; 0.209 ; 0.000         ;
+; altera_reserved_tck ; 0.383 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -248,7 +248,7 @@ This panel reports FMAX for every clock in the design, regardless of the user-sp
 +---------------------+--------+---------------+
 ; Clock               ; Slack  ; End Point TNS ;
 +---------------------+--------+---------------+
-; altera_reserved_tck ; 25.877 ; 0.000         ;
+; altera_reserved_tck ; 26.505 ; 0.000         ;
 +---------------------+--------+---------------+
 
 
@@ -257,7 +257,7 @@ This panel reports FMAX for every clock in the design, regardless of the user-sp
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; altera_reserved_tck ; 1.046 ; 0.000         ;
+; altera_reserved_tck ; 0.932 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -268,7 +268,7 @@ This panel reports FMAX for every clock in the design, regardless of the user-sp
 +-------------------------------------------------------------------------------+--------+---------------+
 ; u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; 0.689  ; 0.000         ;
 ; CLOCK_50                                                                      ; 8.897  ; 0.000         ;
-; altera_reserved_tck                                                           ; 15.268 ; 0.000         ;
+; altera_reserved_tck                                                           ; 15.433 ; 0.000         ;
 +-------------------------------------------------------------------------------+--------+---------------+
 
 
@@ -279,7 +279,7 @@ The design MTBF is not calculated because there are no specified synchronizers i
 Number of Synchronizer Chains Found: 17
 Shortest Synchronizer Chain: 2 Registers
 Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-Worst Case Available Settling Time: 18.721 ns
+Worst Case Available Settling Time: 18.620 ns
 
 
 
@@ -289,8 +289,8 @@ Worst Case Available Settling Time: 18.721 ns
 +---------------------+--------+---------------+
 ; Clock               ; Slack  ; End Point TNS ;
 +---------------------+--------+---------------+
-; CLOCK_50            ; 6.099  ; 0.000         ;
-; altera_reserved_tck ; 13.249 ; 0.000         ;
+; CLOCK_50            ; 10.796 ; 0.000         ;
+; altera_reserved_tck ; 12.020 ; 0.000         ;
 +---------------------+--------+---------------+
 
 
@@ -299,8 +299,8 @@ Worst Case Available Settling Time: 18.721 ns
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; CLOCK_50            ; 0.131 ; 0.000         ;
-; altera_reserved_tck ; 0.181 ; 0.000         ;
+; CLOCK_50            ; 0.128 ; 0.000         ;
+; altera_reserved_tck ; 0.179 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -309,7 +309,7 @@ Worst Case Available Settling Time: 18.721 ns
 +---------------------+--------+---------------+
 ; Clock               ; Slack  ; End Point TNS ;
 +---------------------+--------+---------------+
-; altera_reserved_tck ; 28.789 ; 0.000         ;
+; altera_reserved_tck ; 29.422 ; 0.000         ;
 +---------------------+--------+---------------+
 
 
@@ -318,7 +318,7 @@ Worst Case Available Settling Time: 18.721 ns
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; altera_reserved_tck ; 0.607 ; 0.000         ;
+; altera_reserved_tck ; 0.543 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -329,7 +329,7 @@ Worst Case Available Settling Time: 18.721 ns
 +-------------------------------------------------------------------------------+--------+---------------+
 ; u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; 0.689  ; 0.000         ;
 ; CLOCK_50                                                                      ; 8.474  ; 0.000         ;
-; altera_reserved_tck                                                           ; 14.839 ; 0.000         ;
+; altera_reserved_tck                                                           ; 14.996 ; 0.000         ;
 +-------------------------------------------------------------------------------+--------+---------------+
 
 
@@ -340,7 +340,7 @@ The design MTBF is not calculated because there are no specified synchronizers i
 Number of Synchronizer Chains Found: 17
 Shortest Synchronizer Chain: 2 Registers
 Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-Worst Case Available Settling Time: 19.196 ns
+Worst Case Available Settling Time: 19.043 ns
 
 
 
@@ -350,8 +350,8 @@ Worst Case Available Settling Time: 19.196 ns
 +---------------------+--------+---------------+
 ; Clock               ; Slack  ; End Point TNS ;
 +---------------------+--------+---------------+
-; CLOCK_50            ; 7.178  ; 0.000         ;
-; altera_reserved_tck ; 13.693 ; 0.000         ;
+; CLOCK_50            ; 11.605 ; 0.000         ;
+; altera_reserved_tck ; 12.652 ; 0.000         ;
 +---------------------+--------+---------------+
 
 
@@ -360,8 +360,8 @@ Worst Case Available Settling Time: 19.196 ns
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; CLOCK_50            ; 0.102 ; 0.000         ;
-; altera_reserved_tck ; 0.169 ; 0.000         ;
+; CLOCK_50            ; 0.114 ; 0.000         ;
+; altera_reserved_tck ; 0.170 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -370,7 +370,7 @@ Worst Case Available Settling Time: 19.196 ns
 +---------------------+--------+---------------+
 ; Clock               ; Slack  ; End Point TNS ;
 +---------------------+--------+---------------+
-; altera_reserved_tck ; 29.069 ; 0.000         ;
+; altera_reserved_tck ; 29.572 ; 0.000         ;
 +---------------------+--------+---------------+
 
 
@@ -379,7 +379,7 @@ Worst Case Available Settling Time: 19.196 ns
 +---------------------+-------+---------------+
 ; Clock               ; Slack ; End Point TNS ;
 +---------------------+-------+---------------+
-; altera_reserved_tck ; 0.544 ; 0.000         ;
+; altera_reserved_tck ; 0.488 ; 0.000         ;
 +---------------------+-------+---------------+
 
 
@@ -389,8 +389,8 @@ Worst Case Available Settling Time: 19.196 ns
 ; Clock                                                                         ; Slack  ; End Point TNS ;
 +-------------------------------------------------------------------------------+--------+---------------+
 ; u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; 0.689  ; 0.000         ;
-; CLOCK_50                                                                      ; 8.429  ; 0.000         ;
-; altera_reserved_tck                                                           ; 14.815 ; 0.000         ;
+; CLOCK_50                                                                      ; 8.428  ; 0.000         ;
+; altera_reserved_tck                                                           ; 14.936 ; 0.000         ;
 +-------------------------------------------------------------------------------+--------+---------------+
 
 
@@ -401,25 +401,25 @@ The design MTBF is not calculated because there are no specified synchronizers i
 Number of Synchronizer Chains Found: 17
 Shortest Synchronizer Chain: 2 Registers
 Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-Worst Case Available Settling Time: 19.275 ns
+Worst Case Available Settling Time: 19.157 ns
 
 
 
 
-+---------------------------------------------------------------------------------------------------------------------------------------------+
-; Multicorner Timing Analysis Summary                                                                                                         ;
-+--------------------------------------------------------------------------------+---------+-------+----------+---------+---------------------+
-; Clock                                                                          ; Setup   ; Hold  ; Recovery ; Removal ; Minimum Pulse Width ;
-+--------------------------------------------------------------------------------+---------+-------+----------+---------+---------------------+
-; Worst-case Slack                                                               ; -3.393  ; 0.102 ; 25.653   ; 0.544   ; 0.689               ;
-;  CLOCK_50                                                                      ; -3.393  ; 0.102 ; N/A      ; N/A     ; 8.429               ;
-;  altera_reserved_tck                                                           ; 10.171  ; 0.169 ; 25.653   ; 0.544   ; 14.815              ;
-;  u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; N/A     ; N/A   ; N/A      ; N/A     ; 0.689               ;
-; Design-wide TNS                                                                ; -69.01  ; 0.0   ; 0.0      ; 0.0     ; 0.0                 ;
-;  CLOCK_50                                                                      ; -69.010 ; 0.000 ; N/A      ; N/A     ; 0.000               ;
-;  altera_reserved_tck                                                           ; 0.000   ; 0.000 ; 0.000    ; 0.000   ; 0.000               ;
-;  u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; N/A     ; N/A   ; N/A      ; N/A     ; 0.000               ;
-+--------------------------------------------------------------------------------+---------+-------+----------+---------+---------------------+
++-------------------------------------------------------------------------------------------------------------------------------------------+
+; Multicorner Timing Analysis Summary                                                                                                       ;
++--------------------------------------------------------------------------------+-------+-------+----------+---------+---------------------+
+; Clock                                                                          ; Setup ; Hold  ; Recovery ; Removal ; Minimum Pulse Width ;
++--------------------------------------------------------------------------------+-------+-------+----------+---------+---------------------+
+; Worst-case Slack                                                               ; 4.439 ; 0.114 ; 26.396   ; 0.488   ; 0.689               ;
+;  CLOCK_50                                                                      ; 4.439 ; 0.114 ; N/A      ; N/A     ; 8.428               ;
+;  altera_reserved_tck                                                           ; 8.749 ; 0.170 ; 26.396   ; 0.488   ; 14.936              ;
+;  u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; N/A   ; N/A   ; N/A      ; N/A     ; 0.689               ;
+; Design-wide TNS                                                                ; 0.0   ; 0.0   ; 0.0      ; 0.0     ; 0.0                 ;
+;  CLOCK_50                                                                      ; 0.000 ; 0.000 ; N/A      ; N/A     ; 0.000               ;
+;  altera_reserved_tck                                                           ; 0.000 ; 0.000 ; 0.000    ; 0.000   ; 0.000               ;
+;  u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] ; N/A   ; N/A   ; N/A      ; N/A     ; 0.000               ;
++--------------------------------------------------------------------------------+-------+-------+----------+---------+---------------------+
 
 
 +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -873,29 +873,29 @@ Worst Case Available Settling Time: 19.275 ns
 +---------------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
 
 
-+-----------------------------------------------------------------------------------------+
-; Setup Transfers                                                                         ;
-+---------------------+---------------------+------------+----------+----------+----------+
-; From Clock          ; To Clock            ; RR Paths   ; FR Paths ; RF Paths ; FF Paths ;
-+---------------------+---------------------+------------+----------+----------+----------+
-; altera_reserved_tck ; altera_reserved_tck ; 48721      ; 0        ; 63       ; 0        ;
-; CLOCK_50            ; altera_reserved_tck ; false path ; 0        ; 0        ; 0        ;
-; altera_reserved_tck ; CLOCK_50            ; false path ; 0        ; 0        ; 0        ;
-; CLOCK_50            ; CLOCK_50            ; 1997873090 ; 0        ; 0        ; 0        ;
-+---------------------+---------------------+------------+----------+----------+----------+
++-------------------------------------------------------------------------------------------+
+; Setup Transfers                                                                           ;
++---------------------+---------------------+--------------+----------+----------+----------+
+; From Clock          ; To Clock            ; RR Paths     ; FR Paths ; RF Paths ; FF Paths ;
++---------------------+---------------------+--------------+----------+----------+----------+
+; altera_reserved_tck ; altera_reserved_tck ; 48907        ; 0        ; 63       ; 0        ;
+; CLOCK_50            ; altera_reserved_tck ; false path   ; 0        ; 0        ; 0        ;
+; altera_reserved_tck ; CLOCK_50            ; false path   ; 0        ; 0        ; 0        ;
+; CLOCK_50            ; CLOCK_50            ; > 2147483647 ; 0        ; 0        ; 0        ;
++---------------------+---------------------+--------------+----------+----------+----------+
 Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
 
 
-+-----------------------------------------------------------------------------------------+
-; Hold Transfers                                                                          ;
-+---------------------+---------------------+------------+----------+----------+----------+
-; From Clock          ; To Clock            ; RR Paths   ; FR Paths ; RF Paths ; FF Paths ;
-+---------------------+---------------------+------------+----------+----------+----------+
-; altera_reserved_tck ; altera_reserved_tck ; 48721      ; 0        ; 63       ; 0        ;
-; CLOCK_50            ; altera_reserved_tck ; false path ; 0        ; 0        ; 0        ;
-; altera_reserved_tck ; CLOCK_50            ; false path ; 0        ; 0        ; 0        ;
-; CLOCK_50            ; CLOCK_50            ; 1997873090 ; 0        ; 0        ; 0        ;
-+---------------------+---------------------+------------+----------+----------+----------+
++-------------------------------------------------------------------------------------------+
+; Hold Transfers                                                                            ;
++---------------------+---------------------+--------------+----------+----------+----------+
+; From Clock          ; To Clock            ; RR Paths     ; FR Paths ; RF Paths ; FF Paths ;
++---------------------+---------------------+--------------+----------+----------+----------+
+; altera_reserved_tck ; altera_reserved_tck ; 48907        ; 0        ; 63       ; 0        ;
+; CLOCK_50            ; altera_reserved_tck ; false path   ; 0        ; 0        ; 0        ;
+; altera_reserved_tck ; CLOCK_50            ; false path   ; 0        ; 0        ; 0        ;
+; CLOCK_50            ; CLOCK_50            ; > 2147483647 ; 0        ; 0        ; 0        ;
++---------------------+---------------------+--------------+----------+----------+----------+
 Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
 
 
@@ -904,7 +904,7 @@ Entries labeled "false path" only account for clock-to-clock false paths and not
 +---------------------+---------------------+------------+----------+----------+----------+
 ; From Clock          ; To Clock            ; RR Paths   ; FR Paths ; RF Paths ; FF Paths ;
 +---------------------+---------------------+------------+----------+----------+----------+
-; altera_reserved_tck ; altera_reserved_tck ; 5565       ; 0        ; 0        ; 0        ;
+; altera_reserved_tck ; altera_reserved_tck ; 5582       ; 0        ; 0        ; 0        ;
 ; altera_reserved_tck ; CLOCK_50            ; false path ; 0        ; 0        ; 0        ;
 +---------------------+---------------------+------------+----------+----------+----------+
 Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
@@ -915,7 +915,7 @@ Entries labeled "false path" only account for clock-to-clock false paths and not
 +---------------------+---------------------+------------+----------+----------+----------+
 ; From Clock          ; To Clock            ; RR Paths   ; FR Paths ; RF Paths ; FF Paths ;
 +---------------------+---------------------+------------+----------+----------+----------+
-; altera_reserved_tck ; altera_reserved_tck ; 5565       ; 0        ; 0        ; 0        ;
+; altera_reserved_tck ; altera_reserved_tck ; 5582       ; 0        ; 0        ; 0        ;
 ; altera_reserved_tck ; CLOCK_50            ; false path ; 0        ; 0        ; 0        ;
 +---------------------+---------------------+------------+----------+----------+----------+
 Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
@@ -941,7 +941,7 @@ No non-DPA dedicated SERDES Receiver circuitry present in device or used in desi
 ; Illegal Clocks                  ; 0     ; 0     ;
 ; Unconstrained Clocks            ; 0     ; 0     ;
 ; Unconstrained Input Ports       ; 18    ; 18    ;
-; Unconstrained Input Port Paths  ; 10903 ; 10903 ;
+; Unconstrained Input Port Paths  ; 10935 ; 10935 ;
 ; Unconstrained Output Ports      ; 45    ; 45    ;
 ; Unconstrained Output Port Paths ; 9359  ; 9359  ;
 +---------------------------------+-------+-------+
@@ -1123,7 +1123,7 @@ No non-DPA dedicated SERDES Receiver circuitry present in device or used in desi
 Info: *******************************************************************
 Info: Running Quartus Prime Timing Analyzer
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Fri Jan 09 22:18:02 2026
+    Info: Processing started: Fri Jan 09 22:44:11 2026
 Info: Command: quartus_sta AudioFX -c AudioFX
 Info: qsta_default_script.tcl version: #1
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -1279,474 +1279,6 @@ Warning (332049): Ignored set_output_delay at AudioFX.sdc(93): Argument -clock i
 Warning (332049): Ignored set_output_delay at AudioFX.sdc(94): Argument <targets> is an empty collection File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sdc Line: 94
     Info (332050): set_output_delay -min -clock clk_vga -1.485 [get_ports VGA_BLANK] File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sdc Line: 94
 Warning (332049): Ignored set_output_delay at AudioFX.sdc(94): Argument -clock is not an object ID File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sdc Line: 94
-Warning (332125): Found combinational loop of 232 nodes File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/delay_line.sv Line: 133
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[0]~1|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[0]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[8]"
-    Warning (332126): Node "FX_DELAY|Add0~9|datac"
-    Warning (332126): Node "FX_DELAY|Add0~9|sumout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[0]~1|datae"
-    Warning (332126): Node "FX_DELAY|Add0~9|cout"
-    Warning (332126): Node "FX_DELAY|Add0~13|cin"
-    Warning (332126): Node "FX_DELAY|Add0~13|cout"
-    Warning (332126): Node "FX_DELAY|Add0~17|cin"
-    Warning (332126): Node "FX_DELAY|Add0~17|cout"
-    Warning (332126): Node "FX_DELAY|Add0~21|cin"
-    Warning (332126): Node "FX_DELAY|Add0~21|cout"
-    Warning (332126): Node "FX_DELAY|Add0~25|cin"
-    Warning (332126): Node "FX_DELAY|Add0~25|cout"
-    Warning (332126): Node "FX_DELAY|Add0~29|cin"
-    Warning (332126): Node "FX_DELAY|Add0~29|cout"
-    Warning (332126): Node "FX_DELAY|Add0~33|cin"
-    Warning (332126): Node "FX_DELAY|Add0~33|cout"
-    Warning (332126): Node "FX_DELAY|Add0~37|cin"
-    Warning (332126): Node "FX_DELAY|Add0~37|cout"
-    Warning (332126): Node "FX_DELAY|Add0~41|cin"
-    Warning (332126): Node "FX_DELAY|Add0~41|cout"
-    Warning (332126): Node "FX_DELAY|Add0~45|cin"
-    Warning (332126): Node "FX_DELAY|Add0~45|cout"
-    Warning (332126): Node "FX_DELAY|Add0~49|cin"
-    Warning (332126): Node "FX_DELAY|Add0~49|cout"
-    Warning (332126): Node "FX_DELAY|Add0~53|cin"
-    Warning (332126): Node "FX_DELAY|Add0~53|cout"
-    Warning (332126): Node "FX_DELAY|Add0~57|cin"
-    Warning (332126): Node "FX_DELAY|Add0~57|cout"
-    Warning (332126): Node "FX_DELAY|Add0~61|cin"
-    Warning (332126): Node "FX_DELAY|Add0~61|cout"
-    Warning (332126): Node "FX_DELAY|Add0~65|cin"
-    Warning (332126): Node "FX_DELAY|Add0~65|cout"
-    Warning (332126): Node "FX_DELAY|Add0~5|cin"
-    Warning (332126): Node "FX_DELAY|Add0~5|cout"
-    Warning (332126): Node "FX_DELAY|Add0~1|cin"
-    Warning (332126): Node "FX_DELAY|Add0~1|sumout"
-    Warning (332126): Node "FX_DELAY|LessThan1~3|datab"
-    Warning (332126): Node "FX_DELAY|LessThan1~3|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[0]~1|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[10]~9|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[10]~9|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[10]~11|datad"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[10]~11|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[10]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[9]"
-    Warning (332126): Node "FX_DELAY|Add0~13|datac"
-    Warning (332126): Node "FX_DELAY|Add0~13|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[1]~0|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[1]~0|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[1]~2|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[1]~2|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[1]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[10]"
-    Warning (332126): Node "FX_DELAY|Add0~17|datac"
-    Warning (332126): Node "FX_DELAY|Add0~17|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[2]~1|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[2]~1|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[2]~3|dataa"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[2]~3|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[2]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[11]"
-    Warning (332126): Node "FX_DELAY|Add0~21|datad"
-    Warning (332126): Node "FX_DELAY|Add0~21|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[3]~2|datac"
-    Warning (332126): Node "FX_DELAY|din_L[3]~2|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[3]~4|datae"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[3]~4|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[3]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[12]"
-    Warning (332126): Node "FX_DELAY|Add0~25|datac"
-    Warning (332126): Node "FX_DELAY|Add0~25|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[4]~3|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[4]~3|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[4]~5|datad"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[4]~5|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[4]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[13]"
-    Warning (332126): Node "FX_DELAY|Add0~29|dataa"
-    Warning (332126): Node "FX_DELAY|Add0~29|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[5]~4|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[5]~4|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[5]~6|datae"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[5]~6|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[5]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[14]"
-    Warning (332126): Node "FX_DELAY|Add0~33|datad"
-    Warning (332126): Node "FX_DELAY|Add0~33|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[6]~5|datac"
-    Warning (332126): Node "FX_DELAY|din_L[6]~5|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[6]~7|dataa"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[6]~7|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[6]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|resulta[15]"
-    Warning (332126): Node "FX_DELAY|Add0~1|datac"
-    Warning (332126): Node "FX_DELAY|Add0~37|datac"
-    Warning (332126): Node "FX_DELAY|Add0~37|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[7]~6|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[7]~6|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[7]~8|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[7]~8|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[7]"
-    Warning (332126): Node "FX_DELAY|Add0~41|datad"
-    Warning (332126): Node "FX_DELAY|Add0~41|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[8]~7|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[8]~7|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[8]~9|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[8]~9|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[8]"
-    Warning (332126): Node "FX_DELAY|Add0~45|datac"
-    Warning (332126): Node "FX_DELAY|Add0~45|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[9]~8|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[9]~8|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[9]~10|datae"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[9]~10|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[9]"
-    Warning (332126): Node "FX_DELAY|Add0~49|datad"
-    Warning (332126): Node "FX_DELAY|Add0~49|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[10]~9|datae"
-    Warning (332126): Node "FX_DELAY|Add0~53|datac"
-    Warning (332126): Node "FX_DELAY|Add0~53|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[11]~10|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[11]~10|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[11]~12|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[11]~12|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[11]"
-    Warning (332126): Node "FX_DELAY|Add0~57|datad"
-    Warning (332126): Node "FX_DELAY|Add0~57|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[12]~11|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[12]~11|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[12]~13|dataf"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[12]~13|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[12]"
-    Warning (332126): Node "FX_DELAY|Add0~61|datad"
-    Warning (332126): Node "FX_DELAY|Add0~61|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[13]~12|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[13]~12|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[13]~14|datad"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[13]~14|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[13]"
-    Warning (332126): Node "FX_DELAY|Add0~65|datac"
-    Warning (332126): Node "FX_DELAY|Add0~65|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[14]~13|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[14]~13|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[14]~15|datae"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[14]~15|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[14]"
-    Warning (332126): Node "FX_DELAY|Add0~5|datac"
-    Warning (332126): Node "FX_DELAY|Add0~5|sumout"
-    Warning (332126): Node "FX_DELAY|din_L[15]~14|datae"
-    Warning (332126): Node "FX_DELAY|din_L[15]~14|combout"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[15]~16|datae"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[15]~16|combout"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[15]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[16]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[17]"
-    Warning (332126): Node "FX_DELAY|Mult1~8|ay[18]"
-    Warning (332126): Node "FX_DELAY|LessThan1~2|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan1~2|combout"
-    Warning (332126): Node "FX_DELAY|LessThan1~3|datac"
-    Warning (332126): Node "FX_DELAY|din_L[1]~0|datab"
-    Warning (332126): Node "FX_DELAY|din_L[2]~1|datad"
-    Warning (332126): Node "FX_DELAY|din_L[3]~2|datab"
-    Warning (332126): Node "FX_DELAY|din_L[4]~3|datad"
-    Warning (332126): Node "FX_DELAY|din_L[5]~4|datab"
-    Warning (332126): Node "FX_DELAY|din_L[6]~5|datab"
-    Warning (332126): Node "FX_DELAY|din_L[7]~6|datab"
-    Warning (332126): Node "FX_DELAY|din_L[8]~7|datab"
-    Warning (332126): Node "FX_DELAY|din_L[9]~8|datad"
-    Warning (332126): Node "FX_DELAY|LessThan0~2|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan0~2|combout"
-    Warning (332126): Node "FX_DELAY|LessThan0~3|datad"
-    Warning (332126): Node "FX_DELAY|LessThan0~3|combout"
-    Warning (332126): Node "FX_DELAY|din_L[15]~14|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[0]~1|datad"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[1]~2|datad"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[2]~3|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[3]~4|datad"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[4]~5|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[5]~6|datac"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[6]~7|datae"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[7]~8|datad"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[8]~9|datae"
-    Warning (332126): Node "FX_DELAY|unit_L|data_out[9]~10|datad"
-    Warning (332126): Node "FX_DELAY|din_L[10]~9|datad"
-    Warning (332126): Node "FX_DELAY|din_L[11]~10|datac"
-    Warning (332126): Node "FX_DELAY|din_L[12]~11|datad"
-    Warning (332126): Node "FX_DELAY|din_L[13]~12|datac"
-    Warning (332126): Node "FX_DELAY|din_L[14]~13|datac"
-    Warning (332126): Node "FX_DELAY|din_L[11]~10|datae"
-    Warning (332126): Node "FX_DELAY|din_L[12]~11|datae"
-    Warning (332126): Node "FX_DELAY|din_L[13]~12|datae"
-    Warning (332126): Node "FX_DELAY|din_L[14]~13|datae"
-    Warning (332126): Node "FX_DELAY|din_L[15]~14|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan1~3|datad"
-    Warning (332126): Node "FX_DELAY|din_L[1]~0|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[1]~0|datac"
-    Warning (332126): Node "FX_DELAY|din_L[1]~0|datad"
-    Warning (332126): Node "FX_DELAY|din_L[2]~1|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[2]~1|datab"
-    Warning (332126): Node "FX_DELAY|din_L[2]~1|datac"
-    Warning (332126): Node "FX_DELAY|din_L[3]~2|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[3]~2|datad"
-    Warning (332126): Node "FX_DELAY|din_L[3]~2|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[4]~3|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[4]~3|datab"
-    Warning (332126): Node "FX_DELAY|din_L[4]~3|datac"
-    Warning (332126): Node "FX_DELAY|din_L[5]~4|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[5]~4|datac"
-    Warning (332126): Node "FX_DELAY|din_L[5]~4|datad"
-    Warning (332126): Node "FX_DELAY|din_L[6]~5|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[6]~5|datad"
-    Warning (332126): Node "FX_DELAY|din_L[6]~5|dataf"
-    Warning (332126): Node "FX_DELAY|din_L[7]~6|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[7]~6|datac"
-    Warning (332126): Node "FX_DELAY|din_L[7]~6|datad"
-    Warning (332126): Node "FX_DELAY|din_L[8]~7|dataa"
-    Warning (332126): Node "FX_DELAY|din_L[8]~7|datac"
-    Warning (332126): Node "FX_DELAY|din_L[8]~7|datad"
-    Warning (332126): Node "FX_DELAY|din_L[9]~8|datab"
-    Warning (332126): Node "FX_DELAY|din_L[9]~8|datac"
-    Warning (332126): Node "FX_DELAY|LessThan1~2|datae"
-    Warning (332126): Node "FX_DELAY|din_L[9]~8|dataf"
-    Warning (332126): Node "FX_DELAY|Add0~1_wirecell|dataf"
-    Warning (332126): Node "FX_DELAY|Add0~1_wirecell|combout"
-    Warning (332126): Node "FX_DELAY|LessThan0~3|datab"
-    Warning (332126): Node "FX_DELAY|LessThan0~3|datac"
-    Warning (332126): Node "FX_DELAY|LessThan0~2|datae"
-    Warning (332126): Node "FX_DELAY|LessThan0~3|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan1~3|dataf"
-Critical Warning (332081): Design contains combinational loop of 232 nodes. Estimating the delays through the loop.
-Warning (332125): Found combinational loop of 232 nodes File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/delay_line.sv Line: 133
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[0]~1|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[0]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[8]"
-    Warning (332126): Node "FX_DELAY|Add1~9|datac"
-    Warning (332126): Node "FX_DELAY|Add1~9|sumout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[0]~1|datae"
-    Warning (332126): Node "FX_DELAY|Add1~9|cout"
-    Warning (332126): Node "FX_DELAY|Add1~13|cin"
-    Warning (332126): Node "FX_DELAY|Add1~13|cout"
-    Warning (332126): Node "FX_DELAY|Add1~17|cin"
-    Warning (332126): Node "FX_DELAY|Add1~17|cout"
-    Warning (332126): Node "FX_DELAY|Add1~21|cin"
-    Warning (332126): Node "FX_DELAY|Add1~21|cout"
-    Warning (332126): Node "FX_DELAY|Add1~25|cin"
-    Warning (332126): Node "FX_DELAY|Add1~25|cout"
-    Warning (332126): Node "FX_DELAY|Add1~29|cin"
-    Warning (332126): Node "FX_DELAY|Add1~29|cout"
-    Warning (332126): Node "FX_DELAY|Add1~33|cin"
-    Warning (332126): Node "FX_DELAY|Add1~33|cout"
-    Warning (332126): Node "FX_DELAY|Add1~37|cin"
-    Warning (332126): Node "FX_DELAY|Add1~37|cout"
-    Warning (332126): Node "FX_DELAY|Add1~41|cin"
-    Warning (332126): Node "FX_DELAY|Add1~41|cout"
-    Warning (332126): Node "FX_DELAY|Add1~45|cin"
-    Warning (332126): Node "FX_DELAY|Add1~45|cout"
-    Warning (332126): Node "FX_DELAY|Add1~49|cin"
-    Warning (332126): Node "FX_DELAY|Add1~49|cout"
-    Warning (332126): Node "FX_DELAY|Add1~53|cin"
-    Warning (332126): Node "FX_DELAY|Add1~53|cout"
-    Warning (332126): Node "FX_DELAY|Add1~57|cin"
-    Warning (332126): Node "FX_DELAY|Add1~57|cout"
-    Warning (332126): Node "FX_DELAY|Add1~61|cin"
-    Warning (332126): Node "FX_DELAY|Add1~61|cout"
-    Warning (332126): Node "FX_DELAY|Add1~65|cin"
-    Warning (332126): Node "FX_DELAY|Add1~65|cout"
-    Warning (332126): Node "FX_DELAY|Add1~5|cin"
-    Warning (332126): Node "FX_DELAY|Add1~5|cout"
-    Warning (332126): Node "FX_DELAY|Add1~1|cin"
-    Warning (332126): Node "FX_DELAY|Add1~1|sumout"
-    Warning (332126): Node "FX_DELAY|LessThan3~3|datab"
-    Warning (332126): Node "FX_DELAY|LessThan3~3|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[0]~1|datac"
-    Warning (332126): Node "FX_DELAY|din_R[10]~9|datac"
-    Warning (332126): Node "FX_DELAY|din_R[10]~9|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[10]~11|datad"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[10]~11|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[10]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[9]"
-    Warning (332126): Node "FX_DELAY|Add1~13|datac"
-    Warning (332126): Node "FX_DELAY|Add1~13|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[1]~0|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[1]~0|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[1]~2|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[1]~2|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[1]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[10]"
-    Warning (332126): Node "FX_DELAY|Add1~17|datac"
-    Warning (332126): Node "FX_DELAY|Add1~17|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[2]~1|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[2]~1|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[2]~3|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[2]~3|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[2]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[11]"
-    Warning (332126): Node "FX_DELAY|Add1~21|datad"
-    Warning (332126): Node "FX_DELAY|Add1~21|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[3]~2|datac"
-    Warning (332126): Node "FX_DELAY|din_R[3]~2|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[3]~4|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[3]~4|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[3]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[12]"
-    Warning (332126): Node "FX_DELAY|Add1~25|datad"
-    Warning (332126): Node "FX_DELAY|Add1~25|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[4]~3|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[4]~3|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[4]~5|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[4]~5|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[4]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[13]"
-    Warning (332126): Node "FX_DELAY|Add1~29|datad"
-    Warning (332126): Node "FX_DELAY|Add1~29|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[5]~4|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[5]~4|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[5]~6|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[5]~6|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[5]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[14]"
-    Warning (332126): Node "FX_DELAY|Add1~33|dataa"
-    Warning (332126): Node "FX_DELAY|Add1~33|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[6]~5|datab"
-    Warning (332126): Node "FX_DELAY|din_R[6]~5|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[6]~7|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[6]~7|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[6]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|resulta[15]"
-    Warning (332126): Node "FX_DELAY|Add1~1|datac"
-    Warning (332126): Node "FX_DELAY|Add1~37|datad"
-    Warning (332126): Node "FX_DELAY|Add1~37|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[7]~6|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[7]~6|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[7]~8|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[7]~8|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[7]"
-    Warning (332126): Node "FX_DELAY|Add1~41|datad"
-    Warning (332126): Node "FX_DELAY|Add1~41|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[8]~7|datab"
-    Warning (332126): Node "FX_DELAY|din_R[8]~7|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[8]~9|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[8]~9|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[8]"
-    Warning (332126): Node "FX_DELAY|Add1~45|datad"
-    Warning (332126): Node "FX_DELAY|Add1~45|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[9]~8|datac"
-    Warning (332126): Node "FX_DELAY|din_R[9]~8|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[9]~10|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[9]~10|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[9]"
-    Warning (332126): Node "FX_DELAY|Add1~49|datad"
-    Warning (332126): Node "FX_DELAY|Add1~49|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[10]~9|datae"
-    Warning (332126): Node "FX_DELAY|Add1~53|datad"
-    Warning (332126): Node "FX_DELAY|Add1~53|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[11]~10|datac"
-    Warning (332126): Node "FX_DELAY|din_R[11]~10|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[11]~12|datad"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[11]~12|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[11]"
-    Warning (332126): Node "FX_DELAY|Add1~57|datac"
-    Warning (332126): Node "FX_DELAY|Add1~57|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[12]~11|datac"
-    Warning (332126): Node "FX_DELAY|din_R[12]~11|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[12]~13|dataf"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[12]~13|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[12]"
-    Warning (332126): Node "FX_DELAY|Add1~61|datad"
-    Warning (332126): Node "FX_DELAY|Add1~61|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[13]~12|datae"
-    Warning (332126): Node "FX_DELAY|din_R[13]~12|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[13]~14|datad"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[13]~14|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[13]"
-    Warning (332126): Node "FX_DELAY|Add1~65|datac"
-    Warning (332126): Node "FX_DELAY|Add1~65|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[14]~13|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[14]~13|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[14]~15|dataf"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[14]~15|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[14]"
-    Warning (332126): Node "FX_DELAY|Add1~5|datad"
-    Warning (332126): Node "FX_DELAY|Add1~5|sumout"
-    Warning (332126): Node "FX_DELAY|din_R[15]~14|datae"
-    Warning (332126): Node "FX_DELAY|din_R[15]~14|combout"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[15]~16|datac"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[15]~16|combout"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[15]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[16]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[17]"
-    Warning (332126): Node "FX_DELAY|Mult2~8|ay[18]"
-    Warning (332126): Node "FX_DELAY|LessThan3~2|datac"
-    Warning (332126): Node "FX_DELAY|LessThan3~2|combout"
-    Warning (332126): Node "FX_DELAY|LessThan3~3|datad"
-    Warning (332126): Node "FX_DELAY|din_R[1]~0|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[2]~1|datab"
-    Warning (332126): Node "FX_DELAY|din_R[3]~2|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[4]~3|datab"
-    Warning (332126): Node "FX_DELAY|din_R[5]~4|datab"
-    Warning (332126): Node "FX_DELAY|din_R[6]~5|datac"
-    Warning (332126): Node "FX_DELAY|din_R[7]~6|datac"
-    Warning (332126): Node "FX_DELAY|din_R[8]~7|datad"
-    Warning (332126): Node "FX_DELAY|din_R[9]~8|dataa"
-    Warning (332126): Node "FX_DELAY|LessThan2~2|datac"
-    Warning (332126): Node "FX_DELAY|LessThan2~2|combout"
-    Warning (332126): Node "FX_DELAY|LessThan2~3|datac"
-    Warning (332126): Node "FX_DELAY|LessThan2~3|combout"
-    Warning (332126): Node "FX_DELAY|din_R[15]~14|datad"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[0]~1|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[1]~2|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[2]~3|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[3]~4|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[4]~5|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[5]~6|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[6]~7|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[7]~8|datae"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[8]~9|dataa"
-    Warning (332126): Node "FX_DELAY|unit_R|data_out[9]~10|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[10]~9|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[11]~10|datae"
-    Warning (332126): Node "FX_DELAY|din_R[12]~11|datae"
-    Warning (332126): Node "FX_DELAY|din_R[13]~12|datad"
-    Warning (332126): Node "FX_DELAY|din_R[14]~13|datae"
-    Warning (332126): Node "FX_DELAY|din_R[11]~10|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[12]~11|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[13]~12|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[14]~13|datad"
-    Warning (332126): Node "FX_DELAY|din_R[15]~14|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan3~3|datac"
-    Warning (332126): Node "FX_DELAY|din_R[1]~0|datab"
-    Warning (332126): Node "FX_DELAY|din_R[1]~0|datac"
-    Warning (332126): Node "FX_DELAY|din_R[1]~0|datad"
-    Warning (332126): Node "FX_DELAY|din_R[2]~1|datac"
-    Warning (332126): Node "FX_DELAY|din_R[2]~1|datad"
-    Warning (332126): Node "FX_DELAY|din_R[2]~1|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[3]~2|datab"
-    Warning (332126): Node "FX_DELAY|din_R[3]~2|datad"
-    Warning (332126): Node "FX_DELAY|din_R[3]~2|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[4]~3|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[4]~3|datac"
-    Warning (332126): Node "FX_DELAY|din_R[4]~3|datad"
-    Warning (332126): Node "FX_DELAY|din_R[5]~4|datac"
-    Warning (332126): Node "FX_DELAY|din_R[5]~4|datad"
-    Warning (332126): Node "FX_DELAY|din_R[5]~4|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[6]~5|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[6]~5|datad"
-    Warning (332126): Node "FX_DELAY|din_R[6]~5|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[7]~6|datab"
-    Warning (332126): Node "FX_DELAY|din_R[7]~6|datad"
-    Warning (332126): Node "FX_DELAY|din_R[7]~6|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[8]~7|dataa"
-    Warning (332126): Node "FX_DELAY|din_R[8]~7|datac"
-    Warning (332126): Node "FX_DELAY|din_R[8]~7|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan3~2|dataf"
-    Warning (332126): Node "FX_DELAY|din_R[9]~8|datab"
-    Warning (332126): Node "FX_DELAY|din_R[9]~8|datad"
-    Warning (332126): Node "FX_DELAY|din_R[9]~8|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan2~2|dataf"
-    Warning (332126): Node "FX_DELAY|Add1~1_wirecell|dataf"
-    Warning (332126): Node "FX_DELAY|Add1~1_wirecell|combout"
-    Warning (332126): Node "FX_DELAY|LessThan2~3|datab"
-    Warning (332126): Node "FX_DELAY|LessThan2~3|datad"
-    Warning (332126): Node "FX_DELAY|LessThan2~3|dataf"
-    Warning (332126): Node "FX_DELAY|LessThan3~3|dataf"
-Critical Warning (332081): Design contains combinational loop of 232 nodes. Estimating the delays through the loop.
 Info (332097): The following timing edges are non-unate.  The Timing Analyzer will assume pos-unate behavior for these edges in the clock network.
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL  from: refclkin  to: fbclk
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER  from: vco0ph[0]  to: divclk
@@ -1754,38 +1286,36 @@ Info (332097): The following timing edges are non-unate.  The Timing Analyzer wi
 Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
 Info: Found TIMING_ANALYZER_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
 Info: Analyzing Slow 1100mV 85C Model
-Critical Warning (332148): Timing requirements not met
-    Info (11105): For recommendations on closing timing, run Report Timing Closure Recommendations in the Timing Analyzer.
-Info (332146): Worst-case setup slack is -3.393
+Info (332146): Worst-case setup slack is 4.481
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    -3.393             -69.010 CLOCK_50 
-    Info (332119):    10.171               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.219
+    Info (332119):     4.481               0.000 CLOCK_50 
+    Info (332119):     8.749               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.221
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.219               0.000 CLOCK_50 
-    Info (332119):     0.372               0.000 altera_reserved_tck 
-Info (332146): Worst-case recovery slack is 25.653
+    Info (332119):     0.221               0.000 CLOCK_50 
+    Info (332119):     0.370               0.000 altera_reserved_tck 
+Info (332146): Worst-case recovery slack is 26.396
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    25.653               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is 1.124
+    Info (332119):    26.396               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 1.006
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     1.124               0.000 altera_reserved_tck 
+    Info (332119):     1.006               0.000 altera_reserved_tck 
 Info (332146): Worst-case minimum pulse width slack is 0.689
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
     Info (332119):     0.689               0.000 u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] 
-    Info (332119):     8.864               0.000 CLOCK_50 
-    Info (332119):    15.278               0.000 altera_reserved_tck 
+    Info (332119):     8.862               0.000 CLOCK_50 
+    Info (332119):    15.467               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 17 synchronizer chains.
     Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
     Info (332114): Number of Synchronizer Chains Found: 17
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 18.643 ns
+    Info (332114): Worst Case Available Settling Time: 18.526 ns
     Info (332114): 
 Info: Analyzing Slow 1100mV 0C Model
 Info (334003): Started post-fitting delay annotation
@@ -1795,38 +1325,36 @@ Info (332097): The following timing edges are non-unate.  The Timing Analyzer wi
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER  from: vco0ph[0]  to: divclk
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT  from: clkin[0]  to: clkout
 Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
-Critical Warning (332148): Timing requirements not met
-    Info (11105): For recommendations on closing timing, run Report Timing Closure Recommendations in the Timing Analyzer.
-Info (332146): Worst-case setup slack is -3.330
+Info (332146): Worst-case setup slack is 4.439
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    -3.330             -68.863 CLOCK_50 
-    Info (332119):    10.299               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.206
+    Info (332119):     4.439               0.000 CLOCK_50 
+    Info (332119):     8.935               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.209
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.206               0.000 CLOCK_50 
-    Info (332119):     0.384               0.000 altera_reserved_tck 
-Info (332146): Worst-case recovery slack is 25.877
+    Info (332119):     0.209               0.000 CLOCK_50 
+    Info (332119):     0.383               0.000 altera_reserved_tck 
+Info (332146): Worst-case recovery slack is 26.505
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    25.877               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is 1.046
+    Info (332119):    26.505               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.932
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     1.046               0.000 altera_reserved_tck 
+    Info (332119):     0.932               0.000 altera_reserved_tck 
 Info (332146): Worst-case minimum pulse width slack is 0.689
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
     Info (332119):     0.689               0.000 u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] 
     Info (332119):     8.897               0.000 CLOCK_50 
-    Info (332119):    15.268               0.000 altera_reserved_tck 
+    Info (332119):    15.433               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 17 synchronizer chains.
     Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
     Info (332114): Number of Synchronizer Chains Found: 17
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 18.721 ns
+    Info (332114): Worst Case Available Settling Time: 18.620 ns
     Info (332114): 
 Info: Analyzing Fast 1100mV 85C Model
 Info (334003): Started post-fitting delay annotation
@@ -1836,36 +1364,36 @@ Info (332097): The following timing edges are non-unate.  The Timing Analyzer wi
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER  from: vco0ph[0]  to: divclk
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT  from: clkin[0]  to: clkout
 Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
-Info (332146): Worst-case setup slack is 6.099
+Info (332146): Worst-case setup slack is 10.796
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     6.099               0.000 CLOCK_50 
-    Info (332119):    13.249               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.131
+    Info (332119):    10.796               0.000 CLOCK_50 
+    Info (332119):    12.020               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.128
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.131               0.000 CLOCK_50 
-    Info (332119):     0.181               0.000 altera_reserved_tck 
-Info (332146): Worst-case recovery slack is 28.789
+    Info (332119):     0.128               0.000 CLOCK_50 
+    Info (332119):     0.179               0.000 altera_reserved_tck 
+Info (332146): Worst-case recovery slack is 29.422
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    28.789               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is 0.607
+    Info (332119):    29.422               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.543
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.607               0.000 altera_reserved_tck 
+    Info (332119):     0.543               0.000 altera_reserved_tck 
 Info (332146): Worst-case minimum pulse width slack is 0.689
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
     Info (332119):     0.689               0.000 u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] 
     Info (332119):     8.474               0.000 CLOCK_50 
-    Info (332119):    14.839               0.000 altera_reserved_tck 
+    Info (332119):    14.996               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 17 synchronizer chains.
     Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
     Info (332114): Number of Synchronizer Chains Found: 17
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 19.196 ns
+    Info (332114): Worst Case Available Settling Time: 19.043 ns
     Info (332114): 
 Info: Analyzing Fast 1100mV 0C Model
 Info (334003): Started post-fitting delay annotation
@@ -1875,43 +1403,43 @@ Info (332097): The following timing edges are non-unate.  The Timing Analyzer wi
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER  from: vco0ph[0]  to: divclk
     Info (332098): Cell: u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT  from: clkin[0]  to: clkout
 Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in the Timing Analyzer to see clock uncertainties.
-Info (332146): Worst-case setup slack is 7.178
+Info (332146): Worst-case setup slack is 11.605
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     7.178               0.000 CLOCK_50 
-    Info (332119):    13.693               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.102
+    Info (332119):    11.605               0.000 CLOCK_50 
+    Info (332119):    12.652               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.114
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.102               0.000 CLOCK_50 
-    Info (332119):     0.169               0.000 altera_reserved_tck 
-Info (332146): Worst-case recovery slack is 29.069
+    Info (332119):     0.114               0.000 CLOCK_50 
+    Info (332119):     0.170               0.000 altera_reserved_tck 
+Info (332146): Worst-case recovery slack is 29.572
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    29.069               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is 0.544
+    Info (332119):    29.572               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.488
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.544               0.000 altera_reserved_tck 
+    Info (332119):     0.488               0.000 altera_reserved_tck 
 Info (332146): Worst-case minimum pulse width slack is 0.689
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
     Info (332119):     0.689               0.000 u0|audio_pll_0|audio_pll|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0] 
-    Info (332119):     8.429               0.000 CLOCK_50 
-    Info (332119):    14.815               0.000 altera_reserved_tck 
+    Info (332119):     8.428               0.000 CLOCK_50 
+    Info (332119):    14.936               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 17 synchronizer chains.
     Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
     Info (332114): Number of Synchronizer Chains Found: 17
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 19.275 ns
+    Info (332114): Worst Case Available Settling Time: 19.157 ns
     Info (332114): 
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
-Info: Quartus Prime Timing Analyzer was successful. 0 errors, 570 warnings
-    Info: Peak virtual memory: 5649 megabytes
-    Info: Processing ended: Fri Jan 09 22:18:48 2026
-    Info: Elapsed time: 00:00:46
-    Info: Total CPU time (on all processors): 00:02:11
+Info: Quartus Prime Timing Analyzer was successful. 0 errors, 100 warnings
+    Info: Peak virtual memory: 5602 megabytes
+    Info: Processing ended: Fri Jan 09 22:45:09 2026
+    Info: Elapsed time: 00:00:58
+    Info: Total CPU time (on all processors): 00:02:53
 
 
