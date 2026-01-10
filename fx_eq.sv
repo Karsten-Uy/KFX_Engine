@@ -61,10 +61,6 @@ module fx_eq #(
     logic signed [15:0] a_q15[1:0];
     logic signed [15:0] b_q15[1:0];
     logic signed [15:0] c_q15[1:0];
-
-    logic signed [15:0] a_q15_reg[1:0];
-    logic signed [15:0] b_q15_reg[1:0];
-    logic signed [15:0] c_q15_reg[1:0];
     
     logic signed [15:0] band_high[1:0];
     logic signed [15:0] band_mid[1:0];
@@ -83,6 +79,12 @@ module fx_eq #(
     logic signed [31:0] temp_low[1:0];
     logic signed [31:0] temp_lowpass[1:0];
     logic signed [31:0] out_sum[1:0];
+
+    // Pipeline
+    logic signed [1:0][DATA_W-1:0] audio_in_reg;
+    logic signed [15:0] a_q15_reg[1:0];
+    logic signed [15:0] b_q15_reg[1:0];
+    logic signed [15:0] c_q15_reg[1:0];
 
     // ------------------------------------------------------------
     // FILTER UPDATE LOGIC
@@ -122,7 +124,8 @@ module fx_eq #(
             // band_lowpass[ch] = c_q15[ch];
 
             // Extract frequency bands using NEXT state
-            band_high[ch]    = audio_in[ch] - a_q15_reg[ch];
+            // band_high[ch]    = audio_in[ch] - a_q15_reg[ch];
+            band_high[ch]    = audio_in_reg[ch] - a_q15_reg[ch];
             band_mid[ch]     = a_q15_reg[ch] - b_q15_reg[ch];
             band_low[ch]     = b_q15_reg[ch] - c_q15_reg[ch];
             band_lowpass[ch] = c_q15_reg[ch];
@@ -163,6 +166,7 @@ module fx_eq #(
 
                 // Output with saturation
                 audio_out[i] <= sat16(out_sum[i]);
+                audio_in_reg[i] <= audio_in[i];
 
                 // Pipeline
                 a_q15_reg <= a_q15;

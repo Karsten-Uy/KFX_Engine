@@ -283,19 +283,19 @@ module AudioFX(
 	);
 
 	// // EQ 2 (FX 5)
-	// fx_eq #(
-	// 	.DATA_W(DATA_W),
-	// 	.PARAM_W(PARAM_W)
-	// ) FX_EQ_2 (
-	// 	.clk          (CLOCK_50),
-	// 	.reset_n      (KEY[0]),
-	// 	.audio_in     (dist_out),
-	// 	.audio_out    (eq_out_2),
-	// 	.fx_low_gain  (params[5][0]),
-	// 	.fx_mid_gain  (params[5][1]),
-	// 	.fx_high_gain (params[5][2]),
-	// 	.sample_en    (sample_en_pipe[5])
-	// );
+	fx_eq #(
+		.DATA_W(DATA_W),
+		.PARAM_W(PARAM_W)
+	) FX_EQ_2 (
+		.clk          (CLOCK_50),
+		.reset_n      (KEY[0]),
+		.audio_in     (dist_out),
+		.audio_out    (eq_out_2),
+		.fx_low_gain  (params[5][0]),
+		.fx_mid_gain  (params[5][1]),
+		.fx_high_gain (params[5][2]),
+		.sample_en    (sample_en_pipe[5])
+	);
 
 	// Chorus (FX 6)
 	fx_chorus #(
@@ -304,8 +304,8 @@ module AudioFX(
 	) FX_CHORUS (
 		.clk       (CLOCK_50),
 		.reset_n   (KEY[0]),
-		// .audio_in  (eq_out_2),
-		.audio_in  (dist_out),
+		.audio_in  (eq_out_2),
+		// .audio_in  (dist_out),
 		.audio_out (chorus_out),
 		.fx_rate   (params[6][0]),
 		.fx_depth  (params[6][1]),

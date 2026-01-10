@@ -30,10 +30,9 @@ module fx_distortion #(
 
     // Map 0-255 to 1x-4x gain
     logic [15:0] drive_gain;
-    assign drive_gain = 16'h0100 + ({8'h00, fx_drive} << 2); 
+    assign drive_gain = 16'h0100 + ({8'h00, fx_drive} << 5); 
 
     logic signed [31:0] distorted_signal[1:0];
-    logic signed [31:0] distorted_signal_reg[1:0];
     logic signed [63:0] mixed_signal[1:0];
     
     localparam signed [31:0] ONE      = 32'sd32768;
@@ -47,48 +46,26 @@ module fx_distortion #(
 
     logic signed [63:0] x_squared[1:0];
     logic signed [63:0] x_cubed[1:0];
-    // logic signed [63:0] cubic_term[1:0];
     
 
     // ------------------------------------------------------------
     // Per Sample Distortion Calculation
     // ------------------------------------------------------------
 
-    logic signed [31:0] threshold_pos;
-    logic signed [31:0] threshold_neg;
-    logic signed [31:0] clip_output_pos;
-    logic signed [31:0] clip_output_neg;
-
-    // always_comb begin
-
-    //     // // Map fx_threshold (0-255) to a threshold range
-    //     threshold_pos = 32'sd8192 + (({24'd0, fx_threshold} * 32'd96) >>> 0);
-    //     threshold_neg = -threshold_pos;
-
-    //     // Map fx_threshold (0-255) to threshold range with lower floor
-    //     // Range: 2048 (0.0625) to 32768 (1.0)
-    //     // Formula: floor + (range * fx_threshold / 256)
-    //     // threshold_pos = 32'sd2048 + (({24'd0, fx_threshold} * 32'd120) >>> 0);
-    //     // threshold_neg = -threshold_pos;
-        
-    //     // Clip output should be proportional to threshold (traditional ~2/3 of threshold)
-    //     clip_output_pos = (threshold_pos * 32'sd21845) >>> 15; // ~0.66 of threshold
-    //     clip_output_neg = -clip_output_pos;
-
-    // end
-
     logic signed [31:0] x_raw[1:0];
     logic signed [31:0] x[1:0];
     logic signed [63:0] x_sq[1:0];      // 32×32 = 64 bits needed
-    logic signed [63:0] x_sq_reg[1:0];      // 32×32 = 64 bits needed
     logic signed [96:0] x_cb_tmp[1:0];      // 64×32 = up to 96, but we shift
-    logic signed [96:0] x_cb_tmp_reg[1:0];      // 64×32 = up to 96, but we shift
     logic signed [63:0] x_cb[1:0];      // 64×32 = up to 96, but we shift
     logic signed [63:0] cubic_term[1:0];
 
     logic signed [31:0] product_shifted[1:0];
-    logic signed [31:0] product_shifted_reg[1:0];
 
+    // Pipeline
+    logic signed [63:0] x_sq_reg[1:0]; 
+    logic signed [96:0] x_cb_tmp_reg[1:0];
+    logic signed [31:0] product_shifted_reg[1:0];
+    logic signed [31:0] distorted_signal_reg[1:0];
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
@@ -169,7 +146,6 @@ module fx_distortion #(
                 x_sq_reg[i] <= x_sq[i];
                 distorted_signal_reg[i] <= distorted_signal[i];
             end
-            // audio_out = audio_in;
         end
     end
 
