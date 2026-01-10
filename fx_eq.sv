@@ -61,6 +61,10 @@ module fx_eq #(
     logic signed [15:0] a_q15[1:0];
     logic signed [15:0] b_q15[1:0];
     logic signed [15:0] c_q15[1:0];
+
+    logic signed [15:0] a_q15_reg[1:0];
+    logic signed [15:0] b_q15_reg[1:0];
+    logic signed [15:0] c_q15_reg[1:0];
     
     logic signed [15:0] band_high[1:0];
     logic signed [15:0] band_mid[1:0];
@@ -111,11 +115,17 @@ module fx_eq #(
             b_q15[ch] = b_next[ch][31:16];
             c_q15[ch] = c_next[ch][31:16];
 
+            // // Extract frequency bands using NEXT state
+            // band_high[ch]    = audio_in[ch] - a_q15[ch];
+            // band_mid[ch]     = a_q15[ch] - b_q15[ch];
+            // band_low[ch]     = b_q15[ch] - c_q15[ch];
+            // band_lowpass[ch] = c_q15[ch];
+
             // Extract frequency bands using NEXT state
-            band_high[ch]    = audio_in[ch] - a_q15[ch];
-            band_mid[ch]     = a_q15[ch] - b_q15[ch];
-            band_low[ch]     = b_q15[ch] - c_q15[ch];
-            band_lowpass[ch] = c_q15[ch];
+            band_high[ch]    = audio_in[ch] - a_q15_reg[ch];
+            band_mid[ch]     = a_q15_reg[ch] - b_q15_reg[ch];
+            band_low[ch]     = b_q15_reg[ch] - c_q15_reg[ch];
+            band_lowpass[ch] = c_q15_reg[ch];
 
             // Apply gains (Q15 * Q15 = Q30, shift to Q15)
             temp_high[ch]    = (band_high[ch] * g_high) >>> 15;
@@ -138,6 +148,10 @@ module fx_eq #(
                 a_state[i] <= 32'sd0;
                 b_state[i] <= 32'sd0;
                 c_state[i] <= 32'sd0;
+
+                a_q15_reg[i] <= '0;
+                b_q15_reg[i] <= '0;
+                c_q15_reg[i] <= '0;
             end
         end
         else if (sample_en) begin
@@ -149,6 +163,11 @@ module fx_eq #(
 
                 // Output with saturation
                 audio_out[i] <= sat16(out_sum[i]);
+
+                // Pipeline
+                a_q15_reg <= a_q15;
+                b_q15_reg <= b_q15;
+                c_q15_reg <= c_q15;
             end
         end
     end
