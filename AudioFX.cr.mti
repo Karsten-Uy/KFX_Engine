@@ -5,14 +5,6 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 Top level modules:
 	tb_fx_distortion
 
-} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/sevseg_display.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/sevseg_display.sv
-Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module sevseg_display
--- Importing package lab_pkg
-
-Top level modules:
-	sevseg_display
-
 } {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
 -- Compiling module fx_compressor
@@ -83,14 +75,6 @@ Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  
 
 Top level modules:
 	controller
-
-} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/display.sv
-Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module display
--- Importing package lab_pkg
-
-Top level modules:
-	display
 
 } {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_gate.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016

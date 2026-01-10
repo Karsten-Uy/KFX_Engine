@@ -33,6 +33,12 @@ module sevseg_display(
             // value = 5'd17
             SEVSEG_LINE_INDEX  : HEX = SEVSEG_SEG_LINE;
 
+            // value = 5'd18
+            SEVSEG_X_INDEX     : HEX = SEVSEG_SEG_X;
+
+            // value = 5'd19
+            SEVSEG_P_INDEX     : HEX = SEVSEG_SEG_P;
+
             default : HEX = SEVSEG_SEG_BLANK; // SHOULD NOT HAPPEN
         endcase
     end

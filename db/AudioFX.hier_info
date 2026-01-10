@@ -7963,13 +7963,13 @@ current_value[7] <= Mux129.DB_MAX_OUTPUT_PORT_TYPE
 
 
 |AudioFX|display:DISPLAY
-fx_sel[0] => val_HEX5[0].IN1
-fx_sel[1] => val_HEX5[1].IN1
-fx_sel[2] => val_HEX5[2].IN1
-fx_sel[3] => val_HEX5[3].IN1
-param_sel[0] => val_HEX4[0].IN1
-param_sel[1] => val_HEX4[1].IN1
-param_sel[2] => val_HEX4[2].IN1
+fx_sel[0] => val_HEX4[0].IN1
+fx_sel[1] => val_HEX4[1].IN1
+fx_sel[2] => val_HEX4[2].IN1
+fx_sel[3] => val_HEX4[3].IN1
+param_sel[0] => val_HEX2[0].IN1
+param_sel[1] => val_HEX2[1].IN1
+param_sel[2] => val_HEX2[2].IN1
 current_value[0] => Add0.IN16
 current_value[0] => Add1.IN22
 current_value[0] => Equal0.IN31
