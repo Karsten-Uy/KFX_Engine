@@ -1,5 +1,5 @@
 Analysis & Synthesis report for AudioFX
-Sat Jan 10 14:46:03 2026
+Sat Jan 10 15:02:19 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -141,7 +141,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +---------------------------------+---------------------------------------------+
-; Analysis & Synthesis Status     ; Successful - Sat Jan 10 14:46:02 2026       ;
+; Analysis & Synthesis Status     ; Successful - Sat Jan 10 15:02:18 2026       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
@@ -257,10 +257,11 @@ refer to the applicable agreement for further details.
 ; Maximum allowed            ; 4           ;
 ;                            ;             ;
 ; Average used               ; 1.00        ;
-; Maximum used               ; 1           ;
+; Maximum used               ; 2           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
+;     Processor 2            ;   0.0%      ;
 +----------------------------+-------------+
 
 
@@ -5396,7 +5397,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; params[1][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
 ; params[2][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
 ; params[3][4..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[4][4..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
+; params[4][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
 ; params[5][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
 ; params[6][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
 ; params[7][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
@@ -6962,7 +6963,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Sat Jan 10 14:43:50 2026
+    Info: Processing started: Sat Jan 10 15:00:36 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off AudioFX -c AudioFX
 Info (16303): High Performance Effort optimization mode selected -- timing performance will be prioritized at the potential cost of increased compilation time
     Info (16304): Mode behavior is affected by advanced setting Physical Synthesis Effort Level (default for this mode is Normal)
@@ -6970,28 +6971,28 @@ Info (16303): High Performance Effort optimization mode selected -- timing perfo
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
 Info (12248): Elaborating Platform Designer system entity "AVConfig.qsys"
-Info (12250): 2026.01.10.14:44:21 Progress: Loading HaH_processor/AVConfig.qsys
-Info (12250): 2026.01.10.14:44:22 Progress: Reading input file
-Info (12250): 2026.01.10.14:44:23 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
-Info (12250): 2026.01.10.14:44:24 Progress: Parameterizing module audio_and_video_config_0
-Info (12250): 2026.01.10.14:44:24 Progress: Building connections
-Info (12250): 2026.01.10.14:44:24 Progress: Parameterizing connections
-Info (12250): 2026.01.10.14:44:24 Progress: Validating
-Info (12250): 2026.01.10.14:44:24 Progress: Done reading input file
+Info (12250): 2026.01.10.15:00:51 Progress: Loading HaH_processor/AVConfig.qsys
+Info (12250): 2026.01.10.15:00:52 Progress: Reading input file
+Info (12250): 2026.01.10.15:00:52 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
+Info (12250): 2026.01.10.15:00:54 Progress: Parameterizing module audio_and_video_config_0
+Info (12250): 2026.01.10.15:00:54 Progress: Building connections
+Info (12250): 2026.01.10.15:00:54 Progress: Parameterizing connections
+Info (12250): 2026.01.10.15:00:54 Progress: Validating
+Info (12250): 2026.01.10.15:00:54 Progress: Done reading input file
 Info (12250): AVConfig: Generating AVConfig "AVConfig" for QUARTUS_SYNTH
 Info (12250): Audio_and_video_config_0: Starting Generation of Audio and Video Config
 Info (12250): Audio_and_video_config_0: "AVConfig" instantiated altera_up_avalon_audio_and_video_config "audio_and_video_config_0"
 Info (12250): AVConfig: Done "AVConfig" with 2 modules, 16 files
 Info (12249): Finished elaborating Platform Designer system entity "AVConfig.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioPLL.qsys"
-Info (12250): 2026.01.10.14:44:38 Progress: Loading HaH_processor/AudioPLL.qsys
-Info (12250): 2026.01.10.14:44:39 Progress: Reading input file
-Info (12250): 2026.01.10.14:44:39 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
-Info (12250): 2026.01.10.14:44:39 Progress: Parameterizing module audio_pll_0
-Info (12250): 2026.01.10.14:44:39 Progress: Building connections
-Info (12250): 2026.01.10.14:44:39 Progress: Parameterizing connections
-Info (12250): 2026.01.10.14:44:39 Progress: Validating
-Info (12250): 2026.01.10.14:44:45 Progress: Done reading input file
+Info (12250): 2026.01.10.15:01:02 Progress: Loading HaH_processor/AudioPLL.qsys
+Info (12250): 2026.01.10.15:01:03 Progress: Reading input file
+Info (12250): 2026.01.10.15:01:03 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info (12250): 2026.01.10.15:01:03 Progress: Parameterizing module audio_pll_0
+Info (12250): 2026.01.10.15:01:03 Progress: Building connections
+Info (12250): 2026.01.10.15:01:03 Progress: Parameterizing connections
+Info (12250): 2026.01.10.15:01:03 Progress: Validating
+Info (12250): 2026.01.10.15:01:07 Progress: Done reading input file
 Info (12250): AudioPLL: Generating AudioPLL "AudioPLL" for QUARTUS_SYNTH
 Info (12250): Audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
 Info (12250): Audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
@@ -6999,14 +7000,14 @@ Info (12250): Reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_res
 Info (12250): AudioPLL: Done "AudioPLL" with 4 modules, 5 files
 Info (12249): Finished elaborating Platform Designer system entity "AudioPLL.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioCodec.qsys"
-Info (12250): 2026.01.10.14:44:59 Progress: Loading HaH_processor/AudioCodec.qsys
-Info (12250): 2026.01.10.14:45:01 Progress: Reading input file
-Info (12250): 2026.01.10.14:45:01 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
-Info (12250): 2026.01.10.14:45:02 Progress: Parameterizing module audio_0
-Info (12250): 2026.01.10.14:45:02 Progress: Building connections
-Info (12250): 2026.01.10.14:45:02 Progress: Parameterizing connections
-Info (12250): 2026.01.10.14:45:02 Progress: Validating
-Info (12250): 2026.01.10.14:45:02 Progress: Done reading input file
+Info (12250): 2026.01.10.15:01:20 Progress: Loading HaH_processor/AudioCodec.qsys
+Info (12250): 2026.01.10.15:01:21 Progress: Reading input file
+Info (12250): 2026.01.10.15:01:21 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
+Info (12250): 2026.01.10.15:01:22 Progress: Parameterizing module audio_0
+Info (12250): 2026.01.10.15:01:22 Progress: Building connections
+Info (12250): 2026.01.10.15:01:22 Progress: Parameterizing connections
+Info (12250): 2026.01.10.15:01:22 Progress: Validating
+Info (12250): 2026.01.10.15:01:22 Progress: Done reading input file
 Info (12250): AudioCodec: Generating AudioCodec "AudioCodec" for QUARTUS_SYNTH
 Info (12250): Audio_0: Starting Generation of Audio Controller
 Info (12250): Audio_0: "AudioCodec" instantiated altera_up_avalon_audio "audio_0"
@@ -7024,7 +7025,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file fx_gain
 Info (12021): Found 1 design units, including 1 entities, in source file fx_eq.sv
     Info (12023): Found entity 1: fx_eq File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 16
 Info (12021): Found 1 design units, including 1 entities, in source file fx_distortion.sv
-    Info (12023): Found entity 1: fx_distortion File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 367
+    Info (12023): Found entity 1: fx_distortion File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 24
 Warning (10259): Verilog HDL error at fx_delay.sv(102): constant value overflow File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 102
 Info (12021): Found 1 design units, including 1 entities, in source file fx_delay.sv
     Info (12023): Found entity 1: fx_delay File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 2
@@ -7293,20 +7294,20 @@ Warning (10230): Verilog HDL assignment warning at fx_eq.sv(120): truncated valu
 Warning (10230): Verilog HDL assignment warning at fx_eq.sv(121): truncated value with size 48 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_eq.sv Line: 121
 Info (12128): Elaborating entity "fx_compressor" for hierarchy "fx_compressor:FX_COMPRESSOR" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 267
 Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "audio_delay" into its bus
-Info (12128): Elaborating entity "fx_distortion" for hierarchy "fx_distortion:FX_DISTORTION" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 283
-Warning (10230): Verilog HDL assignment warning at fx_distortion.sv(451): truncated value with size 97 to match size of target (64) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 451
-Warning (10230): Verilog HDL assignment warning at fx_distortion.sv(468): truncated value with size 64 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 468
-Info (12128): Elaborating entity "fx_chorus" for hierarchy "fx_chorus:FX_CHORUS" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 314
+Info (12128): Elaborating entity "fx_distortion" for hierarchy "fx_distortion:FX_DISTORTION" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 282
+Warning (10230): Verilog HDL assignment warning at fx_distortion.sv(105): truncated value with size 97 to match size of target (64) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 105
+Warning (10230): Verilog HDL assignment warning at fx_distortion.sv(122): truncated value with size 64 to match size of target (32) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_distortion.sv Line: 122
+Info (12128): Elaborating entity "fx_chorus" for hierarchy "fx_chorus:FX_CHORUS" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 313
 Warning (10230): Verilog HDL assignment warning at fx_chorus.sv(30): truncated value with size 32 to match size of target (24) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv Line: 30
 Info (12128): Elaborating entity "delay_line" for hierarchy "fx_chorus:FX_CHORUS|delay_line:chorus_L" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv Line: 63
 Warning (10230): Verilog HDL assignment warning at delay_line.sv(26): truncated value with size 32 to match size of target (11) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/delay_line.sv Line: 26
 Warning (10230): Verilog HDL assignment warning at delay_line.sv(54): truncated value with size 32 to match size of target (11) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/delay_line.sv Line: 54
-Info (12128): Elaborating entity "fx_delay" for hierarchy "fx_delay:FX_DELAY" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 329
+Info (12128): Elaborating entity "fx_delay" for hierarchy "fx_delay:FX_DELAY" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 328
 Warning (10230): Verilog HDL assignment warning at fx_delay.sv(45): truncated value with size 16 to match size of target (15) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 45
 Info (12128): Elaborating entity "delay_line" for hierarchy "fx_delay:FX_DELAY|delay_line:unit_L" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 75
 Warning (10230): Verilog HDL assignment warning at delay_line.sv(26): truncated value with size 32 to match size of target (15) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/delay_line.sv Line: 26
 Warning (10230): Verilog HDL assignment warning at delay_line.sv(54): truncated value with size 32 to match size of target (15) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/delay_line.sv Line: 54
-Info (12128): Elaborating entity "fx_reverb" for hierarchy "fx_reverb:FX_REVERB" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 344
+Info (12128): Elaborating entity "fx_reverb" for hierarchy "fx_reverb:FX_REVERB" File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/AudioFX.sv Line: 343
 Warning (10230): Verilog HDL assignment warning at fx_reverb.sv(46): truncated value with size 32 to match size of target (12) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv Line: 46
 Warning (10230): Verilog HDL assignment warning at fx_reverb.sv(47): truncated value with size 32 to match size of target (12) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv Line: 47
 Warning (10230): Verilog HDL assignment warning at fx_reverb.sv(48): truncated value with size 32 to match size of target (12) File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv Line: 48
@@ -7342,7 +7343,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr
     Info (12023): Found entity 1: cmpr_99c File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/db/cmpr_99c.tdf Line: 22
 Info (12033): Analysis and Synthesis generated Signal Tap or debug node instance "auto_signaltap_0"
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.01.10.14:45:35 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.01.10.15:01:51 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: Generating alt_sld_fab "alt_sld_fab" for QUARTUS_SYNTH
 Info (11172): Alt_sld_fab: "alt_sld_fab" instantiated alt_sld_fab "alt_sld_fab"
@@ -7737,10 +7738,10 @@ Info (21057): Implemented 18306 device resources after synthesis - the final res
     Info (21065): Implemented 1 PLLs
     Info (21062): Implemented 102 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 87 warnings
-    Info: Peak virtual memory: 5127 megabytes
-    Info: Processing ended: Sat Jan 10 14:46:03 2026
-    Info: Elapsed time: 00:02:13
-    Info: Total CPU time (on all processors): 00:02:53
+    Info: Peak virtual memory: 5125 megabytes
+    Info: Processing ended: Sat Jan 10 15:02:19 2026
+    Info: Elapsed time: 00:01:43
+    Info: Total CPU time (on all processors): 00:02:14
 
 
 +------------------------------------------+
