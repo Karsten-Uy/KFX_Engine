@@ -1,5 +1,6 @@
 Warning (10268): Verilog HDL information at fx_reverb.sv(16): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_reverb.sv Line: 16
-Warning (10268): Verilog HDL information at fx_delay.sv(72): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 72
+Warning (10268): Verilog HDL information at fx_delay.sv(100): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 100
+Info (10281): Verilog HDL Declaration information at fx_delay.sv(35): object "DELAY_RANGE" differs only in case from object "delay_range" in the same scope File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_delay.sv Line: 35
 Warning (10268): Verilog HDL information at fx_compressor.sv(42): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 42
 Warning (10268): Verilog HDL information at fx_compressor.sv(148): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_compressor.sv Line: 148
 Warning (10268): Verilog HDL information at fx_chorus.sv(16): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/homemade_multifx/HaH_processor/fx_chorus.sv Line: 16

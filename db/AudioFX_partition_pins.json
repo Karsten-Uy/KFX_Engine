@@ -220,11 +220,11 @@
 					"strict" : false
 				},
 				{
-					"name" : "CLOCK_50",
+					"name" : "KEY[0]",
 					"strict" : false
 				},
 				{
-					"name" : "KEY[0]",
+					"name" : "CLOCK_50",
 					"strict" : false
 				},
 				{
