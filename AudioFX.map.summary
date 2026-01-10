@@ -1,14 +1,14 @@
-Analysis & Synthesis Status : Successful - Fri Jan 09 21:14:20 2026
+Analysis & Synthesis Status : Successful - Fri Jan 09 22:13:28 2026
 Quartus Prime Version : 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 Revision Name : AudioFX
 Top-level Entity Name : AudioFX
 Family : Cyclone V
 Logic utilization (in ALMs) : N/A
-Total registers : 21060
+Total registers : 21098
 Total pins : 91
 Total virtual pins : 0
-Total block memory bits : 176,640
-Total DSP Blocks : 79
+Total block memory bits : 1,616,640
+Total DSP Blocks : 84
 Total HSSI RX PCSs : 0
 Total HSSI PMA RX Deserializers : 0
 Total HSSI TX PCSs : 0
