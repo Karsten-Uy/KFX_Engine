@@ -57,7 +57,8 @@ package lab_pkg;
                 4: begin // Distortion
                     case (param)
                         0: param_default = 8'd128;
-                        1: param_default = 8'd255; // Full Mix
+                        // 1: param_default = 8'd255; // Full Mix
+                        1: param_default = 8'd0;
                         2: param_default = 8'd128; // Unity Makeup
                         3: param_default = 8'd128; // Clip Threshold
                     endcase
@@ -83,7 +84,8 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        2: param_default = 8'd128;
+                        // 2: param_default = 8'd128;
+                        2: param_default = 8'd0;
                     endcase
                 end
 
