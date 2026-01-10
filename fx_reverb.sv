@@ -1,3 +1,19 @@
+/*
+
+    Reverb module that implements the Schroeder Reverberator that uses a combination 
+    of parallel feedback comb filters and series all-pass filters to simulate reveberation
+    in a room
+
+    Parameters:
+        fx_size     - Controls the "size" of the room AKA delay times
+        fx_damping  - Controls how much the higher frequencies are damped
+        fx_mix      - Mix control determining how much of the wet signal is in
+                      the output of this FX. (fx_mix == 0) => all dry, 
+                      (fx_mix == 255) => all wet
+
+*/
+
+
 // Reverb (FX 7) - Schroeder Reverberator
 module fx_reverb #(
     parameter DATA_W  = 16,

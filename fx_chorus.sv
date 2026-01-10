@@ -1,3 +1,19 @@
+/*
+
+    Chorus module that duplicates and delays the input audio signal with delay lines, then 
+    subtly modulates the amplitude of the copies using a Low-Frequency Oscillator (LFO). After 
+    that, it blends the copies them back with the original to create a thicker, richer sound,
+    simulating multiple instruments or singers performing the same part.
+        - LFO is a triangle wave
+
+    Parameters:
+        fx_rate     - Controls the frequency of the LFO
+        fx_depth    - Controls the amplitude modulation done by the LFO
+        fx_mix      - Mix control determining how much of the wet signal is in
+                      the output of this FX. (fx_mix == 0) => all dry, 
+                      (fx_mix == 255) => all wet
+
+*/
 
 module fx_chorus #(
     parameter DATA_W  = 16,
@@ -13,7 +29,10 @@ module fx_chorus #(
     input  logic                        sample_en
 );
 
-    localparam SAMPLE_RATE = 48000;
+    // ---------------- PACKAGE IMPORTS ----------------
+    import lab_pkg::*;
+    
+    // ---------------- CONSTANTS ----------------
     localparam BASE_DELAY_MS = 20; 
     localparam MAX_MOD_MS = 5;      // Reduced from 10ms to 5ms for tighter chorus
     localparam BASE_DELAY_SAMPLES = (BASE_DELAY_MS * SAMPLE_RATE) / 1000;
@@ -21,14 +40,55 @@ module fx_chorus #(
     localparam MAX_DELAY_SAMPLES = 2048; // Power of 2 helps Quartus infer RAM easily
     localparam ADDR_W = $clog2(MAX_DELAY_SAMPLES);
 
-    // --- Stage 0: LFO (Smoother Triangle) ---
+    // ---------------- INTERNAL SIGNALS ----------------
+
+    // LFO (Smooth Triangle)
     logic [23:0] lfo_phase;
-    logic signed [15:0] lfo_tri;
-    
-    // Slower rate for voices (Chorus rate is usually 0.5Hz to 3Hz)
+    logic signed [15:0] lfo_tri;    
     logic [23:0] lfo_inc;
+
+    // Delay
+    logic [ADDR_W-1:0] delay_L, delay_R;
+
+    // Mixed Signals
+    logic signed [DATA_W-1:0] wet_L, wet_R;
+    logic signed [1:0][DATA_W-1:0] dry_pipe_1, dry_pipe_2;
+    logic signed [31:0] mix_L, mix_R;
+    logic [8:0] w_gain, d_gain;
+
+    // ---------------- DELAY LINE INSTANTIATION ----------------
+    // Have 1 for each side (left-right)
+
+    delay_line #(
+        .DATA_W(DATA_W), 
+        .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES)
+    ) chorus_L (
+        .clk(clk), 
+        .reset_n(reset_n), 
+        .sample_en(sample_en), 
+        .data_in(audio_in[0]), 
+        .data_out(wet_L), 
+        .delay_samples(delay_L)
+    );
+
+    delay_line #(
+        .DATA_W(DATA_W), 
+        .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES)
+    ) chorus_R (
+        .clk(clk), 
+        .reset_n(reset_n), 
+        .sample_en(sample_en), 
+        .data_in(audio_in[1]), 
+        .data_out(wet_R), 
+        .delay_samples(delay_R)
+    );
+
+    // ---------------- MAIN CHORUS CALCULATION ----------------
+
+    // LFO increment (Chorus rate is usually 0.5Hz to 3Hz)
     assign lfo_inc = 10 + ((fx_rate * 24'd400) >> 8); 
 
+    // LFO FF
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             lfo_phase <= 0;
@@ -40,8 +100,7 @@ module fx_chorus #(
         end
     end
 
-    // --- Stage 1: Delay Calc (Limit the Depth) ---
-    logic [ADDR_W-1:0] delay_L, delay_R;
+    // Delay Calc (Limit the Depth)
     always_ff @(posedge clk) begin
         if (sample_en) begin
             // We scale the LFO by fx_depth and MAX_MOD_SAMPLES
@@ -54,25 +113,20 @@ module fx_chorus #(
             delay_L <= BASE_DELAY_SAMPLES[ADDR_W-1:0] + mod_offset[ADDR_W-1:0];
             delay_R <= BASE_DELAY_SAMPLES[ADDR_W-1:0] - mod_offset[ADDR_W-1:0];
         end
+    end    
+
+    // Mix + feedback Calculation
+    always_comb begin
+        w_gain = {1'b0, fx_mix};       // 0 to 255
+        d_gain = 9'd255 - w_gain;      // 255 down to 0
+
+        mix_L = ($signed(wet_L) * $signed(w_gain)) + ($signed(dry_pipe_2[0]) * $signed(d_gain));
+        mix_R = ($signed(wet_R) * $signed(w_gain)) + ($signed(dry_pipe_2[1]) * $signed(d_gain));
     end
 
-    // --- Stage 2: Delay Lines ---
-    logic signed [DATA_W-1:0] wet_L, wet_R;
-    
-    delay_line #(.DATA_W(DATA_W), .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES)) 
-    chorus_L (.clk, .reset_n, .sample_en, .data_in(audio_in[0]), .data_out(wet_L), .delay_samples(delay_L));
-
-    delay_line #(.DATA_W(DATA_W), .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES)) 
-    chorus_R (.clk, .reset_n, .sample_en, .data_in(audio_in[1]), .data_out(wet_R), .delay_samples(delay_R));
-
-    // --- Stage 3: Precise Alignment & Mix ---
+    // Precise Alignment & Mix
     // M10K delay_line has 2 cycles of latency (1 for RAM, 1 for output reg)
     // We MUST delay the dry signal by exactly 2 sample_en cycles
-    logic signed [1:0][DATA_W-1:0] dry_pipe_1, dry_pipe_2;
-
-    // 2. Mix with 32-bit Headroom to prevent distortion
-    logic signed [31:0] mix_L, mix_R;
-    logic [8:0] w_gain, d_gain;
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
@@ -80,13 +134,7 @@ module fx_chorus #(
         end else if (sample_en) begin
             // 1. Align the dry signal
             dry_pipe_1 <= audio_in;
-            dry_pipe_2 <= dry_pipe_1;
-            
-            w_gain = {1'b0, fx_mix};       // 0 to 255
-            d_gain = 9'd255 - w_gain;      // 255 down to 0
-
-            mix_L = ($signed(wet_L) * $signed(w_gain)) + ($signed(dry_pipe_2[0]) * $signed(d_gain));
-            mix_R = ($signed(wet_R) * $signed(w_gain)) + ($signed(dry_pipe_2[1]) * $signed(d_gain));
+            dry_pipe_2 <= dry_pipe_1;            
 
             // 3. Scale back and Saturate
             // Divide by 255 (approx >>> 8)
@@ -95,10 +143,5 @@ module fx_chorus #(
         end
     end
 
-    function automatic logic signed [15:0] sat16(logic signed [31:0] val);
-        if (val > 32767) return 16'sh7FFF;
-        else if (val < -32768) return 16'sh8000;
-        else return val[15:0];
-    endfunction
 
 endmodule

@@ -4,6 +4,7 @@ package lab_pkg;
 
     // Top Level
 	parameter DATA_W = 16;
+    parameter SAMPLE_RATE = 48000;
 
     // Controller
     parameter FX_COUNT    = 16;
