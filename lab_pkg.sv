@@ -57,8 +57,7 @@ package lab_pkg;
                 4: begin // Distortion
                     case (param)
                         0: param_default = 8'd128;
-                        // 1: param_default = 8'd255; // Full Mix
-                        1: param_default = 8'd0;
+                        1: param_default = 8'd255; // Full Mix
                         2: param_default = 8'd128; // Unity Makeup
                         3: param_default = 8'd128; // Clip Threshold
                     endcase
@@ -94,7 +93,8 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        2: param_default = 8'd255;
+                        // 2: param_default = 8'd255;
+                        2: param_default = 8'd0;
                     endcase
                 end
 
@@ -145,9 +145,8 @@ package lab_pkg;
     // ------------------- DSP Params -------------------
     parameter FX_STAGES = 9;
 
-    // Compressor
+    // Compressor + Gate Shared Params
     parameter COMP_LOOKAHEAD = 16;
-    parameter ROUND_BIAS = 1 << 14;
     parameter logic [15:0] UNITY_Q15 = 16'h7FFF;  // SAFE unity
     parameter logic [15:0] MIN_GAIN  = 16'd100;
 
