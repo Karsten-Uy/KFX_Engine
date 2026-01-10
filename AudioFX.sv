@@ -271,15 +271,14 @@ module AudioFX(
 		.DATA_W(DATA_W),
 		.PARAM_W(PARAM_W)
 	) FX_DISTORTION (
-		.clk       (CLOCK_50),
-		.reset_n   (KEY[0]),
-		.audio_in  (comp_out),
-		.audio_out (dist_out),
-		.fx_drive  (params[4][0]),
-		.fx_mix    (params[4][1]),
-		.fx_makeup_gain (params[4][2]),
-		.fx_threshold   (params[4][3]),
-		.sample_en (sample_en_pipe[4])
+		.clk            (CLOCK_50),
+		.reset_n        (KEY[0]),
+		.audio_in       (comp_out),
+		.audio_out      (dist_out),
+		.fx_drive       (params[4][0]),
+		.fx_makeup_gain (params[4][1]),
+		.fx_mix         (params[4][2]),
+		.sample_en      (sample_en_pipe[4])
 	);
 
 	// // EQ 2 (FX 5)

@@ -1,3 +1,19 @@
+/*
+
+    Delay line for use by FX that is implemented similar to a FIFO
+
+    Parameters:
+        data_in       - input sample
+        data_out      - output sample
+        delay_samples - number of samples to delay by
+        sample_en     - sampling enable signal, triggers the progression
+                        of the delay line. Must not be held for more than
+                        1 clock cycle and data_in must be valid. if sufficient
+                        samples in memory, will set data_out to be the sample
+                        that stored delay_samples before the current sample_en
+                        edge
+*/
+
 module delay_line #(
     parameter DATA_W = 16,
     parameter MAX_DELAY_SAMPLES = 24000,
@@ -10,6 +26,7 @@ module delay_line #(
     input  logic [ADDR_W-1:0]        delay_samples, 
     input  logic                     sample_en
 );
+    // ---------------- INTERNAL SIGNALS ----------------
 
     // Force M10K inference
     (* ramstyle = "M10K" *) logic signed [DATA_W-1:0] buffer [0:MAX_DELAY_SAMPLES-1];
@@ -17,6 +34,8 @@ module delay_line #(
     logic [ADDR_W-1:0] write_ptr;
     logic [ADDR_W-1:0] read_ptr;
     logic signed [DATA_W-1:0] ram_out;
+
+    // ---------------- FIFO-ISH LOGIC ----------------
 
     // 1. Address Calculation (Combinational is fine for ADDR)
     always_comb begin
