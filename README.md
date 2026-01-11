@@ -1,11 +1,5 @@
 # Helix at Home (HaH) Processor 🎸
 
-**Synthesizable Multi-FX Pedalboard on FPGA**
-
-🔗 Repository: [https://github.com/Karsten-Uy/HaH_processor](https://github.com/Karsten-Uy/HaH_processor)
-
----
-
 ## Overview
 
 **Helix at Home (HaH)** is a **synthesizable multi-effects guitar processor** implemented in **SystemVerilog** on the **DE1-SoC FPGA**. It uses the on-board **audio codec ADC and DAC** to process live audio input from an electric guitar through a configurable chain of digital audio effects.
@@ -66,10 +60,35 @@ This structure mimics a traditional digital pedalboard signal flow.
 
 ---
 
-## FX + Parameter Control Mapping
+## Usage Instructions
+The following sections outline how to use the board
 
-## How to control FX
-HEX5-HEX2 display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on LEDR[9:0] as a bar graph, where only LEDR[9] lit represents a value of 0 and additional LEDs illuminate as the value increases. KEY[2] and KEY[3] are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using SW[9:6], while SW[3:1] choose the parameter within that FX, and SW[0] mutes the output signal and on HEX[0], you will see a line if it is muted.
+### Hardware + Software Needed
+
+Hardware
+- x1 DE1 SoC Board 
+  - x1 USB Blaster Cable
+  - x1 Power Cable
+- x2 AUX Cable
+  - x1 whatever you connect to output, can be speacker, headphone, audio interface, etc
+- x1 1/4 inch to AUX adapter
+- x1 Guitar or your choice
+
+Software
+- Quartus Prime
+  - `Quartus Prime Version 18.1.0 Build 09/12/2018 SJ Lite Edition` was used to develop this project
+
+### How to install and run on the board
+
+1. Clone this repo into the machine with Quartus Prime
+2. Open quartus prime and use the `Programmer` tool the program the board with the `./AudioFX.sof` that is in the root directory of this repo, should not need any changes to project file or repo to do this
+3. Click `KEY[0]` to reset the board
+4. Connect one of the AUX cables to the green "LINE IN" port at the top left of the board and then connect the 1/4 inch to AUX adapter to the other end then plug that into you guitar
+5. Connect the other AUX cable to the blue "LINE OUT" port at the top left of the board and then connect it to the output device
+6. PLAY
+
+### How to control FX
+`HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[3:1]` choose the parameter within that FX, and `SW[0]` mutes the output signal with `HEX[0]` being a line if it is muted.
 
 ### FX Mapping  Table
 
