@@ -1,12 +1,15 @@
-// Created by Navraj Kambo
-// nkambo1@my.bcit.ca
-// 2019-07-14
-// Altera DE1-SoC, System Verilog
-// Basic audio hardware loopback in verilog using Altera University IP catalog
-// So that you can you can add your own DSP hardware in-between ADC and DAC
-// 16-Bit audio
- 
-// I/O assignments
+/*
+	Created by Karsten Kirby Uy
+		- Forked from the "audio-loopback-only" from the "De1-SoC-Verilog-Audio-HW-FX" 
+		  repo created by Navraj Kambo as a starting point that configures the audio
+		  codec in a loopback.
+			- repo link: https://github.com/navrajkambo/De1-SoC-Verilog-Audio-HW-FX
+
+    Top Level module for multi-fx pedalboard. Instatiates and connects the audio 
+	codec, FX + display controller, and the FX modules together. 
+
+ */
+
 module AudioFX(
 	// Inputs
 	SW, 
@@ -37,7 +40,7 @@ module AudioFX(
 	// ---------------- PACKAGE IMPORTS ----------------
     import lab_pkg::*;
 
-    // ---------------- Signals ----------------
+    // ---------------- I/O ----------------
 	input [9:0] SW;
 	input CLOCK_50;
 	input [3:0]	KEY;
@@ -54,6 +57,8 @@ module AudioFX(
 	output logic [9:0] LEDR;
 	output logic [DATA_W-1:0] GPIO_0;
 	output logic [6:0] HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
+
+    // ---------------- INTERNAL SIGNALS ----------------
 	
 	// registers
 	reg [22:0] count;
@@ -75,51 +80,68 @@ module AudioFX(
 	logic [$clog2(PARAM_COUNT)-1:0] param_sel;
 	logic [PARAM_W-1:0]             current_value;
 	logic [9:0]                     cont_LEDR;
+	
+	// FX Chain intermediate signals
+	logic [1:0][DATA_W-1:0] pre_fx; 
+	logic [1:0][DATA_W-1:0] gain_in_out; 
+	logic [1:0][DATA_W-1:0] gate_out; 
+	logic [1:0][DATA_W-1:0] eq_out_1; 
+	logic [1:0][DATA_W-1:0] eq_out_2; 
+	logic [1:0][DATA_W-1:0] comp_out;
+	logic [1:0][DATA_W-1:0] dist_out;
+	logic [1:0][DATA_W-1:0] chorus_out;
+	logic [1:0][DATA_W-1:0] delay_out;
+	logic [1:0][DATA_W-1:0] reverb_out;
+	logic [1:0][DATA_W-1:0] gain_out_out;
+
+	// Pipeline
+	logic [FX_STAGES:0] sample_en_pipe;
 
     // ---------------- AUDIO I/O INSTANTIATIONS ----------------
 	
 	// Audio PLL
 	AudioPLL u0 (
-		.ref_clk_clk        (CLOCK_50),        //      ref_clk.clk
-		.ref_reset_reset    (~KEY[0]),    //    ref_reset.reset
-		.audio_clk_clk      (AUD_XCK),      //    audio_clk.clk
-		.reset_source_reset (reset_out)  // reset_source.reset
+		.ref_clk_clk        (CLOCK_50), 
+		.ref_reset_reset    (~KEY[0]),  
+		.audio_clk_clk      (AUD_XCK),  
+		.reset_source_reset (reset_out) 
 	);
-	// Audio Config (16bit audio, you can change this with QSYS)
+
+	// Audio Config (16bit audio)
 	AVConfig u1 (
-		.clk         (CLOCK_50),         //                    clk.clk
-		.reset       (~KEY[0]),       //                  reset.reset
-		.address     (i2c_read_data),     // avalon_av_config_slave.address
-		.byteenable  (i2c_byte_enable),  //                       .byteenable
-		.read        (i2c_read),        //                       .read
-		.write       (i2c_write),       //                       .write
-		.writedata   (i2c_data),   //                       .writedata
-		.readdata    (i2c_data),    //                       .readdata
-		.waitrequest (i2c_waitrequest), //                       .waitrequest
-		.I2C_SDAT    (FPGA_I2C_SDAT),    //     external_interface.SDAT
-		.I2C_SCLK    (FPGA_I2C_SCLK)     //                       .SCLK
+		.clk         (CLOCK_50),        
+		.reset       (~KEY[0]),         
+		.address     (i2c_read_data),   
+		.byteenable  (i2c_byte_enable), 
+		.read        (i2c_read),        
+		.write       (i2c_write),       
+		.writedata   (i2c_data),        
+		.readdata    (i2c_data),        
+		.waitrequest (i2c_waitrequest), 
+		.I2C_SDAT    (FPGA_I2C_SDAT),   
+		.I2C_SCLK    (FPGA_I2C_SCLK)
 	);
 	// Audio Codec
 	AudioCodec u2 (
-		.clk                          (CLOCK_50),                          //                         clk.clk
-		.reset                        (~KEY[0]),                        //                       reset.reset
-		.AUD_ADCDAT                   (AUD_ADCDAT),                   //          external_interface.ADCDAT
-		.AUD_ADCLRCK                  (AUD_ADCLRCK),                  //                            .ADCLRCK
-		.AUD_BCLK                     (AUD_BCLK),                     //                            .BCLK
-		.AUD_DACDAT                   (AUD_DACDAT),                   //                            .DACDAT
-		.AUD_DACLRCK                  (AUD_DACLRCK),                  //                            .DACLRCK
-		.from_adc_left_channel_ready  (ADC_Ready[0]),  //  avalon_left_channel_source.ready
-		.from_adc_left_channel_data   (ADC_Data[0]),   //                            .data
-		.from_adc_left_channel_valid  (ADC_Valid[0]),  //                            .valid
-		.from_adc_right_channel_ready (ADC_Ready[1]), // avalon_right_channel_source.ready
-		.from_adc_right_channel_data  (ADC_Data[1]),  //                            .data
-		.from_adc_right_channel_valid (ADC_Valid[1]), //                            .valid
-		.to_dac_left_channel_data     (DAC_Data[0]),     //    avalon_left_channel_sink.data
-		.to_dac_left_channel_valid    (DAC_Valid[0]),    //                            .valid
-		.to_dac_left_channel_ready    (DAC_Ready[0]),    //                            .ready
-		.to_dac_right_channel_data    (DAC_Data[1]),    //   avalon_right_channel_sink.data
-		.to_dac_right_channel_valid   (DAC_Valid[1]),   //                            .valid
-		.to_dac_right_channel_ready   (DAC_Ready[1])    //                            .ready
+		.clk                          (CLOCK_50),    
+		.reset                        (~KEY[0]),     
+		.AUD_ADCDAT                   (AUD_ADCDAT),  
+		.AUD_ADCLRCK                  (AUD_ADCLRCK), 
+		.AUD_BCLK                     (AUD_BCLK),    
+		.AUD_DACDAT                   (AUD_DACDAT),  
+		.AUD_DACLRCK                  (AUD_DACLRCK), 
+		.from_adc_left_channel_ready  (ADC_Ready[0]),
+		.from_adc_left_channel_data   (ADC_Data[0]), 
+		.from_adc_left_channel_valid  (ADC_Valid[0]),
+		.from_adc_right_channel_ready (ADC_Ready[1]),
+		.from_adc_right_channel_data  (ADC_Data[1]), 
+		.from_adc_right_channel_valid (ADC_Valid[1]),
+		.to_dac_left_channel_data     (DAC_Data[0]), 
+		.to_dac_left_channel_valid    (DAC_Valid[0]),
+		.to_dac_left_channel_ready    (DAC_Ready[0]),
+		.to_dac_right_channel_data    (DAC_Data[1]), 
+		.to_dac_right_channel_valid   (DAC_Valid[1]),
+		.to_dac_right_channel_ready   (DAC_Ready[1]) 
 	);
 
 	// Useful for signal tap or scope debugging and
@@ -127,6 +149,8 @@ module AudioFX(
 	
     // ---------------- CONTROLLER + DISPLAY ----------------
 
+	// FX Param Controller
+	// Mute switch (SW[0]) is set at the end of this file
 	controller #(
         .FX_COUNT(FX_COUNT),
         .PARAM_COUNT(PARAM_COUNT),
@@ -147,6 +171,7 @@ module AudioFX(
         .current_value(current_value)
     );
 
+	// LEDR and HEX Display Controller
 	display #(
 		.FX_COUNT(FX_COUNT),
         .PARAM_COUNT(PARAM_COUNT),
@@ -167,22 +192,6 @@ module AudioFX(
 
     // ---------------- AUDIO FX INSTANTIATIONS ----------------
 
-	// FX Chain intermediate signals
-	logic [1:0][DATA_W-1:0] pre_fx; 
-	logic [1:0][DATA_W-1:0] gain_in_out; 
-	logic [1:0][DATA_W-1:0] gate_out; 
-	logic [1:0][DATA_W-1:0] eq_out_1; 
-	logic [1:0][DATA_W-1:0] eq_out_2; 
-	logic [1:0][DATA_W-1:0] comp_out;
-	logic [1:0][DATA_W-1:0] dist_out;
-	logic [1:0][DATA_W-1:0] chorus_out;
-	logic [1:0][DATA_W-1:0] delay_out;
-	logic [1:0][DATA_W-1:0] reverb_out;
-	logic [1:0][DATA_W-1:0] gain_out_out;
-
-	// Pipeline
-	logic [FX_STAGES:0] sample_en_pipe;
-
 	/*
 		How Audio is passed through the FX
 		
@@ -196,6 +205,10 @@ module AudioFX(
 	assign pre_fx[0] = ADC_Data[0];
 	assign pre_fx[1] = ADC_Data[0];
 
+	// sample_en pipeline. Give each FX 1 clock cycle to produce
+	// a valid audio_out per positive ADC_Valid edge. if more time
+	// is needed, can pipeline and use the pieplined value at the 
+	// NEXT ADC_Valid edge
 	always_ff @(posedge CLOCK_50) begin: en_PIPELINE
 		if (!KEY[0]) begin
 			sample_en_pipe <= '0;
