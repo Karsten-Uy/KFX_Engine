@@ -39,5 +39,4 @@ module fx_gain #(
         end
     end
 
-
 endmodule

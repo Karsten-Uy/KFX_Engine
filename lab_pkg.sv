@@ -1,6 +1,12 @@
+/*
 
+    Package Containing various constants that are in the design
+
+ */
 
 package lab_pkg;
+
+    // ------------------- DSP Functions ---------------
 
     // Top Level
 	parameter DATA_W = 16;
@@ -15,8 +21,9 @@ package lab_pkg;
     parameter DEBOUNCE_CNT_MAX = 1_000_000;
     parameter REPEAT_START_CNT = 15_000_000;  // ~300 ms
     parameter REPEAT_RATE_CNT  = 2_000_000;    // ~40 ms
-
     parameter INCDEC_AMOUNT = 2; // ~20 ms @ 50 MHz
+
+    // ------------------- Default Parameters ---------------
 
     // Default parameter lookup function
     function automatic logic [PARAM_W-1:0]
@@ -27,7 +34,7 @@ package lab_pkg;
 
             case (fx)
                 0: begin // Input gain
-                    if (param == 0) param_default = 8'd127;
+                    if (param == 0) param_default = 8'd255;
                 end
 
                 1: begin // Gate
@@ -40,7 +47,7 @@ package lab_pkg;
 
                 2: begin // EQ 1
                     case (param)
-                        0: param_default = 8'd128;
+                        0: param_default = 8'd4;
                         1: param_default = 8'd128;
                         2: param_default = 8'd128;
                     endcase
@@ -49,26 +56,25 @@ package lab_pkg;
                 3: begin // Compressor
                     case (param)
                         0: param_default = 8'd32;
-                        1: param_default = 8'd4;
+                        1: param_default = 8'd0;  // No compression
                         2: param_default = 8'd64;
-                        3: param_default = 8'd64;
+                        3: param_default = 8'd128;
                     endcase
                 end
 
                 4: begin // Distortion
                     case (param)
                         0: param_default = 8'd128;
-                        1: param_default = 8'd255; // Full Mix
-                        2: param_default = 8'd128; // Unity Makeup
-                        3: param_default = 8'd128; // Clip Threshold
+                        1: param_default = 8'd64; 
+                        2: param_default = 8'd255; 
                     endcase
                 end
 
                 5: begin // EQ 2
                     case (param)
-                        0: param_default = 8'd128;
+                        0: param_default = 8'd100;
                         1: param_default = 8'd128;
-                        2: param_default = 8'd128;
+                        2: param_default = 8'd150;
                     endcase
                 end
 
@@ -76,17 +82,15 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        // 2: param_default = 8'd255;
-                        2: param_default = 8'd0;
+                        2: param_default = 8'd110;
                     endcase
                 end
 
                 7: begin // Delay
                     case (param)
-                        0: param_default = 8'd0;
-                        1: param_default = 8'd0;
-                        // 2: param_default = 8'd128;
-                        2: param_default = 8'd0;
+                        0: param_default = 8'd128;
+                        1: param_default = 8'd95;
+                        2: param_default = 8'd30;
                     endcase
                 end
 
@@ -94,8 +98,7 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        // 2: param_default = 8'd255;
-                        2: param_default = 8'd0;
+                        2: param_default = 8'd32;
                     endcase
                 end
 
@@ -110,8 +113,8 @@ package lab_pkg;
         end
     endfunction
 
+    // ------------------- 7-Segment Display Definitions ---------------
 
-    // 7 Segment Display Definitions
                                 //  6543210
     parameter SEVSEG_SEG_BLANK = 7'b1111111;
     parameter SEVSEG_SEG_LINE  = 7'b0111111;
@@ -151,7 +154,7 @@ package lab_pkg;
     parameter logic [15:0] UNITY_Q15 = 16'h7FFF;  // SAFE unity
     parameter logic [15:0] MIN_GAIN  = 16'd100;
 
-    // ------------------- DSP Functions ---------------
+    // ------------------- Common DSP Functions ---------------
     
     // Saturate to 16-bit signed range
     // NOTE: value needs to be shifted correctly in x to be in the first 16 bits of x

@@ -245,7 +245,8 @@ module fx_reverb #(
         // Left channel: main reverb output
         wet_L = allpass2_out;
         // Right channel: mix of allpass outputs for stereo width
-        wet_R = sat16(($signed(allpass1_out) + $signed(allpass2_out)) >>> 1);
+        // wet_R = sat16(($signed(allpass1_out) + $signed(allpass2_out)) >>> 1);
+        wet_R = allpass2_out;
 
         // Calculate dry gain for unity gain mixing
         dry_gain = 9'sd256 - $signed({1'b0, fx_mix});
