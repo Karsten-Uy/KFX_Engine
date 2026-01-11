@@ -6,7 +6,7 @@ JedecChain;
 	P ActionCode(Ign)
 		Device PartName(SOCVHPS) MfrSpec(OpMask(0));
 	P ActionCode(Cfg)
-		Device PartName(5CSEMA5F31) Path("C:/Users/karst/Documents/homemade_multifx/HaH_processor/") File("AudioFX.sof") MfrSpec(OpMask(1));
+		Device PartName(5CSEMA5) Path("C:/Users/karst/Documents/homemade_multifx/HaH_processor/") File("AudioFX.jic") MfrSpec(OpMask(1) SEC_Device(EPCQ128A) Child_OpMask(1 1));
 
 ChainEnd;
 
