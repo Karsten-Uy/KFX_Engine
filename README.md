@@ -66,6 +66,49 @@ This structure mimics a traditional digital pedalboard signal flow.
 
 ---
 
+## FX + Parameter Control Mapping
+
+## How to control FX
+HEX5-HEX2 display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on LEDR[9:0] as a bar graph, where only LEDR[9] lit represents a value of 0 and additional LEDs illuminate as the value increases. KEY[2] and KEY[3] are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using SW[9:6], while SW[3:1] choose the parameter within that FX, and SW[0] mutes the output signal and on HEX[0], you will see a line if it is muted.
+
+### FX Mapping  Table
+
+| FX          | Parameter            | FX Number | Parameter Number  
+| ----------- | -------------------- | ----------| ----------------
+| Gain1       | fx_gain              | F0        | P0 
+| Gate        | fx_threshold         | F1        | P0
+| Gate        | fx_attack            | F1        | P1
+| Gate        | fx_release           | F1        | P2
+| EQ1         | fx_low_gain          | F2        | P0
+| EQ1         | fx_mid_gain          | F2        | P1
+| EQ1         | fx_high_gain         | F2        | P2
+| Compressor  | fx_threshold         | F3        | P1
+| Compressor  | fx_ratio             | F3        | P2
+| Compressor  | fx_attack            | F3        | P3
+| Compressor  | fx_release           | F3        | P4
+| Distortion  | fx_drive             | F4        | P0
+| Distortion  | fx_makeup_gain       | F4        | P1
+| Distortion  | fx_mix               | F4        | P2
+| EQ2         | fx_low_gain          | F5        | P0
+| EQ2         | fx_mid_gain          | F5        | P1
+| EQ2         | fx_high_gain         | F5        | P2
+| Chorus      | fx_rate              | F6        | P0
+| Chorus      | fx_depth             | F6        | P1
+| Chorus      | fx_mix               | F6        | P2
+| Delay       | fx_time              | F7        | P0
+| Delay       | fx_feedback          | F7        | P1
+| Delay       | fx_mix               | F7        | P2
+| Reverb      | fx_size              | F8        | P0
+| Reverb      | fx_damping           | F8        | P1
+| Reverb      | fx_mix               | F8        | P2
+| Gain2       | fx_gain              | F9        | P0 
+
+NOTES:
+- You should see the FX Number values on HEX5-HEX4, with HEX5 always being F
+- You should see the Parameter Number values on HEX3-HEX2, with HEX3 always being P
+- The order of FX number represented how the order the FX are connect in series, with the output of F0 being connected to the input of F1 so on and so forth
+- Descriptions for what the parameters do are in the next section
+
 ## Implemented Effects & Parameters
 
 ### Gain
@@ -124,8 +167,6 @@ Non-linear distortion using a **3rd-order polynomial approximation of `tanh(x)`*
 f(x) =  {  x − x³/3      , −1 < x < 1
         {  2/3           , x ≤ −1
 ```
-
-*Note: input `x` is scaled appropriately before processing.*
 
 **Parameters**
 
