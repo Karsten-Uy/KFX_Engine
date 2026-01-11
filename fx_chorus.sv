@@ -19,129 +19,115 @@ module fx_chorus #(
     parameter DATA_W  = 16,
     parameter PARAM_W = 8
 )(
-    input  logic                        clk,
-    input  logic                        reset_n,
+    input  logic                         clk,
+    input  logic                         reset_n,
     input  logic signed [1:0][DATA_W-1:0] audio_in,
     output logic signed [1:0][DATA_W-1:0] audio_out,
-    input  logic [PARAM_W-1:0]          fx_rate,    
-    input  logic [PARAM_W-1:0]          fx_depth,   
-    input  logic [PARAM_W-1:0]          fx_mix,     
-    input  logic                        sample_en
+    input  logic [PARAM_W-1:0]           fx_rate,    
+    input  logic [PARAM_W-1:0]           fx_depth,   
+    input  logic [PARAM_W-1:0]           fx_mix,     
+    input  logic                         sample_en
 );
 
-    // ---------------- PACKAGE IMPORTS ----------------
     import lab_pkg::*;
     
     // ---------------- CONSTANTS ----------------
+    localparam FRAC_W = 4; // Fractional bits for interpolation
     localparam BASE_DELAY_MS = 20; 
-    localparam MAX_MOD_MS = 5;      // Reduced from 10ms to 5ms for tighter chorus
     localparam BASE_DELAY_SAMPLES = (BASE_DELAY_MS * SAMPLE_RATE) / 1000;
-    localparam MAX_MOD_SAMPLES = (MAX_MOD_MS * SAMPLE_RATE) / 1000;
-    localparam MAX_DELAY_SAMPLES = 2048; // Power of 2 helps Quartus infer RAM easily
+    localparam MAX_DELAY_SAMPLES = 2048; 
     localparam ADDR_W = $clog2(MAX_DELAY_SAMPLES);
 
     // ---------------- INTERNAL SIGNALS ----------------
-
-    // LFO (Smooth Triangle)
     logic [23:0] lfo_phase;
     logic signed [15:0] lfo_tri;    
     logic [23:0] lfo_inc;
 
-    // Delay
-    logic [ADDR_W-1:0] delay_L, delay_R;
+    // Smoothed Delay Accumulators (Q16.16 fixed point)
+    logic signed [31:0] delay_L_acc, delay_R_acc;
+    
+    // Fixed-point delay signals (Integer bits + FRAC_W bits)
+    logic [ADDR_W + FRAC_W - 1:0] delay_L_fixed, delay_R_fixed;
 
-    // Mixed Signals
     logic signed [DATA_W-1:0] wet_L, wet_R;
-    logic signed [1:0][DATA_W-1:0] dry_pipe_1, dry_pipe_2;
+    logic signed [1:0][DATA_W-1:0] dry_pipe_1, dry_pipe_2, dry_pipe_3;
     logic signed [31:0] mix_L, mix_R;
-    logic [8:0] w_gain, d_gain;
-
+    logic signed [31:0] target_L, target_R;
+    logic signed [31:0] mod_offset;
+    
     // ---------------- DELAY LINE INSTANTIATION ----------------
-    // Have 1 for each side (left-right)
-
-    delay_line #(
+    delay_line_li #(
         .DATA_W(DATA_W), 
-        .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES)
+        .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES),
+        .FRAC_W(FRAC_W)
     ) chorus_L (
-        .clk(clk), 
-        .reset_n(reset_n), 
-        .sample_en(sample_en), 
-        .data_in(audio_in[0]), 
-        .data_out(wet_L), 
-        .delay_samples(delay_L)
+        .clk(clk), .reset_n(reset_n), .sample_en(sample_en), 
+        .data_in(audio_in[0]), .data_out(wet_L), 
+        .delay_samples(delay_L_fixed)
     );
 
-    delay_line #(
+    delay_line_li #(
         .DATA_W(DATA_W), 
-        .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES)
+        .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES),
+        .FRAC_W(FRAC_W)
     ) chorus_R (
-        .clk(clk), 
-        .reset_n(reset_n), 
-        .sample_en(sample_en), 
-        .data_in(audio_in[1]), 
-        .data_out(wet_R), 
-        .delay_samples(delay_R)
+        .clk(clk), .reset_n(reset_n), .sample_en(sample_en), 
+        .data_in(audio_in[1]), .data_out(wet_R), 
+        .delay_samples(delay_R_fixed)
     );
 
-    // ---------------- MAIN CHORUS CALCULATION ----------------
+    // ---------------- LOGIC ----------------
+    
+    // CRITICAL FIX #1: Slower LFO range (0.15Hz to 1.5Hz)
+    // This reduces the "warble" you can hear
+    assign lfo_inc = 3 + ((fx_rate * 24'd120) >> 8);  // Much slower than before
 
-    // LFO increment (Chorus rate is usually 0.5Hz to 3Hz)
-    assign lfo_inc = 10 + ((fx_rate * 24'd400) >> 8); 
-
-    // LFO FF
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             lfo_phase <= 0;
             lfo_tri   <= 0;
+            delay_L_acc <= $signed(BASE_DELAY_SAMPLES) << 16;
+            delay_R_acc <= $signed(BASE_DELAY_SAMPLES) << 16;
         end else if (sample_en) begin
+            // 1. LFO Generation (Triangle Wave)
             lfo_phase <= lfo_phase + lfo_inc;
-            // 16-bit Triangle wave generation
             lfo_tri <= lfo_phase[23] ? $signed(~lfo_phase[22:7]) : $signed(lfo_phase[22:7]);
-        end
-    end
 
-    // Delay Calc (Limit the Depth)
-    always_ff @(posedge clk) begin
-        if (sample_en) begin
-            // We scale the LFO by fx_depth and MAX_MOD_SAMPLES
-            // This ensures 0 depth = static delay (no modulation)
-            automatic logic signed [31:0] mod_offset;
-            mod_offset = ($signed(lfo_tri) * $signed({1'b0, fx_depth})) >>> 16;
+            // 2. Short Modulation Depth
+            mod_offset = ($signed(lfo_tri) * $signed({1'b0, fx_depth})) >>> 17; 
             
-            // Map mod_offset to a small sample range (e.g., +/- 100 samples)
-            // Divide by 128 or similar to keep the "swing" musical
-            delay_L <= BASE_DELAY_SAMPLES[ADDR_W-1:0] + mod_offset[ADDR_W-1:0];
-            delay_R <= BASE_DELAY_SAMPLES[ADDR_W-1:0] - mod_offset[ADDR_W-1:0];
+            target_L = ($signed(BASE_DELAY_SAMPLES) + mod_offset) << 16;
+            target_R = ($signed(BASE_DELAY_SAMPLES) - mod_offset) << 16;
+
+            // 3. Heavy low-pass smoothing
+            delay_L_acc <= delay_L_acc + ((target_L - delay_L_acc) >>> 13);
+            delay_R_acc <= delay_R_acc + ((target_R - delay_R_acc) >>> 13);
+
+            // 4. Extract bits for the Interpolating Delay Line
+            delay_L_fixed <= delay_L_acc[16 + ADDR_W - 1 : 16 - FRAC_W];
+            delay_R_fixed <= delay_R_acc[16 + ADDR_W - 1 : 16 - FRAC_W];
         end
-    end    
-
-    // Mix + feedback Calculation
-    always_comb begin
-        w_gain = {1'b0, fx_mix};       // 0 to 255
-        d_gain = 9'd255 - w_gain;      // 255 down to 0
-
-        mix_L = ($signed(wet_L) * $signed(w_gain)) + ($signed(dry_pipe_2[0]) * $signed(d_gain));
-        mix_R = ($signed(wet_R) * $signed(w_gain)) + ($signed(dry_pipe_2[1]) * $signed(d_gain));
     end
 
-    // Precise Alignment & Mix
-    // M10K delay_line has 2 cycles of latency (1 for RAM, 1 for output reg)
-    // We MUST delay the dry signal by exactly 2 sample_en cycles
-
+    // ---------------- MIXING ----------------
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
-            // 1. Align the dry signal
+            // 3 cycles of delay to match interpolating delay line latency
             dry_pipe_1 <= audio_in;
-            dry_pipe_2 <= dry_pipe_1;            
+            dry_pipe_2 <= dry_pipe_1;
+            dry_pipe_3 <= dry_pipe_2; 
 
-            // 3. Scale back and Saturate
-            // Divide by 255 (approx >>> 8)
+            // Mix Logic (Dry/Wet)
+            mix_L = ($signed(wet_L) * $signed({1'b0, fx_mix})) + 
+                    ($signed(dry_pipe_3[0]) * $signed({1'b0, 8'd255 - fx_mix}));
+            mix_R = ($signed(wet_R) * $signed({1'b0, fx_mix})) + 
+                    ($signed(dry_pipe_3[1]) * $signed({1'b0, 8'd255 - fx_mix}));
+
             audio_out[0] <= sat16(mix_L >>> 8);
             audio_out[1] <= sat16(mix_R >>> 8);
         end
     end
-
 
 endmodule
