@@ -15,6 +15,8 @@
                        Higher value means it takes longer to release gain reduction
                        once the envelope drops below the threshold
 
+    Latency = COMP_LOOKAHEAD + 1 = 17 Samples
+
  */
 
 module fx_compressor #(
@@ -37,8 +39,8 @@ module fx_compressor #(
 
     // ---------------- INTERNAL SIGNALS ----------------
 
-    // Simple Delay Line
-    logic signed [1:0][DATA_W-1:0] audio_delay [0:COMP_LOOKAHEAD];
+    // Delay Line for Lookahead
+    logic signed [1:0][DATA_W-1:0] comp_delay_line [0:COMP_LOOKAHEAD-1];
 
     // Peak Detection
     logic [15:0] abs_l, abs_r;
@@ -50,29 +52,30 @@ module fx_compressor #(
 
     // Threshold + Gain Reduction
     logic [15:0] threshold_scaled;
-    logic [15:0] comp_factor;  // Pre-calculated compression factor
+    logic [15:0] comp_factor;
     logic signed [16:0] over_threshold;
     logic [31:0] reduction_amount;
     logic [15:0] target_gain;
     logic [15:0] gain;
     logic signed [31:0] prod_l, prod_r;
+    logic [15:0] reduction;
 
     // ---------------- MAIN LOGIC -------------------
 
-    // STAGE 1: INPUT + DELAY LINE    
+    // Deplay Line for "lookahead"  
     integer i;
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            for (i = 0; i <= COMP_LOOKAHEAD; i = i + 1)
-                audio_delay[i] <= '0;
+            for (i = 0; i < COMP_LOOKAHEAD; i = i + 1)
+                comp_delay_line[i] <= '0;
         end else if (sample_en) begin
-            audio_delay[0] <= audio_in;
-            for (i = 1; i <= COMP_LOOKAHEAD; i = i + 1)
-                audio_delay[i] <= audio_delay[i-1];
+            comp_delay_line[0] <= audio_in;
+            for (i = 1; i < COMP_LOOKAHEAD; i = i + 1)
+                comp_delay_line[i] <= comp_delay_line[i-1];
         end
     end
 
-    // STAGE 2: PEAK DETECTION (Registered)W  
+    // Peak detection
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             peak_level <= '0;
@@ -89,7 +92,7 @@ module fx_compressor #(
         rel_step = 16'd16  + ({8'd0, fx_release} << 2);
     end
 
-    // STAGE 3: ENVELOPE FOLLOWER (Registered)
+    // Peak triggered envelope
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             envelope <= 16'd0;
@@ -101,40 +104,21 @@ module fx_compressor #(
         end
     end
 
-    // PARAMETER PRE-CALCULATION
+    // Pre-calculated threshold and compression factor
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             threshold_scaled <= '0;
             comp_factor <= '0;
         end else begin
-            // Calculate once when parameters change (not in sample_en path)
+            // 1. Calculate threshold: fx_threshold (0-255) * 96 ≈ 0-24480
             threshold_scaled <= ({8'd0, fx_threshold} * 16'd96);
             
-            // Pre-calculate compression factor using LOOKUP TABLE
-            case (fx_ratio)
-                8'd0, 8'd1: comp_factor <= 16'd0;      // 1:1 (no compression)
-                8'd2: comp_factor <= 16'd16384;        // 2:1 (0.5)
-                8'd3: comp_factor <= 16'd21845;        // 3:1 (0.667)
-                8'd4: comp_factor <= 16'd24576;        // 4:1 (0.75)
-                8'd5: comp_factor <= 16'd26214;        // 5:1 (0.8)
-                8'd6: comp_factor <= 16'd27306;        // 6:1 (0.833)
-                8'd8: comp_factor <= 16'd28672;        // 8:1 (0.875)
-                8'd10: comp_factor <= 16'd29491;       // 10:1 (0.9)
-                8'd12: comp_factor <= 16'd29989;       // 12:1 (0.916)
-                8'd16: comp_factor <= 16'd30720;       // 16:1 (0.9375)
-                8'd20: comp_factor <= 16'd31129;       // 20:1 (0.95)
-                default: begin
-                    // Approximation for other values
-                    if (fx_ratio < 8'd10)
-                        comp_factor <= 16'd28000;      // ~8:1
-                    else
-                        comp_factor <= 16'd30000;      // ~15:1
-                end
-            endcase
+            // 2. Map fx_ratio (0-255) to comp_factor (1-0.5)
+            comp_factor <= {8'd0, fx_ratio} * 16'd122;
         end
     end
 
-    // STAGE 4: THRESHOLD COMPARISON (Registered)    
+    // Threshold Comparison  
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             over_threshold <= '0;
@@ -143,7 +127,7 @@ module fx_compressor #(
         end
     end
 
-    // STAGE 5: GAIN REDUCTION (Registered multiply)   
+    // Gain reduction
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             reduction_amount <= '0;
@@ -155,7 +139,7 @@ module fx_compressor #(
         end
     end
 
-    // STAGE 6: TARGET GAIN CALCULATION (Registered)    
+    // Target Gain calculation
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             target_gain <= UNITY_Q15;
@@ -163,9 +147,7 @@ module fx_compressor #(
             if (over_threshold <= 0) begin
                 target_gain <= UNITY_Q15;
             end else begin
-                logic [15:0] reduction;
-                reduction = reduction_amount[30:15];  // Extract Q15 result
-                
+                reduction = reduction_amount[30:15];                
                 if (reduction >= UNITY_Q15)
                     target_gain <= MIN_GAIN;
                 else
@@ -174,7 +156,7 @@ module fx_compressor #(
         end
     end
 
-    // STAGE 7: GAIN SMOOTHING (Registered)
+    // Gain Smoothing
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             gain <= UNITY_Q15;
@@ -193,19 +175,19 @@ module fx_compressor #(
         end
     end
 
-    // STAGE 8: APPLY GAIN (Registered multiply)
+    // Pipelined Application
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             prod_l <= '0;
             prod_r <= '0;
         end else if (sample_en) begin
-            prod_l <= $signed(audio_delay[COMP_LOOKAHEAD][0]) * $signed({1'b0, gain});
-            prod_r <= $signed(audio_delay[COMP_LOOKAHEAD][1]) * $signed({1'b0, gain});
+            prod_l <= $signed(comp_delay_line[COMP_LOOKAHEAD-1][0]) * $signed({1'b0, gain});
+            prod_r <= $signed(comp_delay_line[COMP_LOOKAHEAD-1][1]) * $signed({1'b0, gain});
         end
     end
 
-    // STAGE 9: OUTPUT (Registered)
     // -------------------- OUTPUT -------------------------
+
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;

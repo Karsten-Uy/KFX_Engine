@@ -1,15 +1,55 @@
 /*
 
     Reverb module that implements the Schroeder Reverberator that uses a combination 
-    of parallel feedback comb filters and series all-pass filters to simulate reveberation
+    of parallel feedback comb filters and series all-pass filters to simulate reverberation
     in a room
 
     Parameters:
-        fx_size     - Controls the "size" of the room AKA delay times
-        fx_damping  - Controls how much the reverberation is damped
+        fx_size     - Controls the "size" of the room AKA delay times (0-255)
+        fx_damping  - Controls how much the reverberation is damped (0-255)
         fx_mix      - Mix control determining how much of the wet signal is in
                       the output of this FX. (fx_mix == 0) => all dry, 
                       (fx_mix == 255) => all wet
+
+    Architecture uses a two-stage filter design:
+    
+    Stage 1 - Parallel Feedback Comb Filters (4 filters):
+        Creates the initial reverb tail with different delay times. Each comb filter
+        implements the following difference equation where g is the feedback gain
+        (controlled by fx_damping), and d is the delay time (controlled by fx_size):
+        
+            y[n] = x[n] + g * y[n-d]
+            output[n] = y[n-d]
+        
+        The four comb filters have prime number base delays to avoid modal resonances:
+            - Comb 1: 1117 samples (~23ms) base delay
+            - Comb 2: 1171 samples (~24ms) base delay  
+            - Comb 3: 1277 samples (~27ms) base delay
+            - Comb 4: 1356 samples (~28ms) base delay
+        
+        fx_size scales these delays: delay = base_delay * (1.0 + fx_size/256)
+        
+        All comb outputs are summed together.
+    
+    Stage 2 - Series Allpass Filters (2 filters):
+        Diffuses the summed comb output without changing frequency response.
+        Each allpass filter implements the difference equation where g = 0.5
+        and d is a fixed delay:
+        
+            y[n] = -g*x[n] + x[n-d] + g*y[n-d]
+        
+        The two allpass filters have fixed delays:
+            - Allpass 1: 556 samples (~12ms)
+            - Allpass 2: 441 samples (~9ms)
+    
+    Signal flow:
+        Stereo Input → Mix to Mono → [Comb1, Comb2, Comb3, Comb4] → Sum → 
+        Divide by 4 → Allpass1 → Allpass2 → Wet Signal → Mix with Dry → Stereo Output
+    
+    The output is:
+        audio_out[n] = (wet_signal[n] * fx_mix + dry_signal[n] * (256 - fx_mix)) / 256
+    
+    Latency = 4 Samples
 
 */
 
@@ -44,12 +84,12 @@ module fx_reverb #(
     localparam ALLPASS2_DELAY = 441;   // ~9ms
     
     // Maximum delay for any line (used for buffer sizing)
-    localparam MAX_COMB_DELAY = 2712;  // 1356 * 2 (allows 2x scaling with fx_size)
+    localparam MAX_COMB_DELAY = 2712;
     localparam COMB_ADDR_W = $clog2(MAX_COMB_DELAY);
     localparam ALLPASS_ADDR_W = $clog2(ALLPASS1_DELAY);
     
     // Allpass coefficient (fixed at 0.5 for stability)
-    localparam ALLPASS_COEF = 8'd128;  // 0.5 * 256
+    localparam ALLPASS_COEF = 8'd128;
     
     // ---------------- INTERNAL SIGNALS ----------------
     // Delay calculation
@@ -163,32 +203,27 @@ module fx_reverb #(
     // ---------------------- COMB FILTER ---------------------
     
     // Dynamic delay calculation based on fx_size
+    // Scale delays: base_delay * (1.0 + fx_size/256)
     always_comb begin
-        // Scale delays: base_delay * (1.0 + fx_size/256)
-        // This gives range from base_delay to 2*base_delay
         comb1_delay = COMB1_BASE + ((COMB1_BASE * fx_size) >> 8);
         comb2_delay = COMB2_BASE + ((COMB2_BASE * fx_size) >> 8);
         comb3_delay = COMB3_BASE + ((COMB3_BASE * fx_size) >> 8);
         comb4_delay = COMB4_BASE + ((COMB4_BASE * fx_size) >> 8);
     end
     
-    // --- Comb Filter Feedback Gain with Damping ---
-    // Damping reduces high frequencies in the feedback path
-    // Lower damping = more high frequency content preserved
+    // Comb Filter Feedback Gain with Damping 
+    // - Damping reduces high frequencies in the feedback path
     always_comb begin
-        // Base feedback around 0.7-0.84 for natural decay
-        // Damping reduces this for high frequencies
-        // fx_damping: 0 = bright (less damping), 255 = dark (more damping)
-        damping_factor = 8'd216 - (fx_damping >> 2);  // Range: 152-216 (~0.59-0.84)
+        damping_factor = 8'd216 - (fx_damping >> 2);
         comb_feedback = damping_factor;
     end
     
-    // --- Mono input (mix L+R) ---
+    // Mono input (mix L+R)
     always_comb begin
         mono_in = ($signed(audio_in[0]) + $signed(audio_in[1])) >>> 1;
     end
     
-    // Comb filter structure: output = input + feedback * delayed_output
+    // Comb filter calculation
     always_comb begin
         // Calculate feedback signals
         comb1_fb = ($signed(comb1_delayed) * $signed({1'b0, comb_feedback})) >>> 8;
@@ -207,14 +242,12 @@ module fx_reverb #(
         comb2_out = comb2_delayed;
         comb3_out = comb3_delayed;
         comb4_out = comb4_delayed;
-    end    
-    
-    // Sum all comb filter outputs
-    always_comb begin
+
+        // Sum all comb filter outputs
         comb_sum = $signed(comb1_out) + $signed(comb2_out) + 
                    $signed(comb3_out) + $signed(comb4_out);
-    end
-    
+    end    
+
     // ----------------------- ALLPASS FILTERS (Series) ----------------------
     // Allpass filters diffuse the sound without changing frequency response    
     
@@ -237,15 +270,10 @@ module fx_reverb #(
         ap2_back = ($signed(allpass2_delayed) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         allpass2_out = sat16(-ap2_feed + $signed(allpass2_delayed) + ap2_back);
     end
-    
-    // ----------------------- STEREO WIDENING + OUTPUT MIX -------------------------
-    // Create stereo from mono reverb by using slightly different taps    
-    
+
+    // Mix
     always_comb begin
-        // Left channel: main reverb output
         wet_L = allpass2_out;
-        // Right channel: mix of allpass outputs for stereo width
-        // wet_R = sat16(($signed(allpass1_out) + $signed(allpass2_out)) >>> 1);
         wet_R = allpass2_out;
 
         // Calculate dry gain for unity gain mixing
@@ -260,11 +288,12 @@ module fx_reverb #(
         mixed_R = (wet_scaled_R + dry_R) >>> 8;
     end
     
+    // ---------------- OUTPUT ----------------
+    
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin            
-            // Saturate output
             audio_out[0] <= sat16(mixed_L);
             audio_out[1] <= sat16(mixed_R);
         end

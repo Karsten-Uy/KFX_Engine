@@ -1,3 +1,20 @@
+/*
+
+    Delay line that linear interperlates current and previous sample values for use by 
+    chorus that is implemented similar to a FIFO. Using this adds 2 Samples of Latency
+
+    Parameters:
+        data_in       - input sample
+        data_out      - output sample
+        delay_samples - number of samples to delay by, is fractional in Q11.4 Format
+        sample_en     - sampling enable signal, triggers the progression
+                        of the delay line. Must not be held for more than
+                        1 clock cycle and data_in must be valid. if sufficient
+                        samples in memory, will set data_out to be the sample
+                        that stored delay_samples before the current sample_en
+                        edge
+*/
+
 module delay_line_li #(
     parameter DATA_W = 16,
     parameter MAX_DELAY_SAMPLES = 2048,
@@ -13,6 +30,7 @@ module delay_line_li #(
 );
 
     // ---------------- INTERNAL SIGNALS ----------------
+    
     (* ramstyle = "M10K" *) logic signed [DATA_W-1:0] buffer [0:MAX_DELAY_SAMPLES-1];
     
     logic [ADDR_W-1:0] write_ptr;
@@ -21,12 +39,17 @@ module delay_line_li #(
     
     logic [ADDR_W-1:0] delay_int;
     logic [FRAC_W-1:0] delay_frac;
+
+    logic [FRAC_W-1:0] frac_reg;
+    logic signed [31:0] s0, s1, diff, product, interpolated;
+
+    // ---------------- FIFO-ISH LOGIC ----------------
     
     // Split integer and fractional parts
     assign delay_int  = delay_samples[ADDR_W + FRAC_W - 1 : FRAC_W];
     assign delay_frac = delay_samples[FRAC_W-1:0];
 
-    // 1. Address Calculation (Combinational)
+    // Address Calculation
     always_comb begin
         // Primary sample address
         if (write_ptr >= delay_int)
@@ -38,7 +61,7 @@ module delay_line_li #(
         read_ptr1 = (read_ptr0 == MAX_DELAY_SAMPLES - 1) ? 0 : read_ptr0 + 1;
     end
 
-    // 2. Synchronous RAM Access
+    // Synchronous RAM Access
     always_ff @(posedge clk) begin
         if (sample_en) begin
             buffer[write_ptr] <= data_in;
@@ -47,9 +70,8 @@ module delay_line_li #(
         end
     end
 
-    // 3. Robust Interpolation Logic
-    logic [FRAC_W-1:0] frac_reg;
-    logic signed [31:0] s0, s1, diff, product, interpolated;
+    // ---------------- LINEAR INTERPOLATION LOGIC ----------------
+    // Uses a wide 32-bit signed container for all intermediate math
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
@@ -57,10 +79,8 @@ module delay_line_li #(
             data_out  <= 0;
             frac_reg  <= 0;
         end else if (sample_en) begin
-            frac_reg <= delay_frac;
-            
-            // Use a wide 32-bit signed container for all intermediate math
-            // This prevents the "cracking" caused by 16-bit overflows
+
+            frac_reg <= delay_frac;            
             
             s0 = $signed(ram_out0);
             s1 = $signed(ram_out1);
@@ -73,7 +93,7 @@ module delay_line_li #(
             // Shift back down to original scale
             data_out <= interpolated[DATA_W + FRAC_W - 1 : FRAC_W];
 
-            // 4. Pointer Management
+            // Pointer Management
             if (write_ptr >= MAX_DELAY_SAMPLES - 1)
                 write_ptr <= 0;
             else

@@ -13,6 +13,8 @@
                       the output of this FX. (fx_mix == 0) => all dry, 
                       (fx_mix == 255) => all wet
 
+    Latency = 3 Samples
+
 */
 
 module fx_chorus #(
@@ -32,7 +34,7 @@ module fx_chorus #(
     import lab_pkg::*;
     
     // ---------------- CONSTANTS ----------------
-    localparam FRAC_W = 4; // Fractional bits for interpolation
+    localparam FRAC_W = 4;
     localparam BASE_DELAY_MS = 20; 
     localparam BASE_DELAY_SAMPLES = (BASE_DELAY_MS * SAMPLE_RATE) / 1000;
     localparam MAX_DELAY_SAMPLES = 2048; 
@@ -56,6 +58,9 @@ module fx_chorus #(
     logic signed [31:0] mod_offset;
     
     // ---------------- DELAY LINE INSTANTIATION ----------------
+    // These are the delay lines with linear interpolation, it sounded terrible 
+    // without it
+
     delay_line_li #(
         .DATA_W(DATA_W), 
         .MAX_DELAY_SAMPLES(MAX_DELAY_SAMPLES),
@@ -78,10 +83,10 @@ module fx_chorus #(
 
     // ---------------- LOGIC ----------------
     
-    // CRITICAL FIX #1: Slower LFO range (0.15Hz to 1.5Hz)
-    // This reduces the "warble" you can hear
-    assign lfo_inc = 3 + ((fx_rate * 24'd120) >> 8);  // Much slower than before
+    // Set LFO inc value, had to toggle to make the warble not too evident
+    assign lfo_inc = 3 + ((fx_rate * 24'd120) >> 8);
 
+    // LFO value calculation and delay smoothing
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             lfo_phase <= 0;
@@ -89,27 +94,29 @@ module fx_chorus #(
             delay_L_acc <= $signed(BASE_DELAY_SAMPLES) << 16;
             delay_R_acc <= $signed(BASE_DELAY_SAMPLES) << 16;
         end else if (sample_en) begin
-            // 1. LFO Generation (Triangle Wave)
+
+            // LFO Generation (Triangle Wave)
             lfo_phase <= lfo_phase + lfo_inc;
             lfo_tri <= lfo_phase[23] ? $signed(~lfo_phase[22:7]) : $signed(lfo_phase[22:7]);
 
-            // 2. Short Modulation Depth
+            // Short Modulation Depth
             mod_offset = ($signed(lfo_tri) * $signed({1'b0, fx_depth})) >>> 17; 
             
             target_L = ($signed(BASE_DELAY_SAMPLES) + mod_offset) << 16;
             target_R = ($signed(BASE_DELAY_SAMPLES) - mod_offset) << 16;
 
-            // 3. Heavy low-pass smoothing
+            // Heavy low-pass smoothing
             delay_L_acc <= delay_L_acc + ((target_L - delay_L_acc) >>> 13);
             delay_R_acc <= delay_R_acc + ((target_R - delay_R_acc) >>> 13);
 
-            // 4. Extract bits for the Interpolating Delay Line
+            // Extract bits for the Interpolating Delay Line
             delay_L_fixed <= delay_L_acc[16 + ADDR_W - 1 : 16 - FRAC_W];
             delay_R_fixed <= delay_R_acc[16 + ADDR_W - 1 : 16 - FRAC_W];
         end
     end
 
-    // ---------------- MIXING ----------------
+    // ---------------- MIXING + OUTPUT ----------------
+
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;

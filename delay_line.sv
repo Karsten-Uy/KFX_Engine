@@ -28,7 +28,6 @@ module delay_line #(
 );
     // ---------------- INTERNAL SIGNALS ----------------
 
-    // Force M10K inference
     (* ramstyle = "M10K" *) logic signed [DATA_W-1:0] buffer [0:MAX_DELAY_SAMPLES-1];
     
     logic [ADDR_W-1:0] write_ptr;
@@ -37,7 +36,7 @@ module delay_line #(
 
     // ---------------- FIFO-ISH LOGIC ----------------
 
-    // 1. Address Calculation (Combinational is fine for ADDR)
+    // Address Calculation
     always_comb begin
         if (write_ptr >= delay_samples)
             read_ptr = write_ptr - delay_samples;
@@ -45,28 +44,25 @@ module delay_line #(
             read_ptr = MAX_DELAY_SAMPLES + write_ptr - delay_samples;
     end
 
-    // 2. The RAM Block (Strict Synchronous Pattern)
-    // Do NOT put interpolation or bypass logic inside this specific block
+    // Synchronous RAM Access
     always_ff @(posedge clk) begin
         if (sample_en) begin
             buffer[write_ptr] <= data_in;
-            ram_out <= buffer[read_ptr]; // This is the "Magic" line for inference
+            ram_out <= buffer[read_ptr];
         end
     end
 
-    // 3. Logic & Pointer Management
+    // Logic & Pointer Management
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             write_ptr <= 0;
             data_out  <= 0;
         end else if (sample_en) begin
-            // Output Logic
             if (delay_samples == 0)
                 data_out <= data_in;
             else
                 data_out <= ram_out;
 
-            // Increment Write Pointer
             if (write_ptr >= MAX_DELAY_SAMPLES - 1)
                 write_ptr <= 0;
             else

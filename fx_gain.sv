@@ -5,6 +5,8 @@
     Parameters:
         fx_gain - Gain multiplier from 0 to 255, 128 => UNITY
 
+    Latency = 1 Sample
+
  */
 
 module fx_gain #(
@@ -26,6 +28,7 @@ module fx_gain #(
     logic signed [31:0] mult_l, mult_r;
 
     // ---------------- MAIN LOGIC ----------------    
+    // Multiply each channel individually 
     assign mult_l = $signed(audio_in[0]) * $signed({1'b0, fx_gain});
     assign mult_r = $signed(audio_in[1]) * $signed({1'b0, fx_gain});
 

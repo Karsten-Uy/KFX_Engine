@@ -18,6 +18,8 @@
         fx_makeup_gain - Gain multiplier controlling output gain where 
                          (fx_makeup_gain == 128) => UNITY
 
+    Latency = 5 Samples
+
 */
 
 // Distortion (FX 4)
@@ -110,57 +112,61 @@ module fx_distortion #(
     always_comb begin
         for (int i = 0; i < 2; i++) begin
             
-            // 2. Distortion with adjustable threshold, for now hard code
+            // Clip at threshold, else use (x - x^3/3)
             if (x[i] >= ONE) begin
-                // Clip at the maximum value of the polynomial: 2/3
                 distorted_signal[i] = TWO_THRD; 
             end else if (x[i] <= NEG_ONE) begin
-                // Clip at the minimum value: -2/3
                 distorted_signal[i] = -TWO_THRD;
             end else begin
                 distorted_signal[i] = x[i] - (($signed(cubic_term[i]) * $signed(ONE_THRD)) >>> 15);
             end
 
             // 3. Mixing
-            dry_signal_32[i] = $signed(audio_in[i]); // stays as 16-bit value in 32-bit container
+            dry_signal_32[i] = $signed(audio_in[i]);
             
             // Mix: dry + (wet - dry) * mix
-            // Result is 16-bit audio in 32-bit container
             mix_res[i] = (dry_signal_32[i]) + 
                         (((distorted_signal_reg[i] - (dry_signal_32[i])) * 
                         $signed({1'b0, fx_mix})) >>> 8);
             
-            // 4. Makeup gain
-            // mix_res_reg is 16-bit audio (in 32-bit container)
-            // Multiply by makeup_gain where 128 = 1.0x
+            // Apply makeup gain
+            // - Note that it scales the mixed signal, for pipelining, so it applies
+            //   even if fx_mix == 0
             makeup_scaled[i] = (mix_res_reg[i] * $signed({1'b0, fx_makeup_gain})) >>> 7;
-            mixed_signal[i] = $signed(makeup_scaled[i]);  // Sign extend to 64-bit
+            mixed_signal[i] = $signed(makeup_scaled[i]);
 
         end
     end
 
-    // output + pipeline register
+    // Pipeline
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            audio_out <= '0;
-            
             for (int i = 0; i < 2; i++) begin
                 product_shifted_reg[i] <= '0;
                 x_sq_reg[i] <= '0;
                 x_cb_tmp_reg[i] <= '0;
                 distorted_signal_reg[i] <= '0;
-                mix_res_reg[i] <= '0;  // ADDED
+                mix_res_reg[i] <= '0;
             end
         end else if (sample_en) begin
             for (int i = 0; i < 2; i++) begin
-                audio_out[i] <= sat16(mixed_signal[i]);
-
-                // Pipeline
                 product_shifted_reg[i] <= product_shifted[i];
                 x_cb_tmp_reg[i] <= x_cb_tmp[i];
                 x_sq_reg[i] <= x_sq[i];
                 distorted_signal_reg[i] <= distorted_signal[i];
-                mix_res_reg[i] <= mix_res[i];  // ADDED
+                mix_res_reg[i] <= mix_res[i];
+            end
+        end
+    end
+
+    // -------------------- OUTPUT -------------------------
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            audio_out <= '0;
+        end else if (sample_en) begin
+            for (int i = 0; i < 2; i++) begin
+                audio_out[i] <= sat16(mixed_signal[i]);
             end
         end
     end

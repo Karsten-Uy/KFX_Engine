@@ -257,9 +257,10 @@ module AudioFX(
 		.reset_n      (KEY[0]),
 		.audio_in     (gate_out),
 		.audio_out    (eq_out_1),
-		.fx_low_gain  (params[2][0]),
-		.fx_mid_gain  (params[2][1]),
-		.fx_high_gain (params[2][2]),
+		.fx_sub_gain  (params[2][0]),
+		.fx_low_gain  (params[2][1]),
+		.fx_mid_gain  (params[2][2]),
+		.fx_high_gain (params[2][3]),
 		.sample_en    (sample_en_pipe[2])
 	);
 
@@ -294,7 +295,7 @@ module AudioFX(
 		.sample_en      (sample_en_pipe[4])
 	);
 
-	// // EQ 2 (FX 5)
+	// EQ 2 (FX 5)
 	fx_eq #(
 		.DATA_W(DATA_W),
 		.PARAM_W(PARAM_W)
@@ -303,9 +304,10 @@ module AudioFX(
 		.reset_n      (KEY[0]),
 		.audio_in     (dist_out),
 		.audio_out    (eq_out_2),
-		.fx_low_gain  (params[5][0]),
-		.fx_mid_gain  (params[5][1]),
-		.fx_high_gain (params[5][2]),
+		.fx_sub_gain  (params[5][0]),
+		.fx_low_gain  (params[5][1]),
+		.fx_mid_gain  (params[5][2]),
+		.fx_high_gain (params[5][3]),
 		.sample_en    (sample_en_pipe[5])
 	);
 
