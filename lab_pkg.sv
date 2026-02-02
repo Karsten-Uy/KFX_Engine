@@ -47,9 +47,10 @@ package lab_pkg;
 
                 2: begin // EQ 1
                     case (param)
-                        0: param_default = 8'd4;
-                        1: param_default = 8'd128;
+                        0: param_default = 8'd0;
+                        1: param_default = 8'd4;
                         2: param_default = 8'd128;
+                        3: param_default = 8'd128;
                     endcase
                 end
 
@@ -72,9 +73,10 @@ package lab_pkg;
 
                 5: begin // EQ 2
                     case (param)
-                        0: param_default = 8'd100;
-                        1: param_default = 8'd128;
-                        2: param_default = 8'd150;
+                        0: param_default = 8'd0;
+                        1: param_default = 8'd100;
+                        2: param_default = 8'd128;
+                        3: param_default = 8'd150;
                     endcase
                 end
 
@@ -103,7 +105,7 @@ package lab_pkg;
                 end
 
                 9: begin // Output gain
-                    if (param == 0) param_default = 8'd32;
+                    if (param == 0) param_default = 8'd255;
                 end
 
                 default: begin

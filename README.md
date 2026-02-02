@@ -99,19 +99,21 @@ Software
 | Gate        | fx_threshold         | F1        | P0
 | Gate        | fx_attack            | F1        | P1
 | Gate        | fx_release           | F1        | P2
-| EQ1         | fx_low_gain          | F2        | P0
-| EQ1         | fx_mid_gain          | F2        | P1
-| EQ1         | fx_high_gain         | F2        | P2
-| Compressor  | fx_threshold         | F3        | P1
-| Compressor  | fx_ratio             | F3        | P2
-| Compressor  | fx_attack            | F3        | P3
+| EQ1         | fx_sub_gain          | F2        | P0
+| EQ1         | fx_low_gain          | F2        | P1
+| EQ1         | fx_mid_gain          | F2        | P2
+| EQ1         | fx_high_gain         | F2        | P3
+| Compressor  | fx_threshold         | F3        | P0
+| Compressor  | fx_ratio             | F3        | P1
+| Compressor  | fx_attack            | F3        | P2
 | Compressor  | fx_release           | F3        | P4
 | Distortion  | fx_drive             | F4        | P0
 | Distortion  | fx_makeup_gain       | F4        | P1
 | Distortion  | fx_mix               | F4        | P2
-| EQ2         | fx_low_gain          | F5        | P0
-| EQ2         | fx_mid_gain          | F5        | P1
-| EQ2         | fx_high_gain         | F5        | P2
+| EQ2         | fx_sub_gain          | F5        | P0
+| EQ2         | fx_low_gain          | F5        | P1
+| EQ2         | fx_mid_gain          | F5        | P2
+| EQ2         | fx_high_gain         | F5        | P3
 | Chorus      | fx_rate              | F6        | P0
 | Chorus      | fx_depth             | F6        | P1
 | Chorus      | fx_mix               | F6        | P2
@@ -159,6 +161,7 @@ Noise gate using **peak envelope smoothing**. Signals above the threshold pass t
 
 **Parameters**
 
+* `fx_sub_gain`: Sub-band gain (`128 = unity`)
 * `fx_low_gain`: Low-band gain (`128 = unity`)
 * `fx_mid_gain`: Mid-band gain (`128 = unity`)
 * `fx_high_gain`: High-band gain (`128 = unity`)

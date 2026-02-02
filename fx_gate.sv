@@ -13,6 +13,8 @@
                        it takes longer to close once the envelope dips below the 
                        threshold 
 
+    Latency = 1 Sample
+
  */
 
 module fx_gate #(
@@ -81,9 +83,9 @@ module fx_gate #(
     // ---------------- GATE DECISION ----------------
 
     // Threshold Calculation
-    assign threshold_val = ({8'd0, fx_threshold} * 16'd96);  // 0-255 -> 0-24480    
+    assign threshold_val = ({8'd0, fx_threshold} * 16'd96); 
     assign open_threshold = threshold_val;
-    assign close_threshold = (threshold_val >>> 1); // 50% hysteresis
+    assign close_threshold = (threshold_val >>> 1);
     
     // Gate Decision FF
     always_ff @(posedge clk) begin
@@ -129,15 +131,14 @@ module fx_gate #(
     always_comb begin
         prod_l = $signed(audio_in[0]) * $signed({1'b0,gate_gain});
         prod_r = $signed(audio_in[1]) * $signed({1'b0,gate_gain});
-
     end
 
-    // Audio Out FF
+    // ---------------- OUTPUT ----------------    
+
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
-            // Right Shift 15 to resolve gain multiplication
             audio_out[0] <= sat16(prod_l >>> 15);
             audio_out[1] <= sat16(prod_r >>> 15);
         end

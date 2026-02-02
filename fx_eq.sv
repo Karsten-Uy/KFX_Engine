@@ -1,6 +1,6 @@
 /*
 
-    3 Band EQ that splits the signals into High, Mid, and Low bands and then
+    4 Band EQ that splits the signals into High, Mid, Low, and Sub bands and then
     applies a gain to each band
 
     Parameters:
@@ -11,7 +11,30 @@
     Based of design described here:
         https://www.kvraudio.com/forum/viewtopic.php?t=112226
 
+    Made from 3 "Leaky Integrator" low pass filters that are ued to split the audio 
+    into 4 bands and have the following difference equation where a is a coefficent, y[n] is
+    the ouput at sample n, and x[n] is the input at sample n:
+
+        y[n] = y[n-1] + a(x[n] - y[n-1])
+
+    The 3 bands are split in a subtractive crossover method that has a flat impule response 
+    when the gain going of all of them are the same when summed up. From here on the filters
+    outputs are going to be refrenced as filter_a and filter_b. The bands are split in the
+    following way:
+
+        - band_high[n] = audio_in[n] - filter_a[n]
+        - band_mid[n]  = filter_a[n] - filter_b[n]
+        - band_low[n]  = filter_b[n] - filter_c[n]
+        - band_sub[n]  = filter_c[n]
+
+    The output is then following:
+
+        - audio_out[n] = (band_high[n]*fx_high_gain) + (band_mid[n]*fx_mid_gain) + (band_low[n]*fx_low_gain) + (band_sub[n]*fx_sub_gain) 
+        
+    Latency = 2 Samples
+    
 */
+
 
 module fx_eq #(
     parameter DATA_W  = 16,
@@ -22,6 +45,7 @@ module fx_eq #(
     input  logic signed [1:0][DATA_W-1:0] audio_in,
     output logic signed [1:0][DATA_W-1:0] audio_out,
 
+    input  logic [PARAM_W-1:0]            fx_sub_gain,
     input  logic [PARAM_W-1:0]            fx_low_gain,
     input  logic [PARAM_W-1:0]            fx_mid_gain,
     input  logic [PARAM_W-1:0]            fx_high_gain,
@@ -34,17 +58,14 @@ module fx_eq #(
 
     // ---------------- CONSTANTS ----------------
 
-    // COEFFICIENTS (Q16 fixed-point for better precision on slow filter)
-    // a: 13312/48000 = 0.277333 -> Q16 = 18186
-    // b: 1664/48000  = 0.034667 -> Q16 = 2273
-    // c: 104/48000   = 0.002167 -> Q16 = 142
+    // COEFFICIENTS (Q16 fixed-point)
     localparam signed [31:0] COEFF_A = 32'sd18186;
     localparam signed [31:0] COEFF_B = 32'sd2273;
     localparam signed [31:0] COEFF_C = 32'sd142;
 
     // ---------------- INTERNAL SIGNALS ----------------
 
-    // FIlter State (Q16 internally for precision)
+    // Filter State (Q16 internally for precision)
     logic signed [31:0] a_state[1:0];
     logic signed [31:0] b_state[1:0];
     logic signed [31:0] c_state[1:0];
@@ -73,7 +94,7 @@ module fx_eq #(
     logic signed [15:0] band_lowpass[1:0];
 
     // Gain (Q15, 128 = unity = 1.0)
-    logic signed [15:0] g_high, g_mid, g_low;
+    logic signed [15:0] g_high, g_mid, g_low, g_sub;
 
     // Output accumulator
     logic signed [31:0] temp_high[1:0];
@@ -95,9 +116,10 @@ module fx_eq #(
     // c += coeff * (input - c)
 
     // Gain Application
-    assign g_high = fx_high_gain << 7; // NOTE: has to be 7, not 8 to have 128 be unity
-    assign g_mid  = fx_mid_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
-    assign g_low  = fx_low_gain  << 7; // NOTE: has to be 7, not 8 to have 128 be unity
+    assign g_high = fx_high_gain << 7;
+    assign g_mid  = fx_mid_gain  << 7;
+    assign g_low  = fx_low_gain  << 7;
+    assign g_sub  = fx_sub_gain   << 7;
 
     // Band Section Calculation
     always_comb begin
@@ -135,7 +157,7 @@ module fx_eq #(
             temp_high[ch]    = (band_high[ch] * g_high) >>> 15;
             temp_mid[ch]     = (band_mid[ch] * g_mid) >>> 15;
             temp_low[ch]     = (band_low[ch] * g_low) >>> 15;
-            temp_lowpass[ch] = (band_lowpass[ch] * g_low) >>> 15;
+            temp_lowpass[ch] = (band_lowpass[ch] * g_sub) >>> 15;
 
             // Sum all bands
             out_sum[ch] = temp_high[ch] + temp_mid[ch] + temp_low[ch] + temp_lowpass[ch];

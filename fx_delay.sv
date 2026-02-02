@@ -17,14 +17,14 @@ module fx_delay #(
     parameter DATA_W  = 16,
     parameter PARAM_W = 8
 )(
-    input  logic                        clk,
-    input  logic                        reset_n,
+    input  logic                          clk,
+    input  logic                          reset_n,
     input  logic signed [1:0][DATA_W-1:0] audio_in,
     output logic signed [1:0][DATA_W-1:0] audio_out,
-    input  logic [PARAM_W-1:0]          fx_time,    
-    input  logic [PARAM_W-1:0]          fx_feedback, 
-    input  logic [PARAM_W-1:0]          fx_mix,      
-    input  logic                        sample_en
+    input  logic [PARAM_W-1:0]            fx_time,    
+    input  logic [PARAM_W-1:0]            fx_feedback, 
+    input  logic [PARAM_W-1:0]            fx_mix,      
+    input  logic                          sample_en
 );
     
     // ---------------- PACKAGE IMPORTS ----------------
@@ -44,19 +44,19 @@ module fx_delay #(
     // ---------------- INTERNAL SIGNALS ----------------
 
     logic [ADDR_W-1:0] target_delay;
-    logic signed [DATA_W-1:0] delayed_L, delayed_R;
-    logic signed [DATA_W-1:0] fb_in_L, fb_in_R;
-    logic signed [31:0] fb_scaled_L, fb_scaled_R;
+    logic signed [DATA_W-1:0] delayed[1:0];
+    logic signed [DATA_W-1:0] fb_in[1:0];
+    logic signed [31:0] fb_scaled[1:0];
     
     logic [31:0] delay_range;
     logic [23:0] scaled_delay;
 
-    logic signed [31:0] wet_L, dry_L, mixed_L;
-    logic signed [31:0] wet_R, dry_R, mixed_R;
-    logic signed [8:0] dry_gain;  // 9-bit signed for 256-fx_mix
+    logic signed [31:0] wet_signal[1:0];
+    logic signed [31:0] dry_signal[1:0];
+    logic signed [31:0] mixed[1:0];
+    logic signed [8:0] dry_gain;
 
     // ---------------- DELAY LINE INSTANTIATION ----------------
-    // Have 1 for each side (left-right)
 
     delay_line #(
         .DATA_W(DATA_W), 
@@ -66,8 +66,8 @@ module fx_delay #(
         .clk(clk),
         .reset_n(reset_n),
         .sample_en(sample_en),
-        .data_in(fb_in_L),
-        .data_out(delayed_L),
+        .data_in(fb_in[0]),
+        .data_out(delayed[0]),
         .delay_samples(target_delay)
     );
 
@@ -79,62 +79,53 @@ module fx_delay #(
         .clk(clk),
         .reset_n(reset_n),
         .sample_en(sample_en),
-        .data_in(fb_in_R),
-        .data_out(delayed_R),
+        .data_in(fb_in[1]),
+        .data_out(delayed[1]),
         .delay_samples(target_delay)
     );
 
-    // ---------------- MAIN DELAY CALCULATION ----------------
+    // ---------------- DELAY CALCULATION ----------------
 
     // Num delay sample calculation for delay lines
     always_comb begin
-        // Use wider intermediate to prevent overflow        
-        scaled_delay = fx_time * DELAY_RANGE[14:0];  // 8-bit * 15-bit = 23-bit
+        // 8-bit * 15-bit = 23-bit
+        scaled_delay = fx_time * DELAY_RANGE[14:0];  
         
         // Shift right by 8 to divide by 256, then add minimum
         // Result fits in ADDR_W bits
         target_delay = MIN_DELAY_SAMPLES[ADDR_W-1:0] + scaled_delay[23:8];
         
-        // Safety clamp (should never trigger with correct parameters)
+        // Safety clamp (should never happen)
         if (target_delay > MAX_SAMPLES[ADDR_W-1:0])
             target_delay = MAX_SAMPLES[ADDR_W-1:0];
     end
 
-    // Feedback calulations
-    always_comb begin
-        // Feedback scaled to max 0.875 to prevent runaway (224/256)
-        fb_scaled_L = ($signed(delayed_L) * $signed({1'b0, fx_feedback}) * 224) >>> 16;
-        fb_scaled_R = ($signed(delayed_R) * $signed({1'b0, fx_feedback}) * 224) >>> 16;
-
-        // Saturate feedback sum
-        fb_in_L = sat16($signed(audio_in[0]) + fb_scaled_L);
-        fb_in_R = sat16($signed(audio_in[1]) + fb_scaled_R);
-    end
-
-    // Mix Calculation
+    // Feedback and Mix Calculations
     always_comb begin
         dry_gain = 9'sd255 - $signed({1'b0, fx_mix});
         
-        // Mix calculation with proper bit widths
-        // wet = delayed * fx_mix / 256
-        // dry = input * (256 - fx_mix) / 256
-        wet_L = ($signed(delayed_L) * $signed({1'b0, fx_mix}));
-        dry_L = ($signed(audio_in[0]) * dry_gain);
-        mixed_L = (wet_L + dry_L) >>> 8;
-        
-        wet_R = ($signed(delayed_R) * $signed({1'b0, fx_mix}));
-        dry_R = ($signed(audio_in[1]) * dry_gain);
-        mixed_R = (wet_R + dry_R) >>> 8;            
+        for (int i = 0; i < 2; i++) begin
+            // Feedback calculation, to a max of 0.875 to prevent runaway (224/256)
+            fb_scaled[i] = ($signed(delayed[i]) * $signed({1'b0, fx_feedback}) * 224) >>> 16;
+            fb_in[i] = sat16($signed(audio_in[i]) + fb_scaled[i]);
+            
+            // Mix dry and wet: dry + (wet - dry) * mix
+            wet_signal[i] = $signed(delayed[i]);
+            dry_signal[i] = $signed(audio_in[i]);
+            mixed[i] = dry_signal[i] + 
+                      (((wet_signal[i] - dry_signal[i]) * 
+                      $signed({1'b0, fx_mix})) >>> 8);
+        end
     end
 
-    // Output register
+    // -------------------- OUTPUT -------------------------
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
-            // Saturate output
-            audio_out[0] <= sat16(mixed_L);
-            audio_out[1] <= sat16(mixed_R);
+            for (int i = 0; i < 2; i++) begin
+                audio_out[i] <= sat16(mixed[i]);
+            end
         end
     end
 
