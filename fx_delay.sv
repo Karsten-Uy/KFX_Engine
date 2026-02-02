@@ -11,6 +11,8 @@
                       the output of this FX. (fx_mix == 0) => all dry, 
                       (fx_mix == 255) => all wet
 
+    Latency = 2 Samples
+
 */
 
 module fx_delay #(

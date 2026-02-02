@@ -57,7 +57,7 @@ This structure mimics a traditional digital pedalboard signal flow.
 | Internal Clock    | 50 MHz                                          |
 | Max FX Slots      | 16                                              |
 | Parameters per FX | Up to 8                                         |
-| Latency           | 10 Samples (0.21 ms)                            |
+| Latency           | 34 Samples (under 1ms)                          |
 
 ---
 
