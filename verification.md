@@ -19,7 +19,7 @@ These tests should test the functionality of incrementing and decrementing vario
 
 ##### TODO:
 - `tb_controller.sv`
-    - as of right now, it just covers very basic cases as its just a vibe coded skeleton, need to eleaborate.
+    - as of right now, it just covers very basic cases, need to eleaborate.
 - `tb_display`
     - need to create, should validate output for various parameter values.
 - `tb_sevseg_display`
@@ -54,7 +54,7 @@ These tests should test the functionality of various FX to the extent that a pur
 - `tb_fx_chorus.sv`
     - need to create. Should validate that audio_in creates a sample audio_out after a predefined amount of samples. Also need to check envelope functionality.
 - `tb_fx_compressor.sv`
-    - as of right now, it just covers very basic cases as its just a vibe coded skeleton, need to eleaborate. Tests to ensure that a signal above a threshold gets reduced by some amount after a predefined amount of samples.
+    - as of right now, it just covers very basic cases, need to eleaborate. Tests to ensure that a signal above a threshold gets reduced by some amount after a predefined amount of samples.
 - `tb_fx_delay.sv`
     - need to create. Should validate that audio_in creates a sample audio_out after a predefined amount of samples and repeats with lower gain a set amount of times.
 - `tb_fx_distortion.sv`
