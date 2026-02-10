@@ -60,6 +60,11 @@ This structure mimics a traditional digital pedalboard signal flow.
 | Latency           | 34 Samples (under 1ms)                          |
 
 ---
+## Block Diagram
+
+<img width="731" height="864" alt="HaH Processor Block Diagram drawio" src="https://github.com/user-attachments/assets/dd7014f6-2e50-4dd3-a2e8-0f2880afdd6e" />
+
+---
 
 ## Usage Instructions
 The following sections outline how to use the board
