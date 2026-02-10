@@ -62,7 +62,7 @@ This structure mimics a traditional digital pedalboard signal flow.
 ---
 ## Block Diagram
 
-<img width="731" height="864" alt="HaH Processor Block Diagram drawio" src="https://github.com/user-attachments/assets/dd7014f6-2e50-4dd3-a2e8-0f2880afdd6e" />
+![AudioFX Processor Block Diagram](./HaH%20Processor%20Block%20Diagram.drawio.png)
 
 ---
 
