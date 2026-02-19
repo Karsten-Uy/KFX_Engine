@@ -1,0 +1,23 @@
+# # File gsaved with Nlview version 6.3.8  2013-12-19 bk=1.2992 VDI=34 GEI=35
+# 
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.reset_bridge -pg 1
+preplace inst FlashMemInterface.clk_0 -pg 1 -lvl 1 -y 90
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.merlin_demultiplexer_0 -pg 1
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.xip_controller -pg 1
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.qspi_inf_inst -pg 1
+preplace inst FlashMemInterface -pg 1 -lvl 1 -y 40 -regy -20
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0 -pg 1 -lvl 2 -y 50
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.csr_controller -pg 1
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.serial_flash_inf_cmd_gen_inst -pg 1
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.multiplexer -pg 1
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.clk_bridge -pg 1
+preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.xip_addr_adaption -pg 1
+preplace netloc POINT_TO_POINT<net_container>FlashMemInterface</net_container>(SLAVE)intel_generic_serial_flash_interface_top_0.clk,(MASTER)clk_0.clk) 1 1 1 310
+preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)intel_generic_serial_flash_interface_top_0.avl_mem,(SLAVE)FlashMemInterface.flash_mem) 1 0 2 NJ 80 NJ
+preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)FlashMemInterface.flash_csr,(SLAVE)intel_generic_serial_flash_interface_top_0.avl_csr) 1 0 2 NJ 60 NJ
+preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)clk_0.clk_in_reset,(SLAVE)FlashMemInterface.reset) 1 0 1 NJ
+preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)FlashMemInterface.flash_pins,(SLAVE)intel_generic_serial_flash_interface_top_0.atom_ports) 1 0 2 NJ 40 NJ
+preplace netloc POINT_TO_POINT<net_container>FlashMemInterface</net_container>(MASTER)clk_0.clk_reset,(SLAVE)intel_generic_serial_flash_interface_top_0.reset) 1 1 1 290
+preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)FlashMemInterface.clk,(SLAVE)clk_0.clk_in) 1 0 1 NJ
+levelinfo -pg 1 0 80 670
+levelinfo -hier FlashMemInterface 90 120 460 590

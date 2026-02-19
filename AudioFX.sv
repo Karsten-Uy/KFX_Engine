@@ -10,6 +10,9 @@
 
  */
 
+// Macro for controlling whether to compile the DSP components or not
+`define NO_DSP
+
 module AudioFX(
 	// Inputs
 	SW, 
@@ -98,59 +101,113 @@ module AudioFX(
 	logic [FX_STAGES:0] sample_en_pipe;
 
     // ---------------- AUDIO I/O INSTANTIATIONS ----------------
+
+	`ifndef NO_DSP
 	
-	// Audio PLL
-	AudioPLL u0 (
-		.ref_clk_clk        (CLOCK_50), 
-		.ref_reset_reset    (~KEY[0]),  
-		.audio_clk_clk      (AUD_XCK),  
-		.reset_source_reset (reset_out) 
-	);
+		// Audio PLL
+		AudioPLL u0 (
+			.ref_clk_clk        (CLOCK_50), 
+			.ref_reset_reset    (~KEY[0]),  
+			.audio_clk_clk      (AUD_XCK),  
+			.reset_source_reset (reset_out) 
+		);
 
-	// Audio Config (16bit audio)
-	AVConfig u1 (
-		.clk         (CLOCK_50),        
-		.reset       (~KEY[0]),         
-		.address     (i2c_read_data),   
-		.byteenable  (i2c_byte_enable), 
-		.read        (i2c_read),        
-		.write       (i2c_write),       
-		.writedata   (i2c_data),        
-		.readdata    (i2c_data),        
-		.waitrequest (i2c_waitrequest), 
-		.I2C_SDAT    (FPGA_I2C_SDAT),   
-		.I2C_SCLK    (FPGA_I2C_SCLK)
-	);
-	// Audio Codec
-	AudioCodec u2 (
-		.clk                          (CLOCK_50),    
-		.reset                        (~KEY[0]),     
-		.AUD_ADCDAT                   (AUD_ADCDAT),  
-		.AUD_ADCLRCK                  (AUD_ADCLRCK), 
-		.AUD_BCLK                     (AUD_BCLK),    
-		.AUD_DACDAT                   (AUD_DACDAT),  
-		.AUD_DACLRCK                  (AUD_DACLRCK), 
-		.from_adc_left_channel_ready  (ADC_Ready[0]),
-		.from_adc_left_channel_data   (ADC_Data[0]), 
-		.from_adc_left_channel_valid  (ADC_Valid[0]),
-		.from_adc_right_channel_ready (ADC_Ready[1]),
-		.from_adc_right_channel_data  (ADC_Data[1]), 
-		.from_adc_right_channel_valid (ADC_Valid[1]),
-		.to_dac_left_channel_data     (DAC_Data[0]), 
-		.to_dac_left_channel_valid    (DAC_Valid[0]),
-		.to_dac_left_channel_ready    (DAC_Ready[0]),
-		.to_dac_right_channel_data    (DAC_Data[1]), 
-		.to_dac_right_channel_valid   (DAC_Valid[1]),
-		.to_dac_right_channel_ready   (DAC_Ready[1]) 
-	);
+		// Audio Config (16bit audio)
+		AVConfig u1 (
+			.clk         (CLOCK_50),        
+			.reset       (~KEY[0]),         
+			.address     (i2c_read_data),   
+			.byteenable  (i2c_byte_enable), 
+			.read        (i2c_read),        
+			.write       (i2c_write),       
+			.writedata   (i2c_data),        
+			.readdata    (i2c_data),        
+			.waitrequest (i2c_waitrequest), 
+			.I2C_SDAT    (FPGA_I2C_SDAT),   
+			.I2C_SCLK    (FPGA_I2C_SCLK)
+		);
+		// Audio Codec
+		AudioCodec u2 (
+			.clk                          (CLOCK_50),    
+			.reset                        (~KEY[0]),     
+			.AUD_ADCDAT                   (AUD_ADCDAT),  
+			.AUD_ADCLRCK                  (AUD_ADCLRCK), 
+			.AUD_BCLK                     (AUD_BCLK),    
+			.AUD_DACDAT                   (AUD_DACDAT),  
+			.AUD_DACLRCK                  (AUD_DACLRCK), 
+			.from_adc_left_channel_ready  (ADC_Ready[0]),
+			.from_adc_left_channel_data   (ADC_Data[0]), 
+			.from_adc_left_channel_valid  (ADC_Valid[0]),
+			.from_adc_right_channel_ready (ADC_Ready[1]),
+			.from_adc_right_channel_data  (ADC_Data[1]), 
+			.from_adc_right_channel_valid (ADC_Valid[1]),
+			.to_dac_left_channel_data     (DAC_Data[0]), 
+			.to_dac_left_channel_valid    (DAC_Valid[0]),
+			.to_dac_left_channel_ready    (DAC_Ready[0]),
+			.to_dac_right_channel_data    (DAC_Data[1]), 
+			.to_dac_right_channel_valid   (DAC_Valid[1]),
+			.to_dac_right_channel_ready   (DAC_Ready[1]) 
+		);
 
-	// Useful for signal tap or scope debugging and
-	assign GPIO_0[DATA_W-1:0] = DAC_Data[0];
+		// Useful for signal tap or scope debugging
+		assign GPIO_0[DATA_W-1:0] = DAC_Data[0];
+
+	`endif
 	
     // ---------------- CONTROLLER + DISPLAY ----------------
 
+	// Avalon-MM signals between controller and FlashMemInterface
+	logic [5:0]	 flash_csr_address;
+	logic        flash_csr_read;
+	logic [31:0] flash_csr_readdata;
+	logic        flash_csr_write;
+	logic [31:0] flash_csr_writedata;
+	logic        flash_csr_waitrequest;
+	logic        flash_csr_readdatavalid;
+	logic        flash_mem_write;
+	logic [6:0]	 flash_mem_burstcount;
+	logic        flash_mem_waitrequest;
+	logic        flash_mem_read;
+	logic [22:0] flash_mem_address;
+	logic [31:0] flash_mem_writedata;
+	logic [31:0] flash_mem_readdata;
+	logic        flash_mem_readdatavalid;
+	logic [3:0]	 flash_mem_byteenable;
+
+	// ---------------- FLASH MEMORY INTERFACE ----------------
+	//
+	// NOTE: No top-level FLASH_DCLK / FLASH_NCSO / FLASH_DATA pins here.
+	// The FlashMemInterface IP (intel_generic_serial_flash_interface) is
+	// configured with "Disable dedicated Active Serial interface" UNCHECKED,
+	// meaning it connects directly to the EPCQ256 via the internal ASMI block.
+	// No user-logic pins are needed or permitted for the AS interface.
+
+    FlashMemInterface F_MEM (
+        .clk_clk                 (CLOCK_50),
+        .reset_reset_n           (KEY[0]),
+        
+        // Avalon-MM CSR Interface
+        .flash_csr_address       (flash_csr_address),
+        .flash_csr_read          (flash_csr_read),
+        .flash_csr_readdata      (flash_csr_readdata),
+        .flash_csr_write         (flash_csr_write),
+        .flash_csr_writedata     (flash_csr_writedata),
+        .flash_csr_waitrequest   (flash_csr_waitrequest),
+        .flash_csr_readdatavalid (flash_csr_readdatavalid),
+        
+        // Avalon-MM Memory Interface
+        .flash_mem_write         (flash_mem_write),
+        .flash_mem_burstcount    (7'd1),
+        .flash_mem_waitrequest   (flash_mem_waitrequest),
+        .flash_mem_read          (flash_mem_read),
+        .flash_mem_address       (flash_mem_address),
+        .flash_mem_writedata     (flash_mem_writedata),
+        .flash_mem_readdata      (flash_mem_readdata),
+        .flash_mem_readdatavalid (flash_mem_readdatavalid),
+        .flash_mem_byteenable    (flash_mem_byteenable)
+    );
+
 	// FX Param Controller
-	// Mute switch (SW[0]) is set at the end of this file
 	controller #(
         .FX_COUNT(FX_COUNT),
         .PARAM_COUNT(PARAM_COUNT),
@@ -161,14 +218,33 @@ module AudioFX(
     ) CONTROL (
         .clk(CLOCK_50),
         .reset_n(KEY[0]),
-        .sw_fx_sel(SW[9:6]),    // NOTE: Need to change if expand param count + FX_COUNT
-        .sw_param_sel(SW[3:1]), // NOTE: Need to change if expand param count + PARAM_COUNT
+        .sw_fx_sel(SW[9:6]),
+        .sw_param_sel(SW[3:1]),
         .key_inc(~KEY[2]),
         .key_dec(~KEY[3]),
+		.save_button(~KEY[1]),
         .params(params),
         .fx_sel(fx_sel),
         .param_sel(param_sel),
-        .current_value(current_value)
+        .current_value(current_value),
+		
+		.LEDR(LEDR),
+
+		.flash_mem_address       (flash_mem_address),
+		.flash_mem_read          (flash_mem_read),
+		.flash_mem_write         (flash_mem_write),
+		.flash_mem_writedata     (flash_mem_writedata),
+		.flash_mem_readdata      (flash_mem_readdata),
+		.flash_mem_waitrequest   (flash_mem_waitrequest),
+		.flash_mem_readdatavalid (flash_mem_readdatavalid),
+		.flash_mem_byteenable    (flash_mem_byteenable),
+		.flash_csr_address       (flash_csr_address),
+		.flash_csr_write         (flash_csr_write),
+		.flash_csr_read          (flash_csr_read),           
+		.flash_csr_writedata     (flash_csr_writedata),
+		.flash_csr_readdata      (flash_csr_readdata),       
+		.flash_csr_waitrequest   (flash_csr_waitrequest),
+		.flash_csr_readdatavalid (flash_csr_readdatavalid)
     );
 
 	// LEDR and HEX Display Controller
@@ -181,214 +257,135 @@ module AudioFX(
 		.param_sel     (param_sel),
 		.current_value (current_value),
 		.SW            (SW[9:0]),
-		.LEDR          (LEDR[9:0]),
-		.HEX0          (HEX0),
-		.HEX1          (HEX1),
+		.LEDR          ({HEX0[6:0],HEX1[2:0]}),
+		.HEX0          (),
+		.HEX1          (),
 		.HEX2          (HEX2),
 		.HEX3          (HEX3),
 		.HEX4          (HEX4),
 		.HEX5          (HEX5)
 	);
 
-    // ---------------- AUDIO FX INSTANTIATIONS ----------------
+	// ---------------- AUDIO FX INSTANTIATIONS ----------------
 
-	/*
-		How Audio is passed through the FX
-		
-		1. it is first turning into mono for a guitar input by duplicating the left channel
-		2. it then passes the signal to each effect, which takes 1 clk cycle to process once ADC_Valid[0] pulses
-		   which then is pipelined in a way such that the final processed audio will reach the DAC at the same
-		   time as the final sample_en_pipe pulse
-	*/
+	`ifndef NO_DSP
+	
+		// Mono converter, needed for guitar
+		assign pre_fx[0] = ADC_Data[0];
+		assign pre_fx[1] = ADC_Data[0];
 
-	// Mono converter, needed for guitar
-	assign pre_fx[0] = ADC_Data[0];
-	assign pre_fx[1] = ADC_Data[0];
-
-	// sample_en pipeline. Give each FX 1 clock cycle to produce
-	// a valid audio_out per positive ADC_Valid edge. if more time
-	// is needed, can pipeline and use the pieplined value at the 
-	// NEXT ADC_Valid edge
-	always_ff @(posedge CLOCK_50) begin: en_PIPELINE
-		if (!KEY[0]) begin
-			sample_en_pipe <= '0;
-		end else begin
-			sample_en_pipe[0] <= ADC_Valid[0];
-			for (int i = 1; i <= FX_STAGES; i++) begin
-				sample_en_pipe[i] <= sample_en_pipe[i-1];
+		// sample_en pipeline: give each FX 1 clock cycle per ADC_Valid pulse
+		always_ff @(posedge CLOCK_50) begin: en_PIPELINE
+			if (!KEY[0]) begin
+				sample_en_pipe <= '0;
+			end else begin
+				sample_en_pipe[0] <= ADC_Valid[0];
+				for (int i = 1; i <= FX_STAGES; i++) begin
+					sample_en_pipe[i] <= sample_en_pipe[i-1];
+				end
 			end
 		end
-	end
-	
-	// Input Gain (FX 0)
-	fx_gain #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_INPUT_GAIN (
-		.clk       (CLOCK_50),
-		.reset_n   (KEY[0]),
-		.audio_in  (pre_fx),
-		.audio_out (gain_in_out),
-		.fx_gain   (params[0][0]),
-		.sample_en (sample_en_pipe[0])
-	);
+		
+		// Input Gain (FX 0)
+		fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_INPUT_GAIN (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(pre_fx), .audio_out(gain_in_out),
+			.fx_gain(params[0][0]), .sample_en(sample_en_pipe[0])
+		);
 
-	// Gate (FX 1)
-	fx_gate #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_GATE (
-		.clk          (CLOCK_50),
-		.reset_n      (KEY[0]),
-		.audio_in     (gain_in_out),
-		.audio_out    (gate_out),
-		.fx_threshold (params[1][0]),
-		.fx_attack    (params[1][1]),
-		.fx_release   (params[1][2]),
-		.sample_en    (sample_en_pipe[1])
-	);
+		// Gate (FX 1)
+		fx_gate #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_GATE (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(gain_in_out), .audio_out(gate_out),
+			.fx_threshold(params[1][0]), .fx_attack(params[1][1]),
+			.fx_release(params[1][2]), .sample_en(sample_en_pipe[1])
+		);
 
-	// EQ 1(FX 2)
-	fx_eq #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_EQ_1 (
-		.clk          (CLOCK_50),
-		.reset_n      (KEY[0]),
-		.audio_in     (gate_out),
-		.audio_out    (eq_out_1),
-		.fx_sub_gain  (params[2][0]),
-		.fx_low_gain  (params[2][1]),
-		.fx_mid_gain  (params[2][2]),
-		.fx_high_gain (params[2][3]),
-		.sample_en    (sample_en_pipe[2])
-	);
+		// EQ 1 (FX 2)
+		fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_1 (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(gate_out), .audio_out(eq_out_1),
+			.fx_sub_gain(params[2][0]), .fx_low_gain(params[2][1]),
+			.fx_mid_gain(params[2][2]), .fx_high_gain(params[2][3]),
+			.sample_en(sample_en_pipe[2])
+		);
 
-	// Compressor (FX 3)
-	fx_compressor #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_COMPRESSOR (
-		.clk          (CLOCK_50),
-		.reset_n      (KEY[0]),
-		.audio_in     (eq_out_1),
-		.audio_out    (comp_out),
-		.fx_threshold (params[3][0]),
-		.fx_ratio     (params[3][1]),
-		.fx_attack    (params[3][2]),
-		.fx_release   (params[3][3]),
-		.sample_en    (sample_en_pipe[3])
-	);
+		// Compressor (FX 3)
+		fx_compressor #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_COMPRESSOR (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(eq_out_1), .audio_out(comp_out),
+			.fx_threshold(params[3][0]), .fx_ratio(params[3][1]),
+			.fx_attack(params[3][2]), .fx_release(params[3][3]),
+			.sample_en(sample_en_pipe[3])
+		);
 
-	// Distortion (FX 4)
-	fx_distortion #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_DISTORTION (
-		.clk            (CLOCK_50),
-		.reset_n        (KEY[0]),
-		.audio_in       (comp_out),
-		.audio_out      (dist_out),
-		.fx_drive       (params[4][0]),
-		.fx_makeup_gain (params[4][1]),
-		.fx_mix         (params[4][2]),
-		.sample_en      (sample_en_pipe[4])
-	);
+		// Distortion (FX 4)
+		fx_distortion #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DISTORTION (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(comp_out), .audio_out(dist_out),
+			.fx_drive(params[4][0]), .fx_makeup_gain(params[4][1]),
+			.fx_mix(params[4][2]), .sample_en(sample_en_pipe[4])
+		);
 
-	// EQ 2 (FX 5)
-	fx_eq #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_EQ_2 (
-		.clk          (CLOCK_50),
-		.reset_n      (KEY[0]),
-		.audio_in     (dist_out),
-		.audio_out    (eq_out_2),
-		.fx_sub_gain  (params[5][0]),
-		.fx_low_gain  (params[5][1]),
-		.fx_mid_gain  (params[5][2]),
-		.fx_high_gain (params[5][3]),
-		.sample_en    (sample_en_pipe[5])
-	);
+		// EQ 2 (FX 5)
+		fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_2 (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(dist_out), .audio_out(eq_out_2),
+			.fx_sub_gain(params[5][0]), .fx_low_gain(params[5][1]),
+			.fx_mid_gain(params[5][2]), .fx_high_gain(params[5][3]),
+			.sample_en(sample_en_pipe[5])
+		);
 
-	// Chorus (FX 6)
-	fx_chorus #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_CHORUS (
-		.clk       (CLOCK_50),
-		.reset_n   (KEY[0]),
-		.audio_in  (eq_out_2),
-		// .audio_in  (dist_out),
-		.audio_out (chorus_out),
-		.fx_rate   (params[6][0]),
-		.fx_depth  (params[6][1]),
-		.fx_mix    (params[6][2]),
-		.sample_en (sample_en_pipe[6])
-	);
+		// Chorus (FX 6)
+		fx_chorus #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_CHORUS (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(eq_out_2), .audio_out(chorus_out),
+			.fx_rate(params[6][0]), .fx_depth(params[6][1]),
+			.fx_mix(params[6][2]), .sample_en(sample_en_pipe[6])
+		);
 
-	// Delay (FX 7)
-	fx_delay #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_DELAY (
-		.clk         (CLOCK_50),
-		.reset_n     (KEY[0]),
-		.audio_in    (chorus_out),
-		.audio_out   (delay_out),
-		.fx_time     (params[7][0]),
-		.fx_feedback (params[7][1]),
-		.fx_mix      (params[7][2]),
-		.sample_en   (sample_en_pipe[7])
-	);
+		// Delay (FX 7)
+		fx_delay #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DELAY (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(chorus_out), .audio_out(delay_out),
+			.fx_time(params[7][0]), .fx_feedback(params[7][1]),
+			.fx_mix(params[7][2]), .sample_en(sample_en_pipe[7])
+		);
 
-	// Reverb (FX 8)
-	fx_reverb #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_REVERB (
-		.clk        (CLOCK_50),
-		.reset_n    (KEY[0]),
-		.audio_in   (delay_out),
-		.audio_out  (reverb_out),
-		.fx_size    (params[8][0]),
-		.fx_damping (params[8][1]),
-		.fx_mix     (params[8][2]),
-		.sample_en  (sample_en_pipe[8])
-	);
+		// Reverb (FX 8)
+		fx_reverb #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_REVERB (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(delay_out), .audio_out(reverb_out),
+			.fx_size(params[8][0]), .fx_damping(params[8][1]),
+			.fx_mix(params[8][2]), .sample_en(sample_en_pipe[8])
+		);
 
-	// Output Gain (FX 9)
-	fx_gain #(
-		.DATA_W(DATA_W),
-		.PARAM_W(PARAM_W)
-	) FX_OUTPUT_GAIN (
-		.clk       (CLOCK_50),
-		.reset_n   (KEY[0]),
-		.audio_in  (reverb_out),
-		.audio_out (gain_out_out),
-		.fx_gain   (params[9][0]),
-		.sample_en (sample_en_pipe[9])
-	);
+		// Output Gain (FX 9)
+		fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_OUTPUT_GAIN (
+			.clk(CLOCK_50), .reset_n(KEY[0]),
+			.audio_in(reverb_out), .audio_out(gain_out_out),
+			.fx_gain(params[9][0]), .sample_en(sample_en_pipe[9])
+		);
 
-	// FX Chain output to DAC
-	always@(posedge(CLOCK_50)) begin
-		// Mute Condition using switch 0
-		if(SW[0]==1) begin
-			DAC_Data[0] <= 0;
-			DAC_Data[1] <= 0;
-			DAC_Valid[0] <= sample_en_pipe[9];
-			DAC_Valid[1] <= sample_en_pipe[9];
-			ADC_Ready[0] <= DAC_Ready[1];
-			ADC_Ready[1] <= DAC_Ready[0];
-		end else begin
-			// FX Chain output
-			DAC_Data[0] <= gain_out_out[0];
-			DAC_Data[1] <= gain_out_out[1];
-			DAC_Valid[0] <= sample_en_pipe[9];
-			DAC_Valid[1] <= sample_en_pipe[9];
-			ADC_Ready[0] <= DAC_Ready[0];
-			ADC_Ready[1] <= DAC_Ready[1];
+		// FX Chain output to DAC
+		always@(posedge(CLOCK_50)) begin
+			if(SW[0]==1) begin
+				DAC_Data[0] <= 0;
+				DAC_Data[1] <= 0;
+				DAC_Valid[0] <= sample_en_pipe[9];
+				DAC_Valid[1] <= sample_en_pipe[9];
+				ADC_Ready[0] <= DAC_Ready[1];
+				ADC_Ready[1] <= DAC_Ready[0];
+			end else begin
+				DAC_Data[0] <= gain_out_out[0];
+				DAC_Data[1] <= gain_out_out[1];
+				DAC_Valid[0] <= sample_en_pipe[9];
+				DAC_Valid[1] <= sample_en_pipe[9];
+				ADC_Ready[0] <= DAC_Ready[0];
+				ADC_Ready[1] <= DAC_Ready[1];
+			end
 		end
-	end
+
+	`endif
 	
 endmodule

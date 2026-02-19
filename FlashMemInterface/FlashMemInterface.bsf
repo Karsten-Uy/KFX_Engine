@@ -1,0 +1,193 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 2018  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel FPGA IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Intel and sold by Intel or its authorized distributors.  Please
+refer to the applicable agreement for further details.
+*/
+(header "symbol" (version "1.1"))
+(symbol
+	(rect 0 0 400 448)
+	(text "FlashMemInterface" (rect 144 -1 221 11)(font "Arial" (font_size 10)))
+	(text "inst" (rect 8 432 20 444)(font "Arial" ))
+	(port
+		(pt 0 72)
+		(input)
+		(text "clk_clk" (rect 0 0 27 12)(font "Arial" (font_size 8)))
+		(text "clk_clk" (rect 4 61 46 72)(font "Arial" (font_size 8)))
+		(line (pt 0 72)(pt 160 72)(line_width 1))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "flash_csr_address[5..0]" (rect 0 0 95 12)(font "Arial" (font_size 8)))
+		(text "flash_csr_address[5..0]" (rect 4 101 142 112)(font "Arial" (font_size 8)))
+		(line (pt 0 112)(pt 160 112)(line_width 3))
+	)
+	(port
+		(pt 0 128)
+		(input)
+		(text "flash_csr_read" (rect 0 0 61 12)(font "Arial" (font_size 8)))
+		(text "flash_csr_read" (rect 4 117 88 128)(font "Arial" (font_size 8)))
+		(line (pt 0 128)(pt 160 128)(line_width 1))
+	)
+	(port
+		(pt 0 160)
+		(input)
+		(text "flash_csr_write" (rect 0 0 61 12)(font "Arial" (font_size 8)))
+		(text "flash_csr_write" (rect 4 149 94 160)(font "Arial" (font_size 8)))
+		(line (pt 0 160)(pt 160 160)(line_width 1))
+	)
+	(port
+		(pt 0 176)
+		(input)
+		(text "flash_csr_writedata[31..0]" (rect 0 0 101 12)(font "Arial" (font_size 8)))
+		(text "flash_csr_writedata[31..0]" (rect 4 165 160 176)(font "Arial" (font_size 8)))
+		(line (pt 0 176)(pt 160 176)(line_width 3))
+	)
+	(port
+		(pt 0 248)
+		(input)
+		(text "flash_mem_write" (rect 0 0 69 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_write" (rect 4 237 94 248)(font "Arial" (font_size 8)))
+		(line (pt 0 248)(pt 160 248)(line_width 1))
+	)
+	(port
+		(pt 0 264)
+		(input)
+		(text "flash_mem_burstcount[6..0]" (rect 0 0 113 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_burstcount[6..0]" (rect 4 253 160 264)(font "Arial" (font_size 8)))
+		(line (pt 0 264)(pt 160 264)(line_width 3))
+	)
+	(port
+		(pt 0 296)
+		(input)
+		(text "flash_mem_read" (rect 0 0 69 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_read" (rect 4 285 88 296)(font "Arial" (font_size 8)))
+		(line (pt 0 296)(pt 160 296)(line_width 1))
+	)
+	(port
+		(pt 0 312)
+		(input)
+		(text "flash_mem_address[22..0]" (rect 0 0 108 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_address[22..0]" (rect 4 301 148 312)(font "Arial" (font_size 8)))
+		(line (pt 0 312)(pt 160 312)(line_width 3))
+	)
+	(port
+		(pt 0 328)
+		(input)
+		(text "flash_mem_writedata[31..0]" (rect 0 0 109 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_writedata[31..0]" (rect 4 317 160 328)(font "Arial" (font_size 8)))
+		(line (pt 0 328)(pt 160 328)(line_width 3))
+	)
+	(port
+		(pt 0 376)
+		(input)
+		(text "flash_mem_byteenable[3..0]" (rect 0 0 114 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_byteenable[3..0]" (rect 4 365 160 376)(font "Arial" (font_size 8)))
+		(line (pt 0 376)(pt 160 376)(line_width 3))
+	)
+	(port
+		(pt 0 416)
+		(input)
+		(text "reset_reset_n" (rect 0 0 56 12)(font "Arial" (font_size 8)))
+		(text "reset_reset_n" (rect 4 405 82 416)(font "Arial" (font_size 8)))
+		(line (pt 0 416)(pt 160 416)(line_width 1))
+	)
+	(port
+		(pt 0 144)
+		(output)
+		(text "flash_csr_readdata[31..0]" (rect 0 0 101 12)(font "Arial" (font_size 8)))
+		(text "flash_csr_readdata[31..0]" (rect 4 133 154 144)(font "Arial" (font_size 8)))
+		(line (pt 0 144)(pt 160 144)(line_width 3))
+	)
+	(port
+		(pt 0 192)
+		(output)
+		(text "flash_csr_waitrequest" (rect 0 0 87 12)(font "Arial" (font_size 8)))
+		(text "flash_csr_waitrequest" (rect 4 181 130 192)(font "Arial" (font_size 8)))
+		(line (pt 0 192)(pt 160 192)(line_width 1))
+	)
+	(port
+		(pt 0 208)
+		(output)
+		(text "flash_csr_readdatavalid" (rect 0 0 95 12)(font "Arial" (font_size 8)))
+		(text "flash_csr_readdatavalid" (rect 4 197 142 208)(font "Arial" (font_size 8)))
+		(line (pt 0 208)(pt 160 208)(line_width 1))
+	)
+	(port
+		(pt 0 280)
+		(output)
+		(text "flash_mem_waitrequest" (rect 0 0 95 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_waitrequest" (rect 4 269 130 280)(font "Arial" (font_size 8)))
+		(line (pt 0 280)(pt 160 280)(line_width 1))
+	)
+	(port
+		(pt 0 344)
+		(output)
+		(text "flash_mem_readdata[31..0]" (rect 0 0 109 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_readdata[31..0]" (rect 4 333 154 344)(font "Arial" (font_size 8)))
+		(line (pt 0 344)(pt 160 344)(line_width 3))
+	)
+	(port
+		(pt 0 360)
+		(output)
+		(text "flash_mem_readdatavalid" (rect 0 0 103 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_readdatavalid" (rect 4 349 142 360)(font "Arial" (font_size 8)))
+		(line (pt 0 360)(pt 160 360)(line_width 1))
+	)
+	(drawing
+		(text "clk" (rect 145 43 308 99)(font "Arial" (color 128 0 0)(font_size 9)))
+		(text "clk" (rect 165 67 348 144)(font "Arial" (color 0 0 0)))
+		(text "flash_csr" (rect 106 83 266 179)(font "Arial" (color 128 0 0)(font_size 9)))
+		(text "address" (rect 165 107 372 224)(font "Arial" (color 0 0 0)))
+		(text "read" (rect 165 123 354 256)(font "Arial" (color 0 0 0)))
+		(text "readdata" (rect 165 139 378 288)(font "Arial" (color 0 0 0)))
+		(text "write" (rect 165 155 360 320)(font "Arial" (color 0 0 0)))
+		(text "writedata" (rect 165 171 384 352)(font "Arial" (color 0 0 0)))
+		(text "waitrequest" (rect 165 187 396 384)(font "Arial" (color 0 0 0)))
+		(text "readdatavalid" (rect 165 203 408 416)(font "Arial" (color 0 0 0)))
+		(text "flash_mem" (rect 95 219 244 451)(font "Arial" (color 128 0 0)(font_size 9)))
+		(text "write" (rect 165 243 360 496)(font "Arial" (color 0 0 0)))
+		(text "burstcount" (rect 165 259 390 528)(font "Arial" (color 0 0 0)))
+		(text "waitrequest" (rect 165 275 396 560)(font "Arial" (color 0 0 0)))
+		(text "read" (rect 165 291 354 592)(font "Arial" (color 0 0 0)))
+		(text "address" (rect 165 307 372 624)(font "Arial" (color 0 0 0)))
+		(text "writedata" (rect 165 323 384 656)(font "Arial" (color 0 0 0)))
+		(text "readdata" (rect 165 339 378 688)(font "Arial" (color 0 0 0)))
+		(text "readdatavalid" (rect 165 355 408 720)(font "Arial" (color 0 0 0)))
+		(text "byteenable" (rect 165 371 390 752)(font "Arial" (color 0 0 0)))
+		(text "reset" (rect 131 387 292 787)(font "Arial" (color 128 0 0)(font_size 9)))
+		(text "reset_n" (rect 165 411 372 832)(font "Arial" (color 0 0 0)))
+		(text " FlashMemInterface " (rect 314 432 742 874)(font "Arial" ))
+		(line (pt 160 32)(pt 240 32)(line_width 1))
+		(line (pt 240 32)(pt 240 432)(line_width 1))
+		(line (pt 160 432)(pt 240 432)(line_width 1))
+		(line (pt 160 32)(pt 160 432)(line_width 1))
+		(line (pt 161 52)(pt 161 76)(line_width 1))
+		(line (pt 162 52)(pt 162 76)(line_width 1))
+		(line (pt 161 92)(pt 161 212)(line_width 1))
+		(line (pt 162 92)(pt 162 212)(line_width 1))
+		(line (pt 161 228)(pt 161 380)(line_width 1))
+		(line (pt 162 228)(pt 162 380)(line_width 1))
+		(line (pt 161 396)(pt 161 420)(line_width 1))
+		(line (pt 162 396)(pt 162 420)(line_width 1))
+		(line (pt 0 0)(pt 400 0)(line_width 1))
+		(line (pt 400 0)(pt 400 448)(line_width 1))
+		(line (pt 0 448)(pt 400 448)(line_width 1))
+		(line (pt 0 0)(pt 0 448)(line_width 1))
+	)
+)

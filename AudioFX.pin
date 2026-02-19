@@ -128,7 +128,7 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : AA19      :        :                   :      
 RESERVED_INPUT_WITH_WEAK_PULLUP : AA20      :        :                   :         : 4A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : AA21      :        :                   :         : 4A        :                
 GND                          : AA22      : gnd    :                   :         :           :                
-VCCPGM                       : AA23      : power  :                   : 1.8V/2.5V/3.0V/3.3V :           :                
+VCCPGM                       : AA23      : power  :                   : 3.0V/3.3V :           :                
 HEX4[0]                      : AA24      : output : 3.3-V LVTTL       :         : 5A        : Y              
 HEX5[6]                      : AA25      : output : 3.3-V LVTTL       :         : 5A        : Y              
 HEX5[5]                      : AA26      : output : 3.3-V LVTTL       :         : 5B        : Y              
@@ -145,7 +145,7 @@ VCCA_FPLL                    : AB6       : power  :                   : 2.5V    
 GND                          : AB7       : gnd    :                   :         :           :                
 nCSO, DATA4                  : AB8       :        :                   :         : 3A        :                
 altera_reserved_tdo          : AB9       : output : 3.3-V LVTTL       :         : 3A        : N              
-VCCPGM                       : AB10      : power  :                   : 1.8V/2.5V/3.0V/3.3V :           :                
+VCCPGM                       : AB10      : power  :                   : 3.0V/3.3V :           :                
 VCC_AUX                      : AB11      : power  :                   : 2.5V    :           :                
 SW[0]                        : AB12      : input  : 3.3-V LVTTL       :         : 3A        : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : AB13      :        :                   :         : 3B        :                
@@ -554,7 +554,7 @@ GND                          : F27       : gnd    :                   :         
 RESERVED_INPUT_WITH_WEAK_PULLUP : F28       :        :                   :         : 6A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : F29       :        :                   :         : 6A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : F30       :        :                   :         : 6A        :                
-RREF                         : G1        :        :                   :         :           :                
+GND                          : G1        :        :                   :         :           :                
 DNU                          : G2        :        :                   :         :           :                
 GND                          : G3        : gnd    :                   :         :           :                
 GND                          : G4        : gnd    :                   :         :           :                
@@ -624,7 +624,7 @@ AUD_DACDAT                   : J7        : output : 3.3-V LVTTL       :         
 GND                          : J8        : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : J9        :        :                   :         : 8A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : J10       :        :                   :         : 8A        :                
-VCCPGM                       : J11       : power  :                   : 1.8V/2.5V/3.0V/3.3V :           :                
+VCCPGM                       : J11       : power  :                   : 3.0V/3.3V :           :                
 FPGA_I2C_SCLK                : J12       : output : 3.3-V LVTTL       :         : 8A        : Y              
 VCCIO8A                      : J13       : power  :                   : 3.3V    : 8A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : J14       :        :                   :         : 8A        :                
@@ -633,7 +633,7 @@ VCC_AUX                      : J16       : power  :                   : 2.5V    
 VCCPD7C_HPS                  : J17       : power  :                   : 2.5V    : 7C        :                
 GND                          : J18       : gnd    :                   :         :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : J19       :        :                   :         : 7B        :                
-VCCRSTCLK_HPS                : J20       : power  :                   : 1.8V/2.5V/3.0V/3.3V :           :                
+VCCRSTCLK_HPS                : J20       : power  :                   : 3.0V/3.3V :           :                
 VCC_AUX_SHARED               : J21       : power  :                   : 2.5V    :           :                
 GND                          : J22       :        :                   :         : 7A        :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : J23       :        :                   :         : 6A        :                
