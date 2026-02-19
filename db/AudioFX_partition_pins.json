@@ -16,6 +16,10 @@
 					"strict" : false
 				},
 				{
+					"name" : "LEDR[3]",
+					"strict" : false
+				},
+				{
 					"name" : "LEDR[4]",
 					"strict" : false
 				},
@@ -169,6 +173,10 @@
 				},
 				{
 					"name" : "KEY[1]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[5]",
 					"strict" : false
 				},
 				{
