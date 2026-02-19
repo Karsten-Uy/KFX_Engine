@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<system name="$${FILENAME}">
+ <component
+   name="$${FILENAME}"
+   displayName="$${FILENAME}"
+   version="1.0"
+   description=""
+   tags=""
+   categories="System" />
+ <parameter name="bonusData"><![CDATA[bonusData 
+{
+   element clk_0
+   {
+      datum _sortIndex
+      {
+         value = "0";
+         type = "int";
+      }
+   }
+   element intel_generic_serial_flash_interface_top_0
+   {
+      datum _sortIndex
+      {
+         value = "1";
+         type = "int";
+      }
+   }
+}
+]]></parameter>
+ <parameter name="clockCrossingAdapter" value="HANDSHAKE" />
+ <parameter name="device" value="5CSEMA5F31C6" />
+ <parameter name="deviceFamily" value="Cyclone V" />
+ <parameter name="deviceSpeedGrade" value="6" />
+ <parameter name="fabricMode" value="QSYS" />
+ <parameter name="generateLegacySim" value="false" />
+ <parameter name="generationId" value="0" />
+ <parameter name="globalResetBus" value="false" />
+ <parameter name="hdlLanguage" value="VERILOG" />
+ <parameter name="hideFromIPCatalog" value="false" />
+ <parameter name="lockedInterfaceDefinition" value="" />
+ <parameter name="maxAdditionalLatency" value="1" />
+ <parameter name="projectName" value="AudioFX.qpf" />
+ <parameter name="sopcBorderPoints" value="false" />
+ <parameter name="systemHash" value="0" />
+ <parameter name="testBenchDutName" value="" />
+ <parameter name="timeStamp" value="0" />
+ <parameter name="useTestBenchNamingPattern" value="false" />
+ <instanceScript></instanceScript>
+ <interface name="clk" internal="clk_0.clk_in" type="clock" dir="end" />
+ <interface
+   name="flash_csr"
+   internal="intel_generic_serial_flash_interface_top_0.avl_csr"
+   type="avalon"
+   dir="end" />
+ <interface
+   name="flash_mem"
+   internal="intel_generic_serial_flash_interface_top_0.avl_mem"
+   type="avalon"
+   dir="end" />
+ <interface
+   name="flash_pins"
+   internal="intel_generic_serial_flash_interface_top_0.atom_ports" />
+ <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
+ <module name="clk_0" kind="clock_source" version="18.1" enabled="1">
+  <parameter name="clockFrequency" value="50000000" />
+  <parameter name="clockFrequencyKnown" value="true" />
+  <parameter name="inputClockFrequency" value="0" />
+  <parameter name="resetSynchronousEdges" value="NONE" />
+ </module>
+ <module
+   name="intel_generic_serial_flash_interface_top_0"
+   kind="intel_generic_serial_flash_interface_top"
+   version="18.1"
+   enabled="1">
+  <parameter name="AUTO_DEVICE" value="5CSEMA5F31C6" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
+  <parameter name="CHIP_SELECT_BYPASS" value="false" />
+  <parameter name="CHIP_SELS" value="1" />
+  <parameter name="DEBUG_OPTION" value="0" />
+  <parameter name="DEFAULT_VALUE_REG_0" value="1" />
+  <parameter name="DEFAULT_VALUE_REG_1" value="16" />
+  <parameter name="DEFAULT_VALUE_REG_2" value="0" />
+  <parameter name="DEFAULT_VALUE_REG_3" value="0" />
+  <parameter name="DEFAULT_VALUE_REG_4" value="0" />
+  <parameter name="DEFAULT_VALUE_REG_5" value="3" />
+  <parameter name="DEFAULT_VALUE_REG_6" value="28674" />
+  <parameter name="DEFAULT_VALUE_REG_7" value="6149" />
+  <parameter name="DEVICE_DENSITY" value="256" />
+  <parameter name="DEVICE_FAMILY" value="Cyclone V" />
+  <parameter name="ENABLE_SIM_MODEL" value="false" />
+  <parameter name="INTENDED_DEVICE_FAMILY" value="Cyclone V" />
+  <parameter name="PIPE_CMD_GEN_CMD" value="0" />
+  <parameter name="PIPE_CSR" value="0" />
+  <parameter name="PIPE_MUX_CMD" value="0" />
+  <parameter name="PIPE_XIP" value="0" />
+  <parameter name="USE_CHIP_SEL_FROM_CSR" value="1" />
+  <parameter name="gui_use_asmiblock" value="false" />
+  <parameter name="gui_use_gpio" value="false" />
+ </module>
+ <connection
+   kind="clock"
+   version="18.1"
+   start="clk_0.clk"
+   end="intel_generic_serial_flash_interface_top_0.clk" />
+ <connection
+   kind="reset"
+   version="18.1"
+   start="clk_0.clk_reset"
+   end="intel_generic_serial_flash_interface_top_0.reset" />
+ <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
+ <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
+ <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />
+ <interconnectRequirement for="$system" name="qsys_mm.maxAdditionalLatency" value="1" />
+</system>

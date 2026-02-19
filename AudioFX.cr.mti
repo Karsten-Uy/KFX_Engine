@@ -1,23 +1,26 @@
-C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_fx_distortion.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_fx_distortion.sv
+C:/Users/karst/Documents/HaH_processor/debounce_unit.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/HaH_processor/debounce_unit.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module tb_fx_distortion
+-- Compiling module debounce_unit
 
 Top level modules:
-	tb_fx_distortion
+	debounce_unit
 
-} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_fx_compressor.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_fx_compressor.sv
+} {} {}} C:/Users/karst/Documents/HaH_processor/repeat_unit.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/HaH_processor/repeat_unit.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module tb_fx_compressor
+-- Compiling module repeat_unit
 
 Top level modules:
-	tb_fx_compressor
+	repeat_unit
 
-} {} {}} C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_controller.sv {1 {vlog -work work -sv -stats=none C:/Users/karst/Documents/homemade_multifx/HaH_processor/tb_controller.sv
+} {} {}} C:/Users/karst/Documents/HaH_processor/testing/tb_controller_fsm.sv {2 {vlog -work work -sv -stats=none C:/Users/karst/Documents/HaH_processor/testing/tb_controller_fsm.sv
 Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
--- Compiling module tb_controller
--- Importing package lab_pkg
+-- Compiling module tb_controller_fsm
+** Warning: C:/Users/karst/Documents/HaH_processor/testing/tb_controller_fsm.sv(241): (vlog-2244) Variable 'addr_errors' is implicitly static. You must either explicitly declare it as static or automatic
+or remove the initialization in the declaration of variable.
+** Warning: C:/Users/karst/Documents/HaH_processor/testing/tb_controller_fsm.sv(299): (vlog-2244) Variable 'idx_errors' is implicitly static. You must either explicitly declare it as static or automatic
+or remove the initialization in the declaration of variable.
 
 Top level modules:
-	tb_controller
+	tb_controller_fsm
 
 } {} {}}
