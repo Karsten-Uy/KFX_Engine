@@ -37,58 +37,40 @@ module controller_fsm #(
     output logic        load_valid
 );
 
-    // ----------------------------------------------------------------
-    // CSR register addresses
-    // ----------------------------------------------------------------
     localparam CSR_CMD_SETTING = 6'd7;
     localparam CSR_CMD_CONTROL = 6'd8;
     localparam CSR_CMD_ADDR    = 6'd9;
     localparam CSR_CMD_RDDATA  = 6'd12;
 
-    // CSR[7] Flash Command Setting format:
-    //   [7:0]   opcode
-    //   [10:8]  num address bytes (0=none, 3=three-byte)
-    //   [11]    data dir: 0=write to flash, 1=read from flash
-    //   [15:12] num data bytes
-    //   [19:16] num dummy cycles
-    localparam CMD_ERASE_SETTING = 32'h000003D8; // SE  D8h: 3 addr bytes, no data
-    localparam CMD_RDSR_SETTING  = 32'h00001805; // RDSR 05h: no addr, 1 byte out
+    localparam CMD_ERASE_SETTING = 32'h000003D8;
+    localparam CMD_RDSR_SETTING  = 32'h00001805;
     localparam CMD_FIRE          = 32'h00000001;
 
-    // Erase timeout: 300M cycles = 6 seconds at 50MHz
-    // Real 64KB sector erase on EPCQ256 = max ~2s, so 6s is safe
-    localparam ERASE_TIMEOUT = 28'd300_000_000;
+    // 27-bit counter max = 134M. Use 100_000_000 = 2 seconds @ 50MHz.
+    // Real EPCQ256 64KB sector erase: 150ms typ, 2000ms max.
+    localparam ERASE_TIMEOUT = 27'd100_000_000;
 
-    // RDSR poll timeout: 10M cycles = 200ms per poll attempt
-    // Gives up and advances if CSR is not responding
-    localparam POLL_TIMEOUT  = 24'd10_000_000;
+    // 23-bit counter max = 8.4M. Use 5_000_000 = 100ms per poll.
+    localparam POLL_TIMEOUT  = 23'd5_000_000;
 
     localparam SENTINEL = 8'hA5;
 
     typedef enum logic [4:0] {
         IDLE            = 5'd0,
-
-        // Erase: write CSR command then wait fixed timeout
         ERASE_SET_CMD   = 5'd1,
         ERASE_SETTLE    = 5'd2,
         ERASE_SET_ADDR  = 5'd3,
         ERASE_FIRE      = 5'd4,
-        ERASE_FIRED     = 5'd5,   // wait ERASE_TIMEOUT cycles unconditionally
-
-        // WIP poll after erase
+        ERASE_FIRED     = 5'd5,   // count ERASE_TIMEOUT cycles
         EPOLL_SET_CMD   = 5'd6,
         EPOLL_SETTLE    = 5'd7,
         EPOLL_FIRE      = 5'd8,
-        EPOLL_FIRED     = 5'd9,   // wait POLL_TIMEOUT or until !waitrequest
+        EPOLL_FIRED     = 5'd9,   // wait !waitrequest or poll timeout
         EPOLL_READ      = 5'd10,
         EPOLL_READ_WAIT = 5'd11,
         EPOLL_CHECK     = 5'd12,
-
-        // avl_mem writes (xip_controller handles WREN+PP+poll internally)
         SAVE_WRITE      = 5'd13,
         SAVE_NEXT       = 5'd14,
-
-        // avl_mem reads
         LOAD_READ       = 5'd15,
         LOAD_WAIT       = 5'd16,
         LOAD_STORE      = 5'd17,
@@ -103,27 +85,26 @@ module controller_fsm #(
                        ((23'(curr_fx) * PARAM_COUNT + 23'(curr_p)) << 2);
 
     // ----------------------------------------------------------------
-    // Erase timeout counter — counts up while in ERASE_FIRED
+    // Erase timeout: 27-bit counter, target 100M cycles (2s @ 50MHz)
     // ----------------------------------------------------------------
-    logic [27:0] erase_cnt;
+    logic [26:0] erase_cnt;
     always_ff @(posedge clk) begin
         if (!rst_n || state != ERASE_FIRED)
             erase_cnt <= '0;
-        else
+        else if (erase_cnt != ERASE_TIMEOUT)
             erase_cnt <= erase_cnt + 1'b1;
     end
     wire erase_done = (erase_cnt == ERASE_TIMEOUT);
 
     // ----------------------------------------------------------------
-    // Poll timeout counter — counts up while in EPOLL_FIRED
-    // Exits to EPOLL_READ even if CSR never asserts readdatavalid,
-    // so we don't get permanently stuck if IP is unresponsive.
+    // Poll timeout: 23-bit counter, target 5M cycles (100ms @ 50MHz)
+    // Resets on every entry to EPOLL_FIRED
     // ----------------------------------------------------------------
-    logic [23:0] poll_cnt;
+    logic [22:0] poll_cnt;
     always_ff @(posedge clk) begin
         if (!rst_n || state != EPOLL_FIRED)
             poll_cnt <= '0;
-        else
+        else if (poll_cnt != POLL_TIMEOUT)
             poll_cnt <= poll_cnt + 1'b1;
     end
     wire poll_timeout = (poll_cnt == POLL_TIMEOUT);
@@ -145,6 +126,10 @@ module controller_fsm #(
             latched_csr_rddata <= flash_csr_readdata;
     end
 
+    // ----------------------------------------------------------------
+    // Sentinel: checked on the FIRST word read (slot [0][0])
+    // load_valid only asserts after sentinel confirmed
+    // ----------------------------------------------------------------
     logic sentinel_ok, sentinel_checked;
 
     always_ff @(posedge clk) begin
@@ -158,8 +143,10 @@ module controller_fsm #(
             sentinel_checked <= 1'b0;
             load_valid       <= 1'b0;
         end else if (state == IDLE) begin
+            // Reset sentinel tracking at start of each operation
             sentinel_ok      <= 1'b0;
             sentinel_checked <= 1'b0;
+            load_valid       <= 1'b0;  // clear load_valid each IDLE entry
         end else if (state == LOAD_WAIT && flash_readdatavalid && !sentinel_checked) begin
             sentinel_checked <= 1'b1;
             if (flash_readdata[7:0] == SENTINEL) begin
@@ -182,39 +169,29 @@ module controller_fsm #(
                 if      (save_en) next = ERASE_SET_CMD;
                 else if (load_en) next = LOAD_READ;
 
-            // Write CSR[7]: hold until accepted
             ERASE_SET_CMD:   if (!flash_csr_waitrequest) next = ERASE_SETTLE;
-            // 1 idle cycle so CSR opcode regs settle
             ERASE_SETTLE:    next = ERASE_SET_ADDR;
-            // Write CSR[9]: sector address
             ERASE_SET_ADDR:  if (!flash_csr_waitrequest) next = ERASE_FIRE;
-            // Write CSR[8]=1: fire erase
             ERASE_FIRE:      if (!flash_csr_waitrequest) next = ERASE_FIRED;
-            // Wait unconditionally for ERASE_TIMEOUT cycles (~6s)
-            // This bypasses any waitrequest signalling uncertainty.
-            // The EPCQ256 64KB sector erase takes 150ms typ, 2s max.
+            // Hold for exactly ERASE_TIMEOUT cycles regardless of waitrequest
             ERASE_FIRED:     if (erase_done) next = EPOLL_SET_CMD;
 
-            // Poll WIP to confirm erase complete before writing
             EPOLL_SET_CMD:   if (!flash_csr_waitrequest) next = EPOLL_SETTLE;
             EPOLL_SETTLE:    next = EPOLL_FIRE;
             EPOLL_FIRE:      if (!flash_csr_waitrequest) next = EPOLL_FIRED;
-            // Wait for poll command to complete (timeout fallback if IP unresponsive)
+            // Advance when waitrequest drops OR poll times out
             EPOLL_FIRED:     if (!flash_csr_waitrequest || poll_timeout) next = EPOLL_READ;
-            // Read CSR[12] for status byte
             EPOLL_READ:      if (!flash_csr_waitrequest) next = EPOLL_READ_WAIT;
             EPOLL_READ_WAIT: if (flash_csr_readdatavalid || poll_timeout) next = EPOLL_CHECK;
-            // bit0=WIP: 1=still erasing, 0=done
-            // If poll timed out, latched_csr_rddata[0] may be stale —
-            // after ERASE_TIMEOUT seconds the erase is definitely done,
-            // so we treat timeout as done too.
+            // WIP bit0=1 means still busy. On poll timeout assume done (erase time already elapsed).
             EPOLL_CHECK:
                 if (!poll_timeout && latched_csr_rddata[0])
-                    next = EPOLL_SET_CMD;   // WIP still set, keep polling
+                    next = EPOLL_SET_CMD;
                 else
-                    next = SAVE_WRITE;      // done (or timed out = assume done)
+                    next = SAVE_WRITE;
 
-            // avl_mem write: xip_controller does WREN+PP+poll internally
+            // avl_mem write: xip_controller internally runs STATUS→WREN→PP→POLL
+            // mem_waitrequest stays high until the entire sequence completes
             SAVE_WRITE: if (!flash_waitrequest) next = SAVE_NEXT;
             SAVE_NEXT: begin
                 if (curr_fx == FX_COUNT-1 && curr_p == PARAM_COUNT-1)
@@ -223,11 +200,14 @@ module controller_fsm #(
                     next = SAVE_WRITE;
             end
 
+            // avl_mem read
             LOAD_READ:  if (!flash_waitrequest)  next = LOAD_WAIT;
             LOAD_WAIT:  if (flash_readdatavalid) next = LOAD_STORE;
+            // LOAD_STORE: apply data to params in controller, then advance
             LOAD_STORE: next = LOAD_NEXT;
             LOAD_NEXT: begin
-                if (!sentinel_ok && sentinel_checked)
+                // Abort if first word wasn't sentinel (flash not programmed)
+                if (sentinel_checked && !sentinel_ok)
                     next = IDLE;
                 else if (curr_fx == FX_COUNT-1 && curr_p == PARAM_COUNT-1)
                     next = IDLE;
@@ -266,7 +246,6 @@ module controller_fsm #(
                 flash_csr_addr      = CSR_CMD_SETTING;
                 flash_csr_writedata = CMD_ERASE_SETTING;
             end
-            // ERASE_SETTLE: no outputs
 
             ERASE_SET_ADDR: begin
                 flash_csr_write     = 1'b1;
@@ -279,27 +258,23 @@ module controller_fsm #(
                 flash_csr_addr      = CSR_CMD_CONTROL;
                 flash_csr_writedata = CMD_FIRE;
             end
-            // ERASE_FIRED: no outputs, just counting
 
             EPOLL_SET_CMD: begin
                 flash_csr_write     = 1'b1;
                 flash_csr_addr      = CSR_CMD_SETTING;
                 flash_csr_writedata = CMD_RDSR_SETTING;
             end
-            // EPOLL_SETTLE: no outputs
 
             EPOLL_FIRE: begin
                 flash_csr_write     = 1'b1;
                 flash_csr_addr      = CSR_CMD_CONTROL;
                 flash_csr_writedata = CMD_FIRE;
             end
-            // EPOLL_FIRED: no outputs
 
             EPOLL_READ: begin
                 flash_csr_read = 1'b1;
                 flash_csr_addr = CSR_CMD_RDDATA;
             end
-            // EPOLL_READ_WAIT, EPOLL_CHECK: no outputs
 
             SAVE_WRITE: flash_write = 1'b1;
             SAVE_NEXT:  inc_idx     = 1'b1;
