@@ -223,6 +223,7 @@ module AudioFX(
         .key_inc(~KEY[2]),
         .key_dec(~KEY[3]),
 		.save_button(~KEY[1]),
+		.load_button(SW[5]),
         .params(params),
         .fx_sel(fx_sel),
         .param_sel(param_sel),
