@@ -19,7 +19,7 @@ module controller #(
 
     output logic [9:0] LEDR,
 
-    // Flash avl_mem port
+    // Flash avl_mem — writes go via XIP (handles WREN+PP+WIP internally)
     output logic [22:0] flash_mem_address,
     output logic        flash_mem_read,
     output logic        flash_mem_write,
@@ -29,7 +29,7 @@ module controller #(
     input  logic        flash_mem_readdatavalid,
     output logic [3:0]  flash_mem_byteenable,
 
-    // Flash avl_csr port
+    // Flash avl_csr — sector erase only
     output logic [5:0]  flash_csr_address,
     output logic        flash_csr_write,
     output logic        flash_csr_read,
@@ -51,28 +51,29 @@ module controller #(
     logic [3:0]  fsm_state_debug;
     logic [31:0] latched_readdata;
     logic        load_valid;
+    logic        sentinel_checked;
 
     assign fx_sel        = sw_fx_sel;
     assign param_sel     = sw_param_sel;
     assign current_value = params[fx_sel][param_sel];
 
     // LED debug:
-    // [3:0] = FSM state (lower 4 bits)
-    // [4]   = fsm_busy
-    // [5]   = flash_mem_waitrequest
-    // [6]   = flash_mem_readdatavalid
-    // [7]   = flash_csr_waitrequest
-    // [8]   = save button stable
-    // [9]   = flash_csr_readdatavalid
+    // [3:0] = FSM state          (keep — tells you exactly where it's stuck)
+    // [4]   = load_valid         (CRITICAL: lights up only if sentinel was found)
+    // [5]   = sentinel_checked   (lights up once first read data came back)
+    // [6]   = flash_mem_readdatavalid  (confirm reads are completing)
+    // [7]   = flash_mem_waitrequest    (stuck high = XIP is busy)
+    // [8]   = ld_s               (load switch stable — confirm input is registered)
+    // [9]   = sav_s              (save switch stable)
     assign LEDR[3:0] = fsm_state_debug;
-    assign LEDR[4]   = fsm_busy;
-    assign LEDR[5]   = flash_mem_waitrequest;
+    assign LEDR[4]   = load_valid;
+    assign LEDR[5]   = sentinel_checked;
     assign LEDR[6]   = flash_mem_readdatavalid;
-    assign LEDR[7]   = flash_csr_waitrequest;
-    assign LEDR[8]   = sav_s;
-    assign LEDR[9]   = flash_csr_readdatavalid;
+    assign LEDR[7]   = flash_mem_waitrequest;
+    assign LEDR[8]   = ld_s;
+    assign LEDR[9]   = sav_s;
 
-    // Flash word index counters
+    // Flash index counters
     always_ff @(posedge clk) begin
         if (!reset_n || rst_idx) begin
             f_fx <= '0;
@@ -87,12 +88,6 @@ module controller #(
         end
     end
 
-    // Flash layout:
-    //   slot [fx=0][p=0] = SENTINEL word (0xA5)
-    //   slot [fx=0][p=1] = params[0][0]
-    //   slot [fx=0][p=2] = params[0][1]
-    //   ...
-    // Write at current index, data = previous slot's param
     logic is_sentinel_slot;
     assign is_sentinel_slot = (f_fx == '0) && (f_p == '0);
 
@@ -108,14 +103,15 @@ module controller #(
         end
     end
 
-    // avl_mem write data: sentinel at slot 0, else the param for previous slot
-    // The xip_controller uses byteenable to determine actual write byte count
+    // avl_mem write data
     assign flash_mem_writedata  = is_sentinel_slot ? {24'b0, SENTINEL}
                                                    : {24'b0, params[prev_fx][prev_p]};
-    // byteenable=0001: write only byte 0 (1 byte per word address)
-    assign flash_mem_byteenable = 4'b0001;
+    assign flash_mem_byteenable = 4'b0001; // byte 0 only
 
     // Parameter storage
+    // avl_mem reads return data from data_adapter_8_32 which packs:
+    //   first SPI byte → [7:0], second → [15:8], etc.
+    // We write one byte per word so the param is in [7:0].
     integer i, j;
     always_ff @(posedge clk) begin
         if (!reset_n) begin
@@ -184,7 +180,8 @@ module controller #(
         .rst_idx          (rst_idx),
         .fsm_busy         (fsm_busy),
         .fsm_state_debug  (fsm_state_debug),
-        .load_valid       (load_valid)
+        .load_valid       (load_valid),
+        .sentinel_checked (sentinel_checked)
     );
 
 endmodule
