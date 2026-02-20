@@ -85,7 +85,7 @@
   <parameter name="DEFAULT_VALUE_REG_5" value="3" />
   <parameter name="DEFAULT_VALUE_REG_6" value="28674" />
   <parameter name="DEFAULT_VALUE_REG_7" value="6149" />
-  <parameter name="DEVICE_DENSITY" value="256" />
+  <parameter name="DEVICE_DENSITY" value="128" />
   <parameter name="DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="ENABLE_SIM_MODEL" value="false" />
   <parameter name="INTENDED_DEVICE_FAMILY" value="Cyclone V" />

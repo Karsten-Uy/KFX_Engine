@@ -106,7 +106,7 @@ Software
   - This takes a few minutes to compile
 
 ### How to control FX
-`HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[3:1]` choose the parameter within that FX, and `SW[0]` mutes the output signal with `HEX[0]` being a line if it is muted.
+`HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[4:2]` choose the parameter within that FX, and `SW[0]` mutes the output signal with `HEX0` being a line if it is muted. To save a set of paramters, press KEY[1] and a `b` should appear on `HEX1` briefly. Once the `b` is gone, that means that the parameters have been saved and to load it, flip `SW1` up and down.
 
 ### FX Mapping  Table
 

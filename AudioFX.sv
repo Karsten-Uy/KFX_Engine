@@ -169,7 +169,7 @@ module AudioFX(
 	logic [6:0]	 flash_mem_burstcount;
 	logic        flash_mem_waitrequest;
 	logic        flash_mem_read;
-	logic [22:0] flash_mem_address;
+	logic [21:0] flash_mem_address;
 	logic [31:0] flash_mem_writedata;
 	logic [31:0] flash_mem_readdata;
 	logic        flash_mem_readdatavalid;

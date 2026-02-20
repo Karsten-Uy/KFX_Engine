@@ -12,7 +12,7 @@
 			flash_mem_burstcount    : in  std_logic_vector(6 downto 0)  := (others => 'X'); -- burstcount
 			flash_mem_waitrequest   : out std_logic;                                        -- waitrequest
 			flash_mem_read          : in  std_logic                     := 'X';             -- read
-			flash_mem_address       : in  std_logic_vector(22 downto 0) := (others => 'X'); -- address
+			flash_mem_address       : in  std_logic_vector(21 downto 0) := (others => 'X'); -- address
 			flash_mem_writedata     : in  std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
 			flash_mem_readdata      : out std_logic_vector(31 downto 0);                    -- readdata
 			flash_mem_readdatavalid : out std_logic;                                        -- readdatavalid

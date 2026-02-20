@@ -5,11 +5,11 @@
  version="1.0"
  fabric="QSYS">
  <!-- Format version 18.1 625 (Future versions may contain additional information.) -->
- <!-- 2026.02.20.08:05:02 -->
+ <!-- 2026.02.20.10:09:05 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1771603502</value>
+  <value>1771610945</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -430,7 +430,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="DEVICE_DENSITY">
    <type>int</type>
-   <value>256</value>
+   <value>128</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -1045,7 +1045,7 @@ parameters are a RESULT of the module parameters. -->
    </parameter>
    <parameter name="addressSpan">
     <type>java.math.BigInteger</type>
-    <value>33554432</value>
+    <value>16777216</value>
     <derived>true</derived>
     <enabled>true</enabled>
     <visible>false</visible>
@@ -1368,7 +1368,7 @@ parameters are a RESULT of the module parameters. -->
    <port>
     <name>avl_mem_address</name>
     <direction>Input</direction>
-    <width>23</width>
+    <width>22</width>
     <role>address</role>
    </port>
    <port>

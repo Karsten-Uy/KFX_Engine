@@ -1,7 +1,8 @@
 module controller_fsm #(
     parameter FX_COUNT    = 16,
     parameter PARAM_COUNT = 8,
-    parameter FLASH_BASE  = 23'h400000
+    parameter FLASH_BASE  = 24'h6B0000   // byte address — must be 64 KB aligned
+                                         // and past end of bitstream in flash
 ) (
     input  logic clk,
     input  logic rst_n,
@@ -14,7 +15,7 @@ module controller_fsm #(
     input  logic        flash_waitrequest,
     input  logic        flash_readdatavalid,
     input  logic [31:0] flash_readdata,
-    output logic [22:0] flash_addr,
+    output logic [21:0] flash_addr,
     output logic        flash_read,
     output logic        flash_write,
 
@@ -52,68 +53,56 @@ module controller_fsm #(
 
     localparam SENTINEL = 8'hA5;
 
-    // EPCQ256 64 KB sector erase worst-case ~3 s.
+    // EPCQ128A 64 KB sector erase worst-case ~3 s.
     // 160 M cycles @ 50 MHz = 3.2 s.
     localparam ERASE_WAIT_CYCLES = 27'd160_000_000;
 
     // ----------------------------------------------------------------
     // Address layout
     //
-    // avl_mem takes WORD addresses; xip_addr_adaption shifts left by 2
-    // internally to produce the byte address on the SPI bus.
+    // avl_mem takes WORD addresses (22-bit); xip_addr_adaption shifts
+    // left by 2 internally to produce the byte address on the SPI bus.
     //   word_addr = byte_addr >> 2
+    //
+    // FLASH_BASE is a 24-bit byte address (e.g. 24'h6B0000).
+    // FLASH_BASE_WORD = byte address >> 2, truncated to 22 bits.
+    // This fits because EPCQ128A is 16 MB = 0xFFFFFF, and
+    // 0xFFFFFF >> 2 = 0x3FFFFF which is exactly 22 bits.
     //
     // Slot map:
     //   FLASH_BASE_WORD + 0           => sentinel  (0xA5, written LAST)
     //   FLASH_BASE_WORD + 1           => params[0][0]
-    //   FLASH_BASE_WORD + 2           => params[0][1]
     //   ...
     //   FLASH_BASE_WORD + FX*P        => params[FX_COUNT-1][PARAM_COUNT-1]
     //
-    // Sentinel written last means save_latch == 0xA5 only when every
-    // param write has already completed — a reliable success indicator.
+    // Sentinel written last means a valid sentinel == all params written.
     // ----------------------------------------------------------------
-    localparam [22:0] FLASH_BASE_WORD  = FLASH_BASE[22:0] >> 2;
-    localparam [22:0] SENTINEL_WORD    = FLASH_BASE_WORD;          // slot 0
-    localparam [22:0] FIRST_PARAM_WORD = FLASH_BASE_WORD + 23'd1;  // slot 1
+    localparam [21:0] FLASH_BASE_WORD  = FLASH_BASE[23:2];   // byte addr -> word addr
+    localparam [21:0] SENTINEL_WORD    = FLASH_BASE_WORD;          // slot 0
+    localparam [21:0] FIRST_PARAM_WORD = FLASH_BASE_WORD + 22'd1;  // slot 1
 
     // ----------------------------------------------------------------
-    // States — 5-bit to fit WREN + sentinel states cleanly
+    // States
     // ----------------------------------------------------------------
     typedef enum logic [4:0] {
         IDLE            = 5'd0,
-        //
-        // WREN before erase:
-        //   The XIP path auto-sends WREN before every page-program.
-        //   The CSR erase path does NOT — the flash silently ignores
-        //   any erase whose WEL bit is not set.  We must issue WREN
-        //   manually via the CSR before the sector-erase command.
-        //
+
+        // WREN before erase (CSR erase does NOT auto-issue WREN)
         ERASE_WREN_SET  = 5'd1,   // write CMD_SETTING = WREN (06h)
         ERASE_WREN_FIRE = 5'd2,   // fire WREN via CMD_CONTROL
-        //   After ERASE_WREN_FIRE we go straight to ERASE_SET_CMD.
-        //   The CSR is now busy executing WREN, so csr_waitrequest
-        //   stays high.  ERASE_SET_CMD stalls there automatically
-        //   until the WREN SPI transaction finishes — no extra wait
-        //   state needed.
         ERASE_SET_CMD   = 5'd3,   // write CMD_SETTING = sector erase (D8h)
         ERASE_SET_ADDR  = 5'd4,   // write CMD_ADDR = sector byte address
         ERASE_FIRE      = 5'd5,   // fire erase command
         ERASE_WAIT      = 5'd6,   // fixed-time wait for erase to complete
-        //
-        // Save — write all params first, then write sentinel LAST.
-        // SAVE_HOLD keeps flash_write asserted one extra cycle so the
-        // xip_addr_adaption pipeline sees write=1 && waitrequest=0 on
-        // the same edge (without this the XIP misses the write).
-        //
+
+        // Save: write all params, then write sentinel LAST
         SAVE_WRITE      = 5'd7,   // present param write, wait !waitrequest
-        SAVE_HOLD       = 5'd8,   // hold write one extra cycle
+        SAVE_HOLD       = 5'd8,   // hold write one extra cycle (XIP pipeline)
         SAVE_NEXT       = 5'd9,   // de-assert write, bump index
         SAVE_SENTINEL   = 5'd10,  // write 0xA5 to slot 0 (save confirmed)
         SAVE_SEN_HOLD   = 5'd11,  // hold sentinel write one extra cycle
-        //
-        // Load — read sentinel first to validate, then read params.
-        //
+
+        // Load: read sentinel first to validate, then read params
         LOAD_SEN_READ   = 5'd12,  // issue read of slot 0 (sentinel)
         LOAD_SEN_WAIT   = 5'd13,  // wait readdatavalid, check sentinel
         LOAD_READ       = 5'd14,  // issue read of param slot
@@ -123,15 +112,15 @@ module controller_fsm #(
     } state_t;
 
     state_t state, next;
-    assign fsm_state_debug = state[3:0];  // lower 4 bits for LED/SignalTap
+    assign fsm_state_debug = state[3:0];
 
     // ----------------------------------------------------------------
     // Word address for the current loop index
     // ----------------------------------------------------------------
-    logic [22:0] param_word_addr;
+    logic [21:0] param_word_addr;
     assign param_word_addr = FIRST_PARAM_WORD
-                           + 23'(curr_fx) * 23'(PARAM_COUNT)
-                           + 23'(curr_p);
+                           + 22'(curr_fx) * 22'(PARAM_COUNT)
+                           + 22'(curr_p);
 
     // ----------------------------------------------------------------
     // Erase wait counter
@@ -158,9 +147,6 @@ module controller_fsm #(
 
     // ----------------------------------------------------------------
     // Sentinel / load_valid
-    //   The next-state logic reads flash_readdata directly (avoids a
-    //   one-cycle registration delay on sentinel_ok).
-    //   load_valid is set here for use as a guard in the params store.
     // ----------------------------------------------------------------
     logic sentinel_ok;
     always_ff @(posedge clk) begin
@@ -202,12 +188,9 @@ module controller_fsm #(
                 if (!flash_csr_waitrequest) next = ERASE_WREN_FIRE;
 
             ERASE_WREN_FIRE:
-                // Proceed immediately; CSR busy with WREN means
-                // waitrequest will be high in ERASE_SET_CMD until it finishes.
                 if (!flash_csr_waitrequest) next = ERASE_SET_CMD;
 
             ERASE_SET_CMD:
-                // Stalls here while WREN SPI transaction is in progress.
                 if (!flash_csr_waitrequest) next = ERASE_SET_ADDR;
 
             ERASE_SET_ADDR:
@@ -227,7 +210,6 @@ module controller_fsm #(
                 next = SAVE_NEXT;
 
             SAVE_NEXT: begin
-                // curr values are pre-increment; detect last param
                 if (curr_fx == FX_COUNT-1 && curr_p == PARAM_COUNT-1)
                     next = SAVE_SENTINEL;
                 else
@@ -246,11 +228,10 @@ module controller_fsm #(
 
             LOAD_SEN_WAIT: begin
                 if (flash_readdatavalid) begin
-                    // Read flash_readdata directly — no registration lag
                     if (flash_readdata[7:0] == SENTINEL)
                         next = LOAD_READ;
                     else
-                        next = IDLE;   // sentinel bad → abort, leave params untouched
+                        next = IDLE;
                 end
             end
 
@@ -264,7 +245,6 @@ module controller_fsm #(
                 next = LOAD_NEXT;
 
             LOAD_NEXT: begin
-                // curr values are the index of the param just stored
                 if (curr_fx == FX_COUNT-1 && curr_p == PARAM_COUNT-1)
                     next = IDLE;
                 else
@@ -290,12 +270,12 @@ module controller_fsm #(
         rst_idx             = 1'b0;
         fsm_busy            = 1'b1;
         write_sentinel      = 1'b0;
-        flash_addr          = param_word_addr;  // default: param slot address
+        flash_addr          = param_word_addr;
 
         case (state)
             IDLE: begin
                 fsm_busy = 1'b0;
-                rst_idx  = 1'b1;   // hold index at (0,0) while idle
+                rst_idx  = 1'b1;
             end
 
             ERASE_WREN_SET: begin
@@ -317,7 +297,8 @@ module controller_fsm #(
                 flash_csr_write     = 1'b1;
                 flash_csr_addr      = CSR_CMD_ADDR;
                 // CSR erase takes a BYTE address; FLASH_BASE is already one.
-                flash_csr_writedata = {9'b0, FLASH_BASE[22:0]};
+                // Zero-extend 24-bit byte address to 32 bits.
+                flash_csr_writedata = {8'b0, FLASH_BASE[23:0]};
             end
             ERASE_FIRE: begin
                 flash_csr_write     = 1'b1;
@@ -325,31 +306,26 @@ module controller_fsm #(
                 flash_csr_writedata = CMD_FIRE;
             end
 
-            // Save: assert write for param, hold one extra cycle
             SAVE_WRITE: flash_write = 1'b1;
-            SAVE_HOLD:  flash_write = 1'b1;   // critical pipeline hold
+            SAVE_HOLD:  flash_write = 1'b1;
             SAVE_NEXT:  inc_idx     = 1'b1;
 
-            // Sentinel write: override address and flag
             SAVE_SENTINEL: begin
                 flash_write    = 1'b1;
                 flash_addr     = SENTINEL_WORD;
                 write_sentinel = 1'b1;
             end
             SAVE_SEN_HOLD: begin
-                flash_write    = 1'b1;         // critical pipeline hold
+                flash_write    = 1'b1;
                 flash_addr     = SENTINEL_WORD;
                 write_sentinel = 1'b1;
             end
 
-            // Load: read sentinel from slot 0
             LOAD_SEN_READ: begin
                 flash_read = 1'b1;
                 flash_addr = SENTINEL_WORD;
             end
-            // LOAD_SEN_WAIT: no bus outputs; just waiting
 
-            // Load: read param from param slot (param_word_addr is default)
             LOAD_READ:  flash_read  = 1'b1;
             LOAD_STORE: ld_from_mem = 1'b1;
             LOAD_NEXT:  inc_idx     = 1'b1;
