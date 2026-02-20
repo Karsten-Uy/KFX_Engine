@@ -21,7 +21,7 @@ module FlashMemInterface_intel_generic_serial_flash_interface_top_0 #(
 		input  wire [6:0]  avl_mem_burstcount,    //        .burstcount
 		output wire        avl_mem_waitrequest,   //        .waitrequest
 		input  wire        avl_mem_read,          //        .read
-		input  wire [22:0] avl_mem_address,       //        .address
+		input  wire [21:0] avl_mem_address,       //        .address
 		input  wire [31:0] avl_mem_writedata,     //        .writedata
 		output wire [31:0] avl_mem_readdata,      //        .readdata
 		output wire        avl_mem_readdatavalid, //        .readdatavalid
@@ -231,7 +231,7 @@ module FlashMemInterface_intel_generic_serial_flash_interface_top_0 #(
 	);
 
 	intel_generic_serial_flash_interface_addr #(
-		.ADDR_WIDTH (23)
+		.ADDR_WIDTH (22)
 	) xip_addr_adaption (
 		.clk                       (clk_clk),                                      //   clock_sink.clk
 		.reset                     (rst_controller_reset_out_reset),               //        reset.reset

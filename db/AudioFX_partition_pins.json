@@ -24,10 +24,6 @@
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_0[9]",
-					"strict" : false
-				},
-				{
 					"name" : "GPIO_0[10]",
 					"strict" : false
 				},
@@ -129,6 +125,10 @@
 				},
 				{
 					"name" : "GPIO_0[8]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[9]",
 					"strict" : false
 				},
 				{

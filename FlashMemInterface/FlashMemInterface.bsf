@@ -82,8 +82,8 @@ refer to the applicable agreement for further details.
 	(port
 		(pt 0 312)
 		(input)
-		(text "flash_mem_address[22..0]" (rect 0 0 108 12)(font "Arial" (font_size 8)))
-		(text "flash_mem_address[22..0]" (rect 4 301 148 312)(font "Arial" (font_size 8)))
+		(text "flash_mem_address[21..0]" (rect 0 0 107 12)(font "Arial" (font_size 8)))
+		(text "flash_mem_address[21..0]" (rect 4 301 148 312)(font "Arial" (font_size 8)))
 		(line (pt 0 312)(pt 160 312)(line_width 3))
 	)
 	(port

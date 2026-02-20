@@ -12,11 +12,11 @@ preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.seria
 preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.multiplexer -pg 1
 preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.clk_bridge -pg 1
 preplace inst FlashMemInterface.intel_generic_serial_flash_interface_top_0.xip_addr_adaption -pg 1
-preplace netloc POINT_TO_POINT<net_container>FlashMemInterface</net_container>(SLAVE)intel_generic_serial_flash_interface_top_0.clk,(MASTER)clk_0.clk) 1 1 1 N
-preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)intel_generic_serial_flash_interface_top_0.avl_mem,(SLAVE)FlashMemInterface.flash_mem) 1 0 2 NJ 80 NJ
+preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)FlashMemInterface.flash_mem,(SLAVE)intel_generic_serial_flash_interface_top_0.avl_mem) 1 0 2 NJ 80 NJ
 preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)FlashMemInterface.flash_csr,(SLAVE)intel_generic_serial_flash_interface_top_0.avl_csr) 1 0 2 NJ 60 NJ
-preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)clk_0.clk_in_reset,(SLAVE)FlashMemInterface.reset) 1 0 1 NJ
-preplace netloc POINT_TO_POINT<net_container>FlashMemInterface</net_container>(SLAVE)intel_generic_serial_flash_interface_top_0.reset,(MASTER)clk_0.clk_reset) 1 1 1 N
+preplace netloc POINT_TO_POINT<net_container>FlashMemInterface</net_container>(MASTER)clk_0.clk_reset,(SLAVE)intel_generic_serial_flash_interface_top_0.reset) 1 1 1 N
+preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)FlashMemInterface.reset,(SLAVE)clk_0.clk_in_reset) 1 0 1 NJ
+preplace netloc POINT_TO_POINT<net_container>FlashMemInterface</net_container>(MASTER)clk_0.clk,(SLAVE)intel_generic_serial_flash_interface_top_0.clk) 1 1 1 N
 preplace netloc EXPORT<net_container>FlashMemInterface</net_container>(SLAVE)clk_0.clk_in,(SLAVE)FlashMemInterface.clk) 1 0 1 NJ
 levelinfo -pg 1 0 70 660
 levelinfo -hier FlashMemInterface 80 110 450 580

@@ -31,7 +31,7 @@ module FlashMemInterface (
 	input	[6:0]	flash_mem_burstcount;
 	output		flash_mem_waitrequest;
 	input		flash_mem_read;
-	input	[22:0]	flash_mem_address;
+	input	[21:0]	flash_mem_address;
 	input	[31:0]	flash_mem_writedata;
 	output	[31:0]	flash_mem_readdata;
 	output		flash_mem_readdatavalid;

@@ -16,7 +16,7 @@ module FlashMemInterface (
 		input  wire [6:0]  flash_mem_burstcount,    //          .burstcount
 		output wire        flash_mem_waitrequest,   //          .waitrequest
 		input  wire        flash_mem_read,          //          .read
-		input  wire [22:0] flash_mem_address,       //          .address
+		input  wire [21:0] flash_mem_address,       //          .address
 		input  wire [31:0] flash_mem_writedata,     //          .writedata
 		output wire [31:0] flash_mem_readdata,      //          .readdata
 		output wire        flash_mem_readdatavalid, //          .readdatavalid

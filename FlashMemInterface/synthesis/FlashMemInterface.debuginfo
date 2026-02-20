@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="FlashMemInterface" kind="system" version="18.1" fabric="QSYS">
  <!-- Format version 18.1 625 (Future versions may contain additional information.) -->
- <!-- 2026.02.19.11:46:27 -->
+ <!-- 2026.02.20.09:23:04 -->
  <!-- A collection of modules and connections -->
  <parameter name="clockCrossingAdapter">
   <type>com.altera.sopcmodel.ensemble.EClockAdapter</type>
@@ -53,7 +53,7 @@
  </parameter>
  <parameter name="generationId">
   <type>int</type>
-  <value>1771530382</value>
+  <value>1771608181</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>true</visible>
@@ -478,7 +478,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="DEVICE_DENSITY">
    <type>int</type>
-   <value>256</value>
+   <value>128</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -1093,7 +1093,7 @@ parameters are a RESULT of the module parameters. -->
    </parameter>
    <parameter name="addressSpan">
     <type>java.math.BigInteger</type>
-    <value>33554432</value>
+    <value>16777216</value>
     <derived>true</derived>
     <enabled>true</enabled>
     <visible>false</visible>
@@ -1416,7 +1416,7 @@ parameters are a RESULT of the module parameters. -->
    <port>
     <name>avl_mem_address</name>
     <direction>Input</direction>
-    <width>23</width>
+    <width>22</width>
     <role>address</role>
    </port>
    <port>
@@ -1678,5 +1678,5 @@ parameters are a RESULT of the module parameters. -->
   <version>18.1</version>
  </plugin>
  <reportVersion>18.1 625</reportVersion>
- <uniqueIdentifier>5CE42AD236230000019C777075E0</uniqueIdentifier>
+ <uniqueIdentifier>5CE42AD236230000019C7C138D37</uniqueIdentifier>
 </EnsembleReport>
