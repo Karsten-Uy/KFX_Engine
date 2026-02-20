@@ -292,83 +292,123 @@ module AudioFX(
 		
 		// Input Gain (FX 0)
 		fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_INPUT_GAIN (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(pre_fx), .audio_out(gain_in_out),
-			.fx_gain(params[0][0]), .sample_en(sample_en_pipe[0])
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(pre_fx),
+			.audio_out(gain_in_out),
+			.fx_gain(params[0][0]), 
+			.sample_en(sample_en_pipe[0])
 		);
 
 		// Gate (FX 1)
 		fx_gate #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_GATE (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(gain_in_out), .audio_out(gate_out),
-			.fx_threshold(params[1][0]), .fx_attack(params[1][1]),
-			.fx_release(params[1][2]), .sample_en(sample_en_pipe[1])
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(gain_in_out), 
+			.audio_out(gate_out),
+			.fx_threshold(params[1][0]), 
+			.fx_attack(params[1][1]),
+			.fx_release(params[1][2]), 
+			.fx_knee      (params[1][3]),
+        	.fx_depth     (params[1][4]),
+			.sample_en(sample_en_pipe[1])
 		);
 
 		// EQ 1 (FX 2)
 		fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_1 (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(gate_out), .audio_out(eq_out_1),
-			.fx_sub_gain(params[2][0]), .fx_low_gain(params[2][1]),
-			.fx_mid_gain(params[2][2]), .fx_high_gain(params[2][3]),
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(gate_out), 
+			.audio_out(eq_out_1),
+			.fx_sub_gain(params[2][0]), 
+			.fx_low_gain(params[2][1]),
+			.fx_mid_gain(params[2][2]), 
+			.fx_high_gain(params[2][3]),
 			.sample_en(sample_en_pipe[2])
 		);
 
 		// Compressor (FX 3)
 		fx_compressor #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_COMPRESSOR (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(eq_out_1), .audio_out(comp_out),
-			.fx_threshold(params[3][0]), .fx_ratio(params[3][1]),
-			.fx_attack(params[3][2]), .fx_release(params[3][3]),
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(eq_out_1), 
+			.audio_out(comp_out),
+			.fx_threshold(params[3][0]), 
+			.fx_ratio(params[3][1]),
+			.fx_attack(params[3][2]), 
+			.fx_release(params[3][3]),
 			.sample_en(sample_en_pipe[3])
 		);
 
 		// Distortion (FX 4)
 		fx_distortion #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DISTORTION (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(comp_out), .audio_out(dist_out),
-			.fx_drive(params[4][0]), .fx_makeup_gain(params[4][1]),
-			.fx_mix(params[4][2]), .sample_en(sample_en_pipe[4])
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(comp_out), 
+			.audio_out(dist_out),
+			.fx_drive(params[4][0]), 
+			.fx_makeup_gain(params[4][1]),
+			.fx_mix(params[4][2]), 
+			.sample_en(sample_en_pipe[4])
 		);
 
 		// EQ 2 (FX 5)
 		fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_2 (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(dist_out), .audio_out(eq_out_2),
-			.fx_sub_gain(params[5][0]), .fx_low_gain(params[5][1]),
-			.fx_mid_gain(params[5][2]), .fx_high_gain(params[5][3]),
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(dist_out), 
+			.audio_out(eq_out_2),
+			.fx_sub_gain(params[5][0]), 
+			.fx_low_gain(params[5][1]),
+			.fx_mid_gain(params[5][2]), 
+			.fx_high_gain(params[5][3]),
 			.sample_en(sample_en_pipe[5])
 		);
 
 		// Chorus (FX 6)
 		fx_chorus #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_CHORUS (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(eq_out_2), .audio_out(chorus_out),
-			.fx_rate(params[6][0]), .fx_depth(params[6][1]),
-			.fx_mix(params[6][2]), .sample_en(sample_en_pipe[6])
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(eq_out_2), 
+			.audio_out(chorus_out),
+			.fx_rate(params[6][0]), 
+			.fx_depth(params[6][1]),
+			.fx_mix(params[6][2]), 
+			.sample_en(sample_en_pipe[6])
 		);
 
 		// Delay (FX 7)
 		fx_delay #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DELAY (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(chorus_out), .audio_out(delay_out),
-			.fx_time(params[7][0]), .fx_feedback(params[7][1]),
-			.fx_mix(params[7][2]), .sample_en(sample_en_pipe[7])
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(chorus_out), 
+			.audio_out(delay_out),
+			.fx_time(params[7][0]), 
+			.fx_feedback(params[7][1]),
+			.fx_mix(params[7][2]), 
+			.sample_en(sample_en_pipe[7])
 		);
 
 		// Reverb (FX 8)
 		fx_reverb #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_REVERB (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(delay_out), .audio_out(reverb_out),
-			.fx_size(params[8][0]), .fx_damping(params[8][1]),
-			.fx_mix(params[8][2]), .sample_en(sample_en_pipe[8])
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(delay_out), 
+			.audio_out(reverb_out),
+			.fx_size(params[8][0]), 
+			.fx_damping(params[8][1]),
+			.fx_mix(params[8][2]), 
+			.sample_en(sample_en_pipe[8])
 		);
 
 		// Output Gain (FX 9)
 		fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_OUTPUT_GAIN (
-			.clk(CLOCK_50), .reset_n(KEY[0]),
-			.audio_in(reverb_out), .audio_out(gain_out_out),
-			.fx_gain(params[9][0]), .sample_en(sample_en_pipe[9])
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(reverb_out), 
+			.audio_out(gain_out_out),
+			.fx_gain(params[9][0]), 
+			.sample_en(sample_en_pipe[9])
 		);
 
 		// FX Chain output to DAC.

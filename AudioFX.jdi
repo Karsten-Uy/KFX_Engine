@@ -1,6 +1,6 @@
 <sld_project_info>
   <project>
-    <hash md5_digest_80b="83e1a65aa74538aa2512"/>
+    <hash md5_digest_80b="a5bc89d1d58c4d62397f"/>
   </project>
   <file_info>
     <file device="5CSEMA5F31C6" path="AudioFX.sof" usercode="0xFFFFFFFF"/>
@@ -15,8 +15,8 @@
         <parameter name="SLD_IP_VERSION" type="dec" value="6"/>
         <parameter name="SLD_IP_MINOR_VERSION" type="dec" value="0"/>
         <parameter name="SLD_COMMON_IP_VERSION" type="dec" value="0"/>
-        <parameter name="sld_data_bits" type="unknown" value="402"/>
-        <parameter name="sld_trigger_bits" type="unknown" value="402"/>
+        <parameter name="sld_data_bits" type="unknown" value="306"/>
+        <parameter name="sld_trigger_bits" type="unknown" value="306"/>
         <parameter name="SLD_NODE_CRC_BITS" type="dec" value="32"/>
         <parameter name="SLD_NODE_CRC_HIWORD" type="dec" value="41394"/>
         <parameter name="SLD_NODE_CRC_LOWORD" type="dec" value="50132"/>
@@ -50,14 +50,14 @@
         <parameter name="SLD_ADVANCED_TRIGGER_8" type="string" value="NONE"/>
         <parameter name="SLD_ADVANCED_TRIGGER_9" type="string" value="NONE"/>
         <parameter name="SLD_ADVANCED_TRIGGER_10" type="string" value="NONE"/>
-        <parameter name="sld_inversion_mask_length" type="unknown" value="1227"/>
-        <parameter name="sld_inversion_mask" type="unknown" value="000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"/>
+        <parameter name="sld_inversion_mask_length" type="unknown" value="939"/>
+        <parameter name="sld_inversion_mask" type="unknown" value="000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"/>
         <parameter name="sld_power_up_trigger" type="unknown" value="0"/>
         <parameter name="SLD_STATE_FLOW_MGR_ENTITY" type="string" value="state_flow_mgr_entity.vhd"/>
         <parameter name="sld_state_flow_use_generated" type="unknown" value="0"/>
         <parameter name="sld_current_resource_width" type="unknown" value="1"/>
         <parameter name="sld_attribute_mem_mode" type="unknown" value="OFF"/>
-        <parameter name="sld_storage_qualifier_bits" type="unknown" value="402"/>
+        <parameter name="sld_storage_qualifier_bits" type="unknown" value="306"/>
         <parameter name="SLD_STORAGE_QUALIFIER_GAP_RECORD" type="dec" value="0"/>
         <parameter name="SLD_STORAGE_QUALIFIER_MODE" type="string" value="OFF"/>
         <parameter name="SLD_STORAGE_QUALIFIER_ENABLE_ADVANCED_CONDITION" type="dec" value="0"/>
@@ -75,27 +75,27 @@
     <sld_info hpath="AVConfig:u1" name="u1">
       <assignment_values>
         <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1769984953"/>
-        <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1771610955"/>
+        <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1771624129"/>
       </assignment_values>
       <parameters/>
     </sld_info>
     <sld_info hpath="AudioCodec:u2" name="u2">
       <assignment_values>
         <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1769984916"/>
-        <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1771610973"/>
+        <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1771624147"/>
       </assignment_values>
       <parameters/>
     </sld_info>
     <sld_info hpath="AudioPLL:u0" name="u0">
       <assignment_values>
         <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1769984936"/>
-        <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1771610964"/>
+        <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1771624138"/>
       </assignment_values>
       <parameters/>
     </sld_info>
     <sld_info hpath="FlashMemInterface:F_MEM" name="F_MEM">
       <assignment_values>
-        <assignment_value text="QSYS_NAME FlashMemInterface HAS_SOPCINFO 1 GENERATION_ID 1771610945"/>
+        <assignment_value text="QSYS_NAME FlashMemInterface HAS_SOPCINFO 1 GENERATION_ID 1771624116"/>
       </assignment_values>
       <parameters/>
     </sld_info>
