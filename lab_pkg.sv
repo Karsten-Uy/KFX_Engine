@@ -20,7 +20,7 @@ package lab_pkg;
     parameter PARAM_MIN   = 0;   // 2^0 - 1
     parameter DEBOUNCE_CNT_MAX = 1_000_000;
     parameter REPEAT_START_CNT = 15_000_000;  // ~300 ms
-    parameter REPEAT_RATE_CNT  = 2_000_000;    // ~40 ms
+    parameter REPEAT_RATE_CNT  = 1_000_000;    // ~40 ms
     parameter INCDEC_AMOUNT = 2; // ~20 ms @ 50 MHz
 
     // ------------------- Default Parameters ---------------
@@ -147,6 +147,7 @@ package lab_pkg;
     parameter SEVSEG_LINE_INDEX  = 5'd17;
     parameter SEVSEG_X_INDEX     = 5'd18;
     parameter SEVSEG_P_INDEX     = 5'd19;
+    parameter SEVSEG_B_INDEX     = 5'd20;
 
     // ------------------- DSP Params -------------------
     parameter FX_STAGES = 9;

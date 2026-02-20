@@ -11,7 +11,7 @@
  */
 
 // Macro for controlling whether to compile the DSP components or not
-`define NO_DSP
+// `define NO_DSP
 
 module AudioFX(
 	// Inputs
@@ -83,6 +83,7 @@ module AudioFX(
 	logic [$clog2(PARAM_COUNT)-1:0] param_sel;
 	logic [PARAM_W-1:0]             current_value;
 	logic [9:0]                     cont_LEDR;
+	logic                           fsm_busy;
 	
 	// FX Chain intermediate signals
 	logic [1:0][DATA_W-1:0] pre_fx; 
@@ -219,17 +220,18 @@ module AudioFX(
         .clk(CLOCK_50),
         .reset_n(KEY[0]),
         .sw_fx_sel(SW[9:6]),
-        .sw_param_sel(SW[3:1]),
+        .sw_param_sel(SW[4:2]),
         .key_inc(~KEY[2]),
         .key_dec(~KEY[3]),
 		.save_button(~KEY[1]),
-		.load_button(SW[5]),
+		.load_button(SW[1]),
         .params(params),
         .fx_sel(fx_sel),
         .param_sel(param_sel),
         .current_value(current_value),
 		
-		.LEDR(LEDR),
+		.LEDR(),
+		.fsm_busy(fsm_busy),
 
 		.flash_mem_address       (flash_mem_address),
 		.flash_mem_read          (flash_mem_read),
@@ -257,10 +259,11 @@ module AudioFX(
 		.fx_sel        (fx_sel),
 		.param_sel     (param_sel),
 		.current_value (current_value),
+		.fsm_busy      (fsm_busy),
 		.SW            (SW[9:0]),
-		.LEDR          ({HEX0[6:0],HEX1[2:0]}),
-		.HEX0          (),
-		.HEX1          (),
+		.LEDR          (LEDR),
+		.HEX0          (HEX0),
+		.HEX1          (HEX1),
 		.HEX2          (HEX2),
 		.HEX3          (HEX3),
 		.HEX4          (HEX4),
@@ -368,9 +371,17 @@ module AudioFX(
 			.fx_gain(params[9][0]), .sample_en(sample_en_pipe[9])
 		);
 
-		// FX Chain output to DAC
+		// FX Chain output to DAC.
+		//
+		// Mute while fsm_busy (save or load in progress):
+		//   During a flash load, params[] are written one byte at a time
+		//   while the FX chain is actively processing audio.  Each mid-stream
+		//   param change (gain, threshold, EQ band, etc.) produces a glitch
+		//   sample.  128 params loading in rapid succession = audible buzz.
+		//   Gating the DAC to zero for the brief duration of fsm_busy
+		//   (a few ms for load, ~3 s for save) eliminates this completely.
 		always@(posedge(CLOCK_50)) begin
-			if(SW[0]==1) begin
+			if (SW[0] == 1 || fsm_busy) begin
 				DAC_Data[0] <= 0;
 				DAC_Data[1] <= 0;
 				DAC_Valid[0] <= sample_en_pipe[9];

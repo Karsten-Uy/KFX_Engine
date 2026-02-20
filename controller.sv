@@ -17,7 +17,9 @@ module controller #(
     output logic [$clog2(PARAM_COUNT)-1:0] param_sel,
     output logic [PARAM_W-1:0]             current_value,
 
+    // Debug signals
     output logic [9:0] LEDR,
+    output logic fsm_busy,
 
     // Flash avl_mem
     output logic [22:0] flash_mem_address,
@@ -44,8 +46,9 @@ module controller #(
 
     logic inc_p, dec_p, sav_p, ld_p;
     logic inc_s, dec_s, sav_s, ld_s;
+
     logic inc_r, dec_r;
-    logic ld_mem, inc_idx, rst_idx, fsm_busy;
+    logic ld_mem, inc_idx, rst_idx;
     logic [$clog2(FX_COUNT)-1:0]    f_fx;
     logic [$clog2(PARAM_COUNT)-1:0] f_p;
     logic [3:0]  fsm_state_debug;

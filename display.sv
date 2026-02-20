@@ -29,6 +29,7 @@ module display #(
     input logic [$clog2(FX_COUNT)-1:0]    fx_sel,    // 4 bits
     input logic [$clog2(PARAM_COUNT)-1:0] param_sel, // 3 bits
     input logic [PARAM_W-1:0]             current_value,
+    input logic                           fsm_busy,
     input logic [9:0]                     SW,
 
     // UI feedback
@@ -89,6 +90,10 @@ module display #(
 
         if (SW[0]) begin
             val_HEX0 = SEVSEG_LINE_INDEX;
+        end
+
+        if (fsm_busy) begin
+            val_HEX1 = SEVSEG_B_INDEX;
         end
 
     end
