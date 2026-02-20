@@ -93,6 +93,18 @@ Software
 5. Connect the other AUX cable to the blue "LINE OUT" port at the top left of the board and then connect it to the output device
 6. PLAY
 
+#### How to create .jic file for power persistant design
+1. Compile via quartus to generate the .sof file normally
+2. Go to `File` > `Convert Programming File` in Quartus and then create the .jic file with the following settings and then click `Generate`
+  - Configuration device: `EPCQ128A`
+  - Flash Loader: `5CSEMA5`
+  - SOF Data: .sof file generated in step 1 (should be `AudioFX.sof`)
+  - Name: Whatever you want it to be (right now, I set the latest one to be `output_file.jic`)
+3. Plug in the DE1 SoC and open the `Programmer` tool then click `Auto Detect` and in the popup select `5CSEMA5`
+4. Right click on the second chip in the GUI and click `Change File` and select the file generated in step 2
+5. Check the `Program/Configure` box for the selected box and then click `Start` 
+  - This takes a few minutes to compile
+
 ### How to control FX
 `HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[3:1]` choose the parameter within that FX, and `SW[0]` mutes the output signal with `HEX[0]` being a line if it is muted.
 
