@@ -19,7 +19,7 @@ module controller #(
 
     output logic [9:0] LEDR,
 
-    // Flash avl_mem — writes go via XIP (handles WREN+PP+WIP internally)
+    // Flash avl_mem
     output logic [22:0] flash_mem_address,
     output logic        flash_mem_read,
     output logic        flash_mem_write,
@@ -29,7 +29,7 @@ module controller #(
     input  logic        flash_mem_readdatavalid,
     output logic [3:0]  flash_mem_byteenable,
 
-    // Flash avl_csr — sector erase only
+    // Flash avl_csr
     output logic [5:0]  flash_csr_address,
     output logic        flash_csr_write,
     output logic        flash_csr_read,
@@ -51,29 +51,110 @@ module controller #(
     logic [3:0]  fsm_state_debug;
     logic [31:0] latched_readdata;
     logic        load_valid;
-    logic        sentinel_checked;
+    logic        write_sentinel;
 
     assign fx_sel        = sw_fx_sel;
     assign param_sel     = sw_param_sel;
     assign current_value = params[fx_sel][param_sel];
 
-    // LED debug:
-    // [3:0] = FSM state          (keep — tells you exactly where it's stuck)
-    // [4]   = load_valid         (CRITICAL: lights up only if sentinel was found)
-    // [5]   = sentinel_checked   (lights up once first read data came back)
-    // [6]   = flash_mem_readdatavalid  (confirm reads are completing)
-    // [7]   = flash_mem_waitrequest    (stuck high = XIP is busy)
-    // [8]   = ld_s               (load switch stable — confirm input is registered)
-    // [9]   = sav_s              (save switch stable)
-    assign LEDR[3:0] = fsm_state_debug;
-    assign LEDR[4]   = load_valid;
-    assign LEDR[5]   = sentinel_checked;
-    assign LEDR[6]   = flash_mem_readdatavalid;
-    assign LEDR[7]   = flash_mem_waitrequest;
-    assign LEDR[8]   = ld_s;
-    assign LEDR[9]   = sav_s;
+    // ----------------------------------------------------------------
+    // Write data to flash
+    //
+    // The FSM drives write_sentinel=1 only during SAVE_SENTINEL and
+    // SAVE_SEN_HOLD, when writing the 0xA5 sentinel to slot 0.
+    // All other writes use params[f_fx][f_p] directly — no prev offset.
+    //
+    // With sentinel written LAST:
+    //   save_latch == 0xA5  →  every write landed, save confirmed
+    //   save_latch == 0xFF  →  writes never started (XIP not accepting)
+    //   save_latch == 0x??  →  last param byte written
+    // ----------------------------------------------------------------
+    assign flash_mem_writedata  = write_sentinel
+                                    ? {24'b0, SENTINEL}
+                                    : {24'b0, params[f_fx][f_p]};
+    assign flash_mem_byteenable = 4'b0001;   // byte 0 only
 
+    // ----------------------------------------------------------------
+    // Diagnostic LEDs
+    //
+    // Before any save/load:  LEDR[7:0] = current_value  (live)
+    // After save:            LEDR[7:0] = save_latch
+    //   → 0xA5 (10100101b) means all writes succeeded
+    //   → 0xFF means writes never started (XIP not accepting)
+    //   → 0x00 means params were all zero at save time
+    // After load:            LEDR[7:0] = load_latch
+    //   → should match save_latch for last slot if round-trip succeeded
+    //   → 0xFF means sentinel missing (flash unwritten or wrong address)
+    // During op:             LEDR[9]=1 (busy indicator)
+    // After load:            LEDR[8]=1 means sentinel was found and trusted
+    //
+    // Pressing inc/dec clears the sticky save/load display and returns
+    // to the live current_value view immediately.
+    // ----------------------------------------------------------------
+    logic [7:0] save_latch;
+    logic [7:0] load_latch;
+    logic        save_op_done;
+    logic        load_op_done;
+    logic        fsm_busy_prev;
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            save_latch    <= 8'hFF;   // 0xFF = "no write seen yet"
+            load_latch    <= 8'hFF;
+            save_op_done  <= 1'b0;
+            load_op_done  <= 1'b0;
+            fsm_busy_prev <= 1'b0;
+        end else begin
+            fsm_busy_prev <= fsm_busy;
+
+            // Capture every write byte that the XIP accepts
+            if (flash_mem_write && !flash_mem_waitrequest)
+                save_latch <= flash_mem_writedata[7:0];
+
+            // Capture every read byte returned from flash
+            if (flash_mem_readdatavalid)
+                load_latch <= flash_mem_readdata[7:0];
+
+            // Reset sticky flags when a new operation starts
+            if (sav_p || ld_p) begin
+                save_op_done <= 1'b0;
+                load_op_done <= 1'b0;
+            end
+
+            // Reset sticky flags when the user edits a param so the
+            // display returns to live current_value straight away
+            if (inc_p || inc_r || dec_p || dec_r) begin
+                save_op_done <= 1'b0;
+                load_op_done <= 1'b0;
+            end
+
+            // Mark which operation just completed
+            if (fsm_busy_prev && !fsm_busy) begin
+                // load_valid is set by the FSM when the sentinel was found
+                save_op_done <= !load_valid;
+                load_op_done <=  load_valid;
+            end
+        end
+    end
+
+    logic [7:0] ledr_data;
+    always_comb begin
+        if      (save_op_done)                          ledr_data = save_latch;
+        else if (load_op_done)                          ledr_data = load_latch;
+        else if (!fsm_busy && !save_op_done && !load_op_done) ledr_data = current_value;
+        else                                            ledr_data = save_latch | load_latch;
+    end
+
+    assign LEDR[7:0] = ledr_data;
+    assign LEDR[8]   = load_valid;   // 1 = sentinel found, load trusted
+    assign LEDR[9]   = fsm_busy;     // 1 = operation in progress
+
+    // ----------------------------------------------------------------
     // Flash index counters
+    //
+    // f_fx / f_p track the current param being saved or loaded.
+    // They address params[f_fx][f_p] DIRECTLY — no prev offset needed.
+    // ----------------------------------------------------------------
     always_ff @(posedge clk) begin
         if (!reset_n || rst_idx) begin
             f_fx <= '0;
@@ -88,49 +169,37 @@ module controller #(
         end
     end
 
-    logic is_sentinel_slot;
-    assign is_sentinel_slot = (f_fx == '0) && (f_p == '0);
-
-    logic [$clog2(FX_COUNT)-1:0]    prev_fx;
-    logic [$clog2(PARAM_COUNT)-1:0] prev_p;
-    always_comb begin
-        if (f_p == '0) begin
-            prev_fx = f_fx - 1'b1;
-            prev_p  = PARAM_COUNT - 1;
-        end else begin
-            prev_fx = f_fx;
-            prev_p  = f_p - 1'b1;
-        end
-    end
-
-    // avl_mem write data
-    assign flash_mem_writedata  = is_sentinel_slot ? {24'b0, SENTINEL}
-                                                   : {24'b0, params[prev_fx][prev_p]};
-    assign flash_mem_byteenable = 4'b0001; // byte 0 only
-
+    // ----------------------------------------------------------------
     // Parameter storage
-    // avl_mem reads return data from data_adapter_8_32 which packs:
-    //   first SPI byte → [7:0], second → [15:8], etc.
-    // We write one byte per word so the param is in [7:0].
+    // ----------------------------------------------------------------
     integer i, j;
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             for (i = 0; i < FX_COUNT; i++)
                 for (j = 0; j < PARAM_COUNT; j++)
                     params[i][j] <= param_default(i, j);
-        end else if (ld_mem && load_valid && !is_sentinel_slot) begin
-            params[prev_fx][prev_p] <= latched_readdata[7:0];
+
+        end else if (ld_mem && load_valid) begin
+            // ld_mem fires only in LOAD_STORE, which is reached only
+            // after the sentinel was validated.  Store directly to the
+            // current index — no offset or sentinel-slot guard needed.
+            params[f_fx][f_p] <= latched_readdata[7:0];
+
         end else if (!fsm_busy) begin
             if (inc_p || inc_r)
-                params[fx_sel][param_sel] <= (params[fx_sel][param_sel] < 8'd255) ?
-                                              params[fx_sel][param_sel] + 1'b1 : 8'd255;
+                params[fx_sel][param_sel] <= (params[fx_sel][param_sel] < 8'd255)
+                                              ? params[fx_sel][param_sel] + 1'b1
+                                              : 8'd255;
             if (dec_p || dec_r)
-                params[fx_sel][param_sel] <= (params[fx_sel][param_sel] > 8'd0) ?
-                                              params[fx_sel][param_sel] - 1'b1 : 8'd0;
+                params[fx_sel][param_sel] <= (params[fx_sel][param_sel] > 8'd0)
+                                              ? params[fx_sel][param_sel] - 1'b1
+                                              : 8'd0;
         end
     end
 
+    // ----------------------------------------------------------------
     // Debounce
+    // ----------------------------------------------------------------
     debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
         db_i (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s), .pulse(inc_p));
     debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
@@ -145,7 +214,9 @@ module controller #(
     repeat_unit #(.START_CNT(REPEAT_START_CNT), .RATE_CNT(REPEAT_RATE_CNT))
         rp_d (.clk(clk), .rst_n(reset_n), .stable(dec_s), .pulse(dec_r));
 
+    // ----------------------------------------------------------------
     // FSM
+    // ----------------------------------------------------------------
     controller_fsm #(
         .FX_COUNT(FX_COUNT),
         .PARAM_COUNT(PARAM_COUNT),
@@ -157,7 +228,6 @@ module controller #(
         .load_en(ld_p),
         .curr_fx(f_fx),
         .curr_p(f_p),
-        .write_data_byte(is_sentinel_slot ? SENTINEL : params[prev_fx][prev_p]),
 
         .flash_waitrequest   (flash_mem_waitrequest),
         .flash_readdatavalid (flash_mem_readdatavalid),
@@ -181,7 +251,7 @@ module controller #(
         .fsm_busy         (fsm_busy),
         .fsm_state_debug  (fsm_state_debug),
         .load_valid       (load_valid),
-        .sentinel_checked (sentinel_checked)
+        .write_sentinel   (write_sentinel)
     );
 
 endmodule
