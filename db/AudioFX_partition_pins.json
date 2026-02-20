@@ -24,71 +24,31 @@
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_0[10]",
+					"name" : "HEX2[0]",
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_0[11]",
+					"name" : "HEX2[1]",
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_0[12]",
+					"name" : "HEX2[2]",
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_0[13]",
+					"name" : "HEX2[3]",
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_0[14]",
+					"name" : "HEX2[4]",
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_0[15]",
+					"name" : "HEX2[5]",
 					"strict" : false
 				},
 				{
-					"name" : "FPGA_I2C_SCLK",
-					"strict" : false
-				},
-				{
-					"name" : "AUD_DACDAT",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[0]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[1]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[2]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[3]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[4]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[5]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[6]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[7]",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[8]",
+					"name" : "HEX2[6]",
 					"strict" : false
 				},
 				{
@@ -132,35 +92,71 @@
 					"strict" : false
 				},
 				{
+					"name" : "GPIO_0[10]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[11]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[12]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[13]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[14]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[15]",
+					"strict" : false
+				},
+				{
+					"name" : "AUD_DACDAT",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[0]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[1]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[2]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[3]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[4]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[5]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[6]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[7]",
+					"strict" : false
+				},
+				{
+					"name" : "LEDR[8]",
+					"strict" : false
+				},
+				{
 					"name" : "HEX0[6]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[0]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[1]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[2]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[3]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[4]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[5]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[6]",
 					"strict" : false
 				},
 				{
@@ -192,7 +188,7 @@
 					"strict" : false
 				},
 				{
-					"name" : "FPGA_I2C_SDAT",
+					"name" : "FPGA_I2C_SCLK",
 					"strict" : false
 				},
 				{
@@ -208,19 +204,7 @@
 					"strict" : false
 				},
 				{
-					"name" : "SW[9]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[7]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[8]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[6]",
+					"name" : "FPGA_I2C_SDAT",
 					"strict" : false
 				},
 				{
@@ -236,6 +220,22 @@
 					"strict" : false
 				},
 				{
+					"name" : "SW[9]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[6]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[7]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[8]",
+					"strict" : false
+				},
+				{
 					"name" : "SW[0]",
 					"strict" : false
 				},
@@ -248,19 +248,19 @@
 					"strict" : false
 				},
 				{
-					"name" : "SW[1]",
-					"strict" : false
-				},
-				{
-					"name" : "KEY[1]",
-					"strict" : false
-				},
-				{
 					"name" : "KEY[3]",
 					"strict" : false
 				},
 				{
 					"name" : "KEY[2]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[1]",
+					"strict" : false
+				},
+				{
+					"name" : "KEY[1]",
 					"strict" : false
 				},
 				{
