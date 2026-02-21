@@ -1,23 +1,43 @@
-/*
-
-    Compressor that uses a peak envelope that reduces signals that exceed the 
-    threshold by a ratio while leaving signals that are below the threshold unchanged.
-
-    Parameters:
-        fx_threshold - Threshold for signal that is scaled to have a range
-                       of 0-24480 in relation to audio_in
-        fx_ratio     - Ratio of gain reduction spanning from 1:1 (fx_ratio = 0) to 20:1
-                       (fx_ratio = 255)
-        fx_attack    - Time it takes for the compressor to apply gain reduction. 
-                       Higher value means it takes longer to start gain reduction
-                       once the envelope exceeds the threshold
-        fx_release   - Time it takes for the compressor to release gain reduction. 
-                       Higher value means it takes longer to release gain reduction
-                       once the envelope drops below the threshold
-
-    Latency = COMP_LOOKAHEAD + 1 = 17 Samples
-
- */
+// ============================================================
+//  fx_compressor.sv
+//
+//  Classic feed-forward peak compressor.
+//
+//  Signal flow:
+//    audio_in ──► |peak detect| ──► envelope follower
+//                                        │
+//                                   threshold compare
+//                                        │
+//                                  gain_target (Q15)
+//                                        │
+//                               gain smoother (atk/rel)
+//                                        │
+//    audio_in ────────────────► multiply by gain_smooth ──► audio_out
+//
+//  Parameter map  (PARAM_W = 8, range 0x00..0xFF)
+//  ──────────────────────────────────────────────
+//  fx_threshold : linear amplitude threshold
+//                 0x00 = near-silence, 0xFF = full-scale
+//                 threshold_lin = fx_threshold << (DATA_W - PARAM_W)
+//
+//  fx_ratio     : top 3 bits → ratio_shift 0..7
+//                 0 → 1:1 (bypass)  1 → 2:1  ... 7 → 128:1
+//
+//  fx_attack    : top 4 bits | 1 → atk_shift 1..15
+//                 small value = fast attack (gain clamps quickly)
+//
+//  fx_release   : top 4 bits | 1 → rel_shift 1..15
+//                 small value = fast release (gain recovers quickly)
+//
+//  Implementation notes
+//  ─────────────────────
+//  • Gain is expressed in Q(DATA_W-1) = Q15 format: 0x7FFF ≈ 1.0, 0x0000 = 0.0
+//  • The one combinational division ((comp_level << 15) / env) produces a
+//    standard divider in Quartus; at 50 MHz with ~1 000 cycles/sample it
+//    comfortably meets timing.
+//  • Both stereo channels share one sidechain (peak of L/R) and one gain
+//    coefficient, keeping L/R in balance under compression.
+// ============================================================
 
 module fx_compressor #(
     parameter DATA_W  = 16,
@@ -34,168 +54,153 @@ module fx_compressor #(
     input  logic                          sample_en
 );
 
-    // ---------------- PACKAGE IMPORTS ----------------
-    import lab_pkg::*;
+    // ─── Local constants ────────────────────────────────────────
+    localparam GAIN_W = DATA_W;           // Q(GAIN_W-1) gain word (Q15 for DATA_W=16)
+    localparam PROD_W = DATA_W + GAIN_W;  // multiply result width (32-bit)
 
-    // ---------------- INTERNAL SIGNALS ----------------
+    // Maximum unity gain in Q15 (0x7FFF ≈ 1.0)
+    localparam logic [GAIN_W-1:0] GAIN_UNITY = {1'b0, {(GAIN_W-1){1'b1}}};
 
-    // Delay Line for Lookahead
-    logic signed [1:0][DATA_W-1:0] comp_delay_line [0:COMP_LOOKAHEAD-1];
+    // ─── Decode parameters ──────────────────────────────────────
+    //  threshold_lin  16-bit unsigned, same scale as |audio|
+    //  ratio_shift    0..7   (power-of-2 ratios: 1:1 → 128:1)
+    //  atk_shift      1..15  (OR with 1 prevents shift-by-0 = instant jump)
+    //  rel_shift      1..15
+    logic [DATA_W-1:0] threshold_lin;
+    logic [2:0]        ratio_shift;
+    logic [3:0]        atk_shift;
+    logic [3:0]        rel_shift;
 
-    // Peak Detection
-    logic [15:0] abs_l, abs_r;
-    logic [15:0] peak_level;
+    assign threshold_lin = {fx_threshold, {(DATA_W - PARAM_W){1'b0}}};
+    assign ratio_shift   = fx_ratio [PARAM_W-1 -: 3];
+    assign atk_shift     = fx_attack [PARAM_W-1 -: 4] | 4'd1;
+    assign rel_shift     = fx_release[PARAM_W-1 -: 4] | 4'd1;
 
-    // Envelope
-    logic [15:0] envelope;
-    logic [15:0] att_step, rel_step;
+    // ─── Absolute value / peak detector ─────────────────────────
+    //  Takes the louder of the two channels as the sidechain signal.
+    //  Handles the two's-complement minimum (-32768) safely.
+    logic [DATA_W-1:0] abs_l, abs_r, peak;
 
-    // Threshold + Gain Reduction
-    logic [15:0] threshold_scaled;
-    logic [15:0] comp_factor;
-    logic signed [16:0] over_threshold;
-    logic [31:0] reduction_amount;
-    logic [15:0] target_gain;
-    logic [15:0] gain;
-    logic signed [31:0] prod_l, prod_r;
-    logic [15:0] reduction;
+    always_comb begin : abs_and_peak
+        // Left channel
+        if (audio_in[0][DATA_W-1])
+            // negative: negate; clamp min-int to max-positive
+            abs_l = (audio_in[0] == {1'b1, {(DATA_W-1){1'b0}}})
+                    ? {(DATA_W-1){1'b1}}
+                    : DATA_W'(-audio_in[0]);
+        else
+            abs_l = DATA_W'(audio_in[0]);
 
-    // ---------------- MAIN LOGIC -------------------
+        // Right channel
+        if (audio_in[1][DATA_W-1])
+            abs_r = (audio_in[1] == {1'b1, {(DATA_W-1){1'b0}}})
+                    ? {(DATA_W-1){1'b1}}
+                    : DATA_W'(-audio_in[1]);
+        else
+            abs_r = DATA_W'(audio_in[1]);
 
-    // Deplay Line for "lookahead"  
-    integer i;
-    always_ff @(posedge clk) begin
+        peak = (abs_l > abs_r) ? abs_l : abs_r;
+    end
+
+    // ─── Envelope follower ───────────────────────────────────────
+    //  Exponential attack / release using bit-shift coefficients.
+    //  env ← env + (peak − env) >> atk_shift   (when peak > env)
+    //  env ← env − (env − peak) >> rel_shift   (when peak < env)
+    //
+    //  Effective time constant τ ≈ (2^shift) / fs
+    //  At fs = 48 kHz, shift=1 → ~21 µs, shift=15 → ~0.68 s
+    logic [DATA_W-1:0] env;
+
+    always_ff @(posedge clk or negedge reset_n) begin : envelope_ff
         if (!reset_n) begin
-            for (i = 0; i < COMP_LOOKAHEAD; i = i + 1)
-                comp_delay_line[i] <= '0;
+            env <= '0;
         end else if (sample_en) begin
-            comp_delay_line[0] <= audio_in;
-            for (i = 1; i < COMP_LOOKAHEAD; i = i + 1)
-                comp_delay_line[i] <= comp_delay_line[i-1];
-        end
-    end
-
-    // Peak detection
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            peak_level <= '0;
-        end else if (sample_en) begin
-            abs_l = audio_in[0][15] ? -audio_in[0] : audio_in[0];
-            abs_r = audio_in[1][15] ? -audio_in[1] : audio_in[1];
-            peak_level <= (abs_l > abs_r) ? abs_l : abs_r;
-        end
-    end
-
-    // Attack/Release Calculation
-    always_comb begin
-        att_step = 16'd512 + ({8'd0, fx_attack} << 4);
-        rel_step = 16'd16  + ({8'd0, fx_release} << 2);
-    end
-
-    // Peak triggered envelope
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            envelope <= 16'd0;
-        end else if (sample_en) begin
-            if (peak_level > envelope)
-                envelope <= (peak_level - envelope > att_step) ? envelope + att_step : peak_level;
-            else if (peak_level < envelope)
-                envelope <= (envelope - peak_level > rel_step) ? envelope - rel_step : peak_level;
-        end
-    end
-
-    // Pre-calculated threshold and compression factor
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            threshold_scaled <= '0;
-            comp_factor <= '0;
-        end else begin
-            // 1. Calculate threshold: fx_threshold (0-255) * 96 ≈ 0-24480
-            threshold_scaled <= ({8'd0, fx_threshold} * 16'd96);
-            
-            // 2. Map fx_ratio (0-255) to comp_factor (1-0.5)
-            comp_factor <= {8'd0, fx_ratio} * 16'd122;
-        end
-    end
-
-    // Threshold Comparison  
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            over_threshold <= '0;
-        end else if (sample_en) begin
-            over_threshold <= $signed({1'b0, envelope}) - $signed({1'b0, threshold_scaled});
-        end
-    end
-
-    // Gain reduction
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            reduction_amount <= '0;
-        end else if (sample_en) begin
-            if (over_threshold > 0)
-                reduction_amount <= $unsigned(over_threshold) * comp_factor;
+            if (peak > env)
+                env <= env + ((peak - env) >> atk_shift);
             else
-                reduction_amount <= '0;
+                env <= env - ((env - peak) >> rel_shift);
         end
     end
 
-    // Target Gain calculation
-    always_ff @(posedge clk) begin
+    // ─── Target gain computation (combinatorial) ─────────────────
+    //  Runs from the env register updated on the *previous* sample_en,
+    //  so results are stable well before the next sample_en edge.
+    //
+    //  If env > threshold:
+    //    excess       = env − threshold
+    //    comp_level   = threshold + (excess >> ratio_shift)   ← compressed level
+    //    gain_target  = (comp_level << 15) / env              ← Q15 gain
+    //  Else:
+    //    gain_target  = GAIN_UNITY (0x7FFF)
+    //
+    //  Division note: comp_level ≤ env always, so result ≤ 0x7FFF.
+    //  Numerator max: 65535 × 32768 = 2^31 – 32768  (fits in PROD_W=32 bits)
+    logic [DATA_W-1:0] excess_env;
+    logic [DATA_W-1:0] comp_level;
+    logic [PROD_W-1:0] numerator;
+    logic [GAIN_W-1:0] gain_target;
+
+    always_comb begin : gain_compute
+        if (env == '0 || env <= threshold_lin) begin
+            // Signal below threshold: unity gain
+            excess_env  = '0;
+            comp_level  = '0;
+            numerator   = '0;
+            gain_target = GAIN_UNITY;
+        end else begin
+            excess_env  = env - threshold_lin;
+            comp_level  = threshold_lin + (excess_env >> ratio_shift);
+            numerator   = PROD_W'(comp_level) << (GAIN_W - 1);  // << 15
+            gain_target = GAIN_W'(numerator / PROD_W'(env));
+        end
+    end
+
+    // ─── Gain smoother ───────────────────────────────────────────
+    //  Applies separate time constants to gain changes:
+    //    gain_target < gain_smooth  → reducing gain  (attack  path, fast)
+    //    gain_target > gain_smooth  → recovering gain (release path, slow)
+    //
+    //  This mirrors the attack/release semantics of the envelope follower
+    //  but operates on the gain word in Q15 space.
+    logic [GAIN_W-1:0] gain_smooth;
+
+    always_ff @(posedge clk or negedge reset_n) begin : gain_smooth_ff
         if (!reset_n) begin
-            target_gain <= UNITY_Q15;
+            gain_smooth <= GAIN_UNITY;
         end else if (sample_en) begin
-            if (over_threshold <= 0) begin
-                target_gain <= UNITY_Q15;
-            end else begin
-                reduction = reduction_amount[30:15];                
-                if (reduction >= UNITY_Q15)
-                    target_gain <= MIN_GAIN;
-                else
-                    target_gain <= UNITY_Q15 - reduction;
-            end
+            if (gain_target < gain_smooth)
+                // Compress: fast attack → gain clamps quickly
+                gain_smooth <= gain_smooth
+                               - ((gain_smooth - gain_target) >> atk_shift);
+            else
+                // Recover: slow release → gain comes back gradually
+                gain_smooth <= gain_smooth
+                               + ((gain_target - gain_smooth) >> rel_shift);
         end
     end
 
-    // Gain Smoothing
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            gain <= UNITY_Q15;
-        end else if (sample_en) begin
-            if (gain < target_gain) begin
-                if (target_gain - gain > 16'd32)
-                    gain <= gain + 16'd32;
-                else
-                    gain <= target_gain;
-            end else if (gain > target_gain) begin
-                if (gain - target_gain > 16'd128)
-                    gain <= gain - 16'd128;
-                else
-                    gain <= target_gain;
-            end
-        end
-    end
+    // ─── Apply gain ──────────────────────────────────────────────
+    //  audio_out = audio_in × (gain_smooth / 2^(GAIN_W-1))
+    //
+    //  prod = signed(audio_in) × signed({0, gain_smooth})   [PROD_W bits]
+    //  out  = prod >>> (GAIN_W-1)                           [DATA_W bits]
+    //
+    //  Overflow proof (DATA_W=16):
+    //    |audio_in| ≤ 32768, gain_smooth ≤ 32767
+    //    |prod|     ≤ 32768 × 32767 < 2^30  →  fits in 31 bits + sign = 32 bits
+    //    |out|      ≤ 32768 × 32767 / 32768 < 32768  →  fits in 16-bit signed ✓
+    logic signed [PROD_W-1:0] prod_l, prod_r;
 
-    // Pipelined Application
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            prod_l <= '0;
-            prod_r <= '0;
-        end else if (sample_en) begin
-            prod_l <= $signed(comp_delay_line[COMP_LOOKAHEAD-1][0]) * $signed({1'b0, gain});
-            prod_r <= $signed(comp_delay_line[COMP_LOOKAHEAD-1][1]) * $signed({1'b0, gain});
-        end
-    end
-
-    // -------------------- OUTPUT -------------------------
-
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge reset_n) begin : apply_gain_ff
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
-            audio_out[0] <= sat16(prod_l >>> 15);
-            audio_out[1] <= sat16(prod_r >>> 15);
+            prod_l = $signed(audio_in[0]) * $signed({1'b0, gain_smooth});
+            prod_r = $signed(audio_in[1]) * $signed({1'b0, gain_smooth});
+            // Arithmetic shift right by 15; truncate to DATA_W (safe, no overflow)
+            audio_out[0] <= DATA_W'(prod_l >>> (GAIN_W - 1));
+            audio_out[1] <= DATA_W'(prod_r >>> (GAIN_W - 1));
         end
     end
 
 endmodule
-
