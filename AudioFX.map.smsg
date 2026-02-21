@@ -1,6 +1,5 @@
 Info (10281): Verilog HDL Declaration information at repeat_unit.sv(2): object "RATE_CNT" differs only in case from object "rate_cnt" in the same scope File: C:/Users/karst/Documents/HaH_processor/repeat_unit.sv Line: 2
 Warning (10268): Verilog HDL information at delay_line_li.sv(76): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/delay_line_li.sv Line: 76
-Warning (10268): Verilog HDL information at fx_gate.sv(443): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_gate.sv Line: 443
 Info (10281): Verilog HDL Declaration information at fx_delay.sv(44): object "DELAY_RANGE" differs only in case from object "delay_range" in the same scope File: C:/Users/karst/Documents/HaH_processor/fx_delay.sv Line: 44
 Warning (10268): Verilog HDL information at fx_compressor.sv(79): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 79
 Warning (10268): Verilog HDL information at fx_compressor.sv(143): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 143
