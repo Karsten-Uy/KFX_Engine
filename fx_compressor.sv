@@ -1,5 +1,5 @@
 // ============================================================
-//  fx_compressor.sv  (rev 7 — Full Feature: Anti-Buzz + Gains)
+//  fx_compressor.sv  (rev 8 — Added Mix / Parallel Compression)
 // ============================================================
 
 module fx_compressor #(
@@ -16,9 +16,10 @@ module fx_compressor #(
     input  logic [PARAM_W-1:0]            fx_ratio,
     input  logic [PARAM_W-1:0]            fx_attack,
     input  logic [PARAM_W-1:0]            fx_release,
-    // Gain Params (Linear 0..255, where 64 = 1.0x Unity)
+    // Gain & Mix Params
     input  logic [PARAM_W-1:0]            fx_input_gain,
     input  logic [PARAM_W-1:0]            fx_makeup_gain,
+    input  logic [PARAM_W-1:0]            fx_mix, // 0 = Dry, 255 = Wet
     input  logic                          sample_en
 );
 
@@ -28,7 +29,6 @@ module fx_compressor #(
     localparam logic [GAIN_W-1:0] GAIN_UNITY = 16'h7FFF; 
 
     // --- 1. Input Gain Stage ---
-    // Multiplies signal before Sidechain and Delay line.
     logic signed [1:0][DATA_W-1:0] audio_pre;
 
     always_ff @(posedge clk or negedge reset_n) begin : input_gain_ff
@@ -38,7 +38,7 @@ module fx_compressor #(
             pre_l = $signed(audio_in[0]) * $signed({1'b0, fx_input_gain});
             pre_r = $signed(audio_in[1]) * $signed({1'b0, fx_input_gain});
             
-            // Normalize (64=Unity) and Saturate to prevent wrap-around clipping
+            // Normalize (64=Unity) and Saturate
             audio_pre[0] <= (pre_l >>> 6 > 32767)  ? 16'h7FFF : (pre_l >>> 6 < -32768) ? 16'h8000 : pre_l[15+6:6];
             audio_pre[1] <= (pre_r >>> 6 > 32767)  ? 16'h7FFF : (pre_r >>> 6 < -32768) ? 16'h8000 : pre_r[15+6:6];
         end
@@ -80,15 +80,13 @@ module fx_compressor #(
     end
 
     // --- 5. High-Precision Sequential Divider ---
-    // Computes: gain_target = (comp_level << 15) / env
     logic [DATA_W-1:0] dv_comp, dv_env;
     logic              dv_bypass;
     logic [DATA_W:0]   dv_rem; 
     logic [GAIN_W-1:0] dv_quot;
     logic [4:0]        dv_cnt;
     logic              dv_done;
-
-    logic [DATA_W:0] trial;
+    logic [DATA_W:0]   trial;
 
     always_ff @(posedge clk or negedge reset_n) begin : divider_ff
         if (!reset_n) begin
@@ -104,7 +102,6 @@ module fx_compressor #(
                 dv_quot   <= '0;
                 dv_cnt    <= 5'd16;
             end else if (dv_cnt != 0) begin
-                // Trial subtraction for Q15 result
                 trial = {dv_rem[DATA_W-1:0], 1'b0};
                 if (trial >= {1'b0, dv_env}) begin
                     dv_rem <= trial - {1'b0, dv_env};
@@ -125,12 +122,11 @@ module fx_compressor #(
         else if (dv_done) gain_target_r <= dv_bypass ? GAIN_UNITY : dv_quot;
     end
 
-    // --- 6. High-Speed Smoother (The "Anti-Buzz" Engine) ---
+    // --- 6. High-Speed Smoother (Anti-Buzz) ---
     logic [GAIN_W-1:0] gain_smooth;
     always_ff @(posedge clk or negedge reset_n) begin : gain_smooth_ff
         if (!reset_n) gain_smooth <= GAIN_UNITY;
         else begin 
-            // Updating at 50MHz instead of 48kHz removes audible stepping.
             if (gain_target_r < gain_smooth)
                 gain_smooth <= gain_smooth - ((gain_smooth - gain_target_r) >> (atk_s + 10));
             else
@@ -141,33 +137,44 @@ module fx_compressor #(
     // --- 7. Lookahead Delay ---
     logic signed [1:0][DATA_W-1:0] audio_lookahead [0:LOOKAHEAD_SAMPLES-1];
     always_ff @(posedge clk or negedge reset_n) begin
-        if (!reset_n) for (int i=0; i<LOOKAHEAD_SAMPLES; i++) audio_lookahead[i] <= '0;
+        if (!reset_n) for (int i=0; i<LOOKAHEAD_SAMPLES-1; i++) audio_lookahead[i] <= '0;
         else if (sample_en) begin
             audio_lookahead[0] <= audio_pre;
             for (int i=1; i<LOOKAHEAD_SAMPLES; i++) audio_lookahead[i] <= audio_lookahead[i-1];
         end
     end
 
-    // --- 8. Output Stage: Compression + Makeup Gain + Rounding ---
-
     logic signed [PROD_W-1:0] p_l, p_r;
     logic signed [PROD_W+PARAM_W:0] m_l, m_r;
-    
+    logic signed [DATA_W-1:0] wet_l, wet_r;
+    logic signed [DATA_W-1:0] dry_l, dry_r;
+    logic signed [DATA_W+PARAM_W:0] mixed_l, mixed_r;
+
+    // --- 8. Output Stage: Compression + Mix ---
     always_ff @(posedge clk or negedge reset_n) begin : apply_gain_ff
         if (!reset_n) audio_out <= '0;
         else if (sample_en) begin
+
+            // 1. "Dry" signal is the delayed version (pre-compression but post-input-gain)
+            dry_l = audio_lookahead[LOOKAHEAD_SAMPLES-1][0];
+            dry_r = audio_lookahead[LOOKAHEAD_SAMPLES-1][1];
+
+            // 2. Generate "Wet" signal (Compressed + Makeup)
+            p_l = $signed(dry_l) * $signed({1'b0, gain_smooth});
+            p_r = $signed(dry_r) * $signed({1'b0, gain_smooth});
             
-            // Apply Compression
-            p_l = $signed(audio_lookahead[LOOKAHEAD_SAMPLES-1][0]) * $signed({1'b0, gain_smooth});
-            p_r = $signed(audio_lookahead[LOOKAHEAD_SAMPLES-1][1]) * $signed({1'b0, gain_smooth});
-            
-            // Apply Makeup Gain
             m_l = (p_l >>> 15) * $signed({1'b0, fx_makeup_gain});
             m_r = (p_r >>> 15) * $signed({1'b0, fx_makeup_gain});
 
-            // Normalize (64=Unity), Saturate, and Round
-            audio_out[0] <= (m_l >>> 6 > 32767)  ? 16'h7FFF : (m_l >>> 6 < -32768) ? 16'h8000 : m_l[15+6:6];
-            audio_out[1] <= (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
+            wet_l = (m_l >>> 6 > 32767)  ? 16'h7FFF : (m_l >>> 6 < -32768) ? 16'h8000 : m_l[15+6:6];
+            wet_r = (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
+
+            // 3. Blending Stage: Out = (Dry * (255-mix) + Wet * mix) / 255
+            mixed_l = (dry_l * $signed({1'b0, (8'hFF - fx_mix)})) + (wet_l * $signed({1'b0, fx_mix}));
+            mixed_r = (dry_r * $signed({1'b0, (8'hFF - fx_mix)})) + (wet_r * $signed({1'b0, fx_mix}));
+
+            audio_out[0] <= DATA_W'(mixed_l >>> 8);
+            audio_out[1] <= DATA_W'(mixed_r >>> 8);
         end
     end
 
