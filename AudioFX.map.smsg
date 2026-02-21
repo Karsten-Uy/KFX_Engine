@@ -2,7 +2,7 @@ Info (10281): Verilog HDL Declaration information at repeat_unit.sv(2): object "
 Warning (10268): Verilog HDL information at delay_line_li.sv(76): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/delay_line_li.sv Line: 76
 Info (10281): Verilog HDL Declaration information at fx_delay.sv(44): object "DELAY_RANGE" differs only in case from object "delay_range" in the same scope File: C:/Users/karst/Documents/HaH_processor/fx_delay.sv Line: 44
 Warning (10268): Verilog HDL information at fx_compressor.sv(34): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 34
-Warning (10268): Verilog HDL information at fx_compressor.sv(93): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 93
-Warning (10268): Verilog HDL information at fx_compressor.sv(156): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 156
+Warning (10268): Verilog HDL information at fx_compressor.sv(91): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 91
+Warning (10268): Verilog HDL information at fx_compressor.sv(154): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 154
 Warning (10268): Verilog HDL information at fx_chorus.sv(90): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_chorus.sv Line: 90
 Warning (10268): Verilog HDL information at fx_chorus.sv(120): always construct contains both blocking and non-blocking assignments File: C:/Users/karst/Documents/HaH_processor/fx_chorus.sv Line: 120

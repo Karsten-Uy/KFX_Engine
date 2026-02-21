@@ -339,6 +339,7 @@ module AudioFX(
 			.fx_release(params[3][3]),
 			.fx_input_gain(params[3][4]),
 			.fx_makeup_gain(params[3][5]),
+			.fx_mix(params[3][6]),
 			.sample_en(sample_en_pipe[3])
 		);
 
