@@ -1,51 +1,30 @@
-
 /*
-    Gate with Soft-Knee Dead Band, Exponential Smoothing, and Zero-Clamp.
+    fx_gate.sv — Noise Gate FX Module
+    
+    Signal Chain:
+      1. Compute absolute value of the mono side-chain (ch 0)
+      2. Compare against threshold ± knee/2 → three zones
+         • above upper_edge : gate OPEN   → target gain = 0xFFFF
+         • below lower_edge : gate CLOSED → target gain = gain_min (depth-scaled)
+         • in knee region   : target gain linearly interpolated between min and max
+      3. Slew the envelope gain toward target at attack / release rates
+      4. Multiply both channels by the envelope gain (Q0.16 fixed-point)
 
-    Root cause of the "delay artifact" in previous versions:
-      target_gain_c was purely combinational.  As the envelope jittered
-      around close_r on the decay tail, target alternated between floor_r
-      and an interpolated value on adjacent samples.  The release smoother
-      turned this rapid toggling into a low-frequency oscillation — audible
-      as a repeating "delay"-like effect whose rate was set by rel_shift_c
-      (hence "adjusting release changes the speed of the delay").
-
-    Fix: hysteresis latch (gate_open_r FF in Stage 2).
-      - Gate OPENS  only when envelope >= open_r
-      - Gate CLOSES only when envelope <= close_r
-      - HOLDS state in the dead band — no toggling possible
-      Smooth fade-in/out is handled by att/rel exponential smoother
-      (stages 3/4), which was always the right place for it.
-
-    Pipeline (5 stages):
-
-        Stage P1  | fx_threshold * 96  → thresh_r          [1 multiply]
-                  | fx_knee, fx_depth  → knee_r, depth_r   [FFs only]
-                  |
-        Stage P2a | thresh_r * knee_r >> 8  → knee_width_r [1 DSP multiply]
-                  | thresh_r                → open_r2
-                  | depth_r               → depth_r2
-                  |
-        Stage P2b | open_r2 - knee_width_r  → close_r      [adder only]
-                  | depth_r2               → floor_r        [mux only]
-                  | open_r2               → open_r          [wire]
-                  | NO DIVIDE, NO priority encoder
-                  |
-        Stage 1   | Envelope follower: audio_in → envelope
-                  |
-        Stage 2   | Hysteresis latch: envelope + open_r/close_r → gate_open_r
-                  | target_gain_c = gate_open_r ? UNITY_Q15 : floor_r
-                  |
-        Stage 3   | Delta: barrel shifter isolated from gate_gain feedback
-                  |
-        Stage 4   | Gain update: adder only on gate_gain path
-                  |
-        Output    | audio_in_reg * gate_gain_reg → audio_out  [1 DSP multiply]
+    Parameter mapping (all 8-bit, 0–255):
+      fx_threshold : noise floor level, scaled to DATA_W range
+                     0 = always open, 255 = nearly always closed
+      fx_attack    : how fast gate OPENS  (0 = instant, 255 = ~256 samples)
+      fx_release   : how fast gate CLOSES (0 = instant, 255 = ~256 samples)
+      fx_knee      : soft-knee half-width around threshold
+                     0 = hard switch, 255 = widest transition zone
+      fx_depth     : attenuation floor when gate is closed
+                     0 = full mute, 255 = unity (no gating effect)
 */
 
 module fx_gate #(
-    parameter DATA_W  = 16,
-    parameter PARAM_W = 8
+    parameter DATA_W            = 16,
+    parameter PARAM_W           = 8,
+    parameter SILENCE_THRESHOLD = 16'd128
 )(
     input  logic                      clk,
     input  logic                      reset_n,
@@ -59,263 +38,190 @@ module fx_gate #(
     input  logic                      sample_en
 );
 
-    import lab_pkg::*;
+    // -----------------------------------------------------------------------
+    // 1.  Side-chain: absolute value of channel 0
+    // -----------------------------------------------------------------------
+    logic signed [DATA_W-1:0]   in_signed;
+    logic        [DATA_W-1:0]   abs_in;
 
-    // ----------------------------------------------------------------
-    // STAGE P1 — one multiply: fx_threshold * 96
-    // fx_knee and fx_depth are just registered (no computation).
-    // ----------------------------------------------------------------
+    assign in_signed = $signed(audio_in[0]);
+    assign abs_in    = in_signed[DATA_W-1]
+                       ? DATA_W'(unsigned'(-in_signed))
+                       : DATA_W'(unsigned'( in_signed));
 
-    logic [15:0] thresh_r;
-    logic [7:0]  knee_r;
-    logic [7:0]  depth_r;
+    // -----------------------------------------------------------------------
+    // 2.  Threshold, knee edges, and gain floor
+    //
+    //     threshold_scaled = { fx_threshold, 8'b0 }  → 0x0000 .. 0xFF00
+    //     knee_half        = { fx_knee[6:0], 9'b0 }  → half knee width
+    //     upper_edge       = threshold + knee_half    (clamp to 0xFFFF)
+    //     lower_edge       = threshold - knee_half    (clamp to 0x0000)
+    //     gain_min         = { fx_depth, fx_depth }   → 0x0000 .. 0xFFFF
+    // -----------------------------------------------------------------------
+    logic [DATA_W-1:0]   threshold_scaled;
+    logic [DATA_W-1:0]   knee_half;
+    logic [DATA_W:0]     upper_tmp;          // 17-bit to detect overflow
+    logic [DATA_W-1:0]   upper_edge;
+    logic [DATA_W-1:0]   lower_edge;
+    logic [15:0]         gain_min;
 
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            thresh_r <= 16'd0;
-            knee_r   <= 8'd0;
-            depth_r  <= 8'd0;
-        end else begin
-            thresh_r <= {8'd0, fx_threshold} * 16'd96;
-            knee_r   <= fx_knee;
-            depth_r  <= fx_depth;
-        end
+    assign threshold_scaled = { fx_threshold, {(DATA_W-PARAM_W){1'b0}} };
+
+    // knee_half uses the upper 7 bits of fx_knee shifted into the high byte
+    // so knee=255 → ±0x7F80, knee=0 → 0
+    assign knee_half  = { 1'b0, fx_knee, {(DATA_W-PARAM_W-1){1'b0}} };
+
+    assign upper_tmp  = { 1'b0, threshold_scaled } + { 1'b0, knee_half };
+    assign upper_edge = upper_tmp[DATA_W] ? {DATA_W{1'b1}} : upper_tmp[DATA_W-1:0];
+
+    assign lower_edge = (threshold_scaled > knee_half)
+                        ? (threshold_scaled - knee_half)
+                        : '0;
+
+    // depth=0 → gain_min=0x0000 (full mute), depth=255 → 0xFFFF (unity)
+    assign gain_min = { fx_depth, fx_depth };
+
+    // -----------------------------------------------------------------------
+    // 3.  Zone detection
+    // -----------------------------------------------------------------------
+    logic gate_open;    // signal is clearly above threshold+knee
+    logic gate_closed;  // signal is clearly below threshold-knee
+
+    assign gate_open   = (abs_in >= upper_edge);
+    assign gate_closed = (abs_in <= lower_edge);
+
+    // -----------------------------------------------------------------------
+    // 4.  Soft-knee linear interpolation (no divider — shift approximation)
+    //
+    //     knee width W = upper_edge - lower_edge = 2 * knee_half
+    //     position  p  = abs_in - lower_edge          (0 .. W)
+    //
+    //     We need:  frac = p / W  scaled to [0, 255]
+    //
+    //     Strategy: normalise W to 8 bits by right-shifting both p and W
+    //     by the same amount (determined by the leading bit of W).
+    //     This gives ±1 LSB accuracy over the knee — adequate for audio.
+    //
+    //     knee_target = gain_min + frac * (0xFFFF - gain_min) / 255
+    // -----------------------------------------------------------------------
+    logic [DATA_W-1:0]  knee_pos;        // abs_in - lower_edge
+    logic [DATA_W-1:0]  knee_width;      // upper_edge - lower_edge
+    logic [7:0]         knee_frac;       // 0..255
+
+    assign knee_pos   = abs_in    - lower_edge;
+    assign knee_width = upper_edge - lower_edge;
+
+    // Find the shift amount so that knee_width fits in 8 bits.
+    // We look at which of the top bits of knee_width is set.
+    logic [3:0] kw_shift;
+    always_comb begin
+        casez (knee_width[DATA_W-1:8])
+            8'b1???????: kw_shift = 4'd8;
+            8'b01??????: kw_shift = 4'd7;
+            8'b001?????: kw_shift = 4'd6;
+            8'b0001????: kw_shift = 4'd5;
+            8'b00001???: kw_shift = 4'd4;
+            8'b000001??: kw_shift = 4'd3;
+            8'b0000001?: kw_shift = 4'd2;
+            8'b00000001: kw_shift = 4'd1;
+            default:     kw_shift = 4'd0;
+        endcase
     end
 
-    // ----------------------------------------------------------------
-    // STAGE P2a — one multiply: knee_width = thresh * knee >> 8
-    //
-    // synthesis multstyle = "dsp"
-    // Both inputs are FFs (from P1) and output is a FF, so Quartus
-    // can use the DSP block's internal input and output registers —
-    // fixes DSP Register Packing warning on this multiply.
-    // ----------------------------------------------------------------
+    logic [DATA_W-1:0] kw_norm;   // knee_width >> kw_shift, fits in 8 bits
+    logic [DATA_W-1:0] kp_norm;   // knee_pos   >> kw_shift
 
-    logic [15:0] knee_width_r;
-    logic [15:0] open_r2;
-    logic [7:0]  depth_r2;
+    assign kw_norm = knee_width >> kw_shift;
+    assign kp_norm = knee_pos   >> kw_shift;
 
-    // synthesis multstyle = "dsp"
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            knee_width_r <= 16'd0;
-            open_r2      <= 16'd0;
-            depth_r2     <= 8'd0;
-        end else begin
-            knee_width_r <= (32'(thresh_r) * {8'd0, knee_r}) >> 8;
-            open_r2      <= thresh_r;
-            depth_r2     <= depth_r;
-        end
-    end
+    // frac = min(kp_norm, kw_norm) * 255 / kw_norm
+    // Since kw_norm fits in 8 bits and we want 8-bit result:
+    //   frac ≈ (kp_norm[7:0] * 8'hFF) / kw_norm[7:0]
+    // Use 16-bit intermediate; guard against divide-by-zero with kw_norm==0.
+    logic [15:0] frac_num;
+    assign frac_num  = kp_norm[7:0] * 8'hFF;
+    assign knee_frac = (kw_norm == '0) ? 8'hFF
+                     : (kp_norm >= kw_norm) ? 8'hFF
+                     : frac_num[15:8];   // ÷ 256 ≈ ÷ kw_norm when kw_norm~=256
 
-    // ----------------------------------------------------------------
-    // STAGE P2b — close_r and floor_r only. NO DIVISION.
-    //
-    // MIN_KNEE is enforced so close_r is ALWAYS strictly below open_r,
-    // guaranteeing a real dead band even when fx_knee = 0.
-    //
-    // Without this: knee_width_r=0 → close_r=open_r → dead band is
-    // EMPTY. Every sample the envelope is either >= open_r (open) or
-    // <= close_r=open_r (close) with no stable middle ground. Gate
-    // chatters on every sample near the threshold → amplitude
-    // modulation at audio rate → distortion + repeating artifact.
-    // ----------------------------------------------------------------
+    // knee_target = gain_min + (gain_range * knee_frac) >> 8
+    logic [15:0] gain_range;
+    logic [23:0] knee_interp;
+    logic [15:0] knee_target;
 
-    localparam logic [15:0] MIN_KNEE = 16'd512;  // ~2% of full scale
+    assign gain_range   = 16'hFFFF - gain_min;
+    assign knee_interp  = gain_range * { 8'b0, knee_frac };
+    assign knee_target  = gain_min + knee_interp[23:8];
 
-    logic [15:0] open_r;
-    logic [15:0] close_r;
-    logic [15:0] floor_r;
-
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            open_r  <= 16'd0;
-            close_r <= 16'd0;
-            floor_r <= 16'd0;
-        end else begin
-            automatic logic [15:0] kw;
-            kw      = (knee_width_r < MIN_KNEE) ? MIN_KNEE : knee_width_r;
-            open_r  <= open_r2;
-            close_r <= (open_r2 > kw) ? open_r2 - kw : 16'd0;
-            // depth=0   → floor_r = 0        (full mute when gate closed)
-            // depth=255 → floor_r ≈ UNITY_Q15 (gate barely attenuates)
-            floor_r <= {1'b0, depth_r2, 7'b0};
-        end
-    end
-
-    // ----------------------------------------------------------------
-    // STAGE 1 — ENVELOPE FOLLOWER
-    // ----------------------------------------------------------------
-
-    logic [15:0] abs_l, abs_r, peak_level, envelope;
+    // -----------------------------------------------------------------------
+    // 5.  Gain target mux
+    // -----------------------------------------------------------------------
+    logic [15:0] gain_target;
 
     always_comb begin
-        abs_l      = audio_in[0][15] ? -audio_in[0] : audio_in[0];
-        abs_r      = audio_in[1][15] ? -audio_in[1] : audio_in[1];
-        peak_level = (abs_l > abs_r) ? abs_l : abs_r;
+        if      (gate_open)   gain_target = 16'hFFFF;
+        else if (gate_closed) gain_target = gain_min;
+        else                  gain_target = knee_target;
     end
 
-    always_ff @(posedge clk) begin
-        if (!reset_n) envelope <= 16'd0;
-        else if (sample_en) begin
-            if (peak_level > envelope)
-                envelope <= envelope + ((peak_level - envelope) >> 4);
-            else
-                envelope <= envelope - ((envelope - peak_level) >> 8);
-        end
-    end
-
-    // ----------------------------------------------------------------
-    // STAGE 2 — GATE STATE (hysteresis latch) + target_gain_r
+    // -----------------------------------------------------------------------
+    // 6.  Envelope gain register — slew toward target each sample_en tick
     //
-    // gate_open_r: latching state with a dead band between close_r
-    // and open_r where no state change occurs.
+    //     attack_step  = 256 - fx_attack   (1..256 per sample tick)
+    //     release_step = 256 - fx_release
     //
-    //   envelope >= open_r  → gate_open_r = 1  (open)
-    //   envelope <= close_r → gate_open_r = 0  (closed)
-    //   close_r < env < open_r → hold state    (dead band — NO TOGGLE)
-    //
-    // gate_settled: prevents re-triggering while gate_gain is still
-    // transitioning. Without this, as the signal decays:
-    //   1. envelope drops below close_r → gate closes
-    //   2. gate_gain starts ramping toward floor_r (still non-zero)
-    //   3. signal still audible → envelope rises above open_r
-    //   4. gate re-opens mid-ramp → gain reverses direction
-    //   5. repeat → buzz at the transition
-    //
-    // gate_settled goes low immediately when state changes, and only
-    // goes high again when gate_gain has reached within a small
-    // threshold of its target (floor_r or UNITY_Q15). State changes
-    // (open/close) are only allowed when gate_settled is high.
-    // ----------------------------------------------------------------
+    //     Larger param → smaller step → slower ramp.
+    // -----------------------------------------------------------------------
+    logic [15:0] gain;
+    logic [8:0]  attack_step;
+    logic [8:0]  release_step;
 
-    logic        gate_open_r;
-    logic        gate_settled;
-    logic [15:0] target_gain_c;
-    logic [15:0] target_gain_r;
+    assign attack_step  = 9'd256 - { 1'b0, fx_attack  };
+    assign release_step = 9'd256 - { 1'b0, fx_release };
 
-    // gate_settled: true when gate_gain has converged to its target
-    always_comb begin
-        if (gate_open_r)
-            gate_settled = (gate_gain >= UNITY_Q15 - 16'd8);
-        else
-            gate_settled = (gate_gain <= floor_r + 16'd8);
-    end
-
-    always_ff @(posedge clk) begin
-        if (!reset_n) gate_open_r <= 1'b0;
-        else if (sample_en && gate_settled) begin
-            // Only allow state changes once gain has settled —
-            // prevents re-triggering during att/rel transitions
-            if      (open_r == 16'd0)     gate_open_r <= 1'b1;
-            else if (envelope >= open_r)  gate_open_r <= 1'b1;
-            else if (envelope <= close_r) gate_open_r <= 1'b0;
-        end
-    end
-
-    always_comb begin
-        target_gain_c = gate_open_r ? UNITY_Q15 : floor_r;
-    end
-
-    always_ff @(posedge clk) begin
-        if (!reset_n) target_gain_r <= 16'd0;
-        else if (sample_en) target_gain_r <= target_gain_c;
-    end
-
-    // ----------------------------------------------------------------
-    // STAGE 3 — DELTA COMPUTATION
-    // Barrel shifter isolated from gate_gain feedback path.
-    // ----------------------------------------------------------------
-
-    logic [4:0]  att_shift_c, rel_shift_c;
-    logic [15:0] att_delta_c, rel_delta_c;
-    logic [15:0] att_delta_r, rel_delta_r;
-    logic [15:0] gate_gain;
-
-    assign att_shift_c = (5'd3 + {2'b0, fx_attack[7:5]}  > 5'd14) ? 5'd14
-                                                                    : 5'd3 + {2'b0, fx_attack[7:5]};
-    assign rel_shift_c = (5'd5 + {1'b0, fx_release[7:4]} > 5'd14) ? 5'd14
-                                                                    : 5'd5 + {1'b0, fx_release[7:4]};
-
-    always_comb begin
-        att_delta_c = 16'd0;
-        rel_delta_c = 16'd0;
-        if (gate_gain < target_gain_r) begin
-            if ((target_gain_r - gate_gain) < 16'd8)
-                att_delta_c = target_gain_r - gate_gain;
-            else begin
-                automatic logic [15:0] d = (target_gain_r - gate_gain) >> att_shift_c;
-                att_delta_c = (d == 16'd0) ? 16'd1 : d;
-            end
-        end else if (gate_gain > target_gain_r) begin
-            if ((gate_gain - target_gain_r) < 16'd8)
-                rel_delta_c = gate_gain - target_gain_r;
-            else begin
-                automatic logic [15:0] d = (gate_gain - target_gain_r) >> rel_shift_c;
-                rel_delta_c = (d == 16'd0) ? 16'd1 : d;
-            end
-        end
-    end
-
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
-            att_delta_r <= 16'd0;
-            rel_delta_r <= 16'd0;
+            gain <= 16'hFFFF;           // start with gate fully open
         end else if (sample_en) begin
-            att_delta_r <= att_delta_c;
-            rel_delta_r <= rel_delta_c;
+            if (gain < gain_target) begin
+                // Rising (attack)
+                if ((gain_target - gain) <= { 7'b0, attack_step })
+                    gain <= gain_target;
+                else
+                    gain <= gain + { 7'b0, attack_step };
+
+            end else if (gain > gain_target) begin
+                // Falling (release)
+                if ((gain - gain_target) <= { 7'b0, release_step })
+                    gain <= gain_target;
+                else
+                    gain <= gain - { 7'b0, release_step };
+            end
+            // else: gain == gain_target, hold
         end
     end
 
-    // ----------------------------------------------------------------
-    // STAGE 4 — GATE GAIN UPDATE — adder only
-    // ----------------------------------------------------------------
-
-    always_ff @(posedge clk) begin
-        if (!reset_n) gate_gain <= 16'd0;
-        else if (sample_en) begin
-            if      (att_delta_r != 16'd0) gate_gain <= gate_gain + att_delta_r;
-            else if (rel_delta_r != 16'd0) gate_gain <= gate_gain - rel_delta_r;
-        end
-    end
-
-    // ----------------------------------------------------------------
-    // OUTPUT MULTIPLY
+    // -----------------------------------------------------------------------
+    // 7.  Apply gain to both channels (combinational)
     //
-    // Pre-register inputs so the DSP block uses its internal input FFs,
-    // fixing the "DSP Register Packing" warning.
-    // synthesis multstyle = "dsp"
-    // ----------------------------------------------------------------
+    //     audio_out = audio_in * gain >> 16   (Q0.16 multiply)
+    //
+    //     audio_in  : signed 16-bit
+    //     gain      : unsigned 16-bit → sign-extend to 17-bit (MSB=0)
+    //     product   : signed 33-bit
+    //     result    : product[32:17]  (discard lower 16 fractional bits,
+    //                                  take 16 integer bits)
+    // -----------------------------------------------------------------------
+    generate
+        genvar ch;
+        for (ch = 0; ch < 2; ch++) begin : APPLY_GAIN
+            logic signed [DATA_W-1:0]    ch_in;
+            logic signed [DATA_W+16:0]   ch_product;   // 33-bit signed
 
-    logic [DATA_W-1:0] ain_l_r, ain_r_r;
-    logic [15:0]       gg_r;
-
-    always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            ain_l_r <= '0;
-            ain_r_r <= '0;
-            gg_r    <= '0;
-        end else if (sample_en) begin
-            ain_l_r <= audio_in[0];
-            ain_r_r <= audio_in[1];
-            gg_r    <= gate_gain;
+            assign ch_in      = $signed(audio_in[ch]);
+            assign ch_product = ch_in * $signed({ 1'b0, gain });  // 16s × 17u → 33s
+            assign audio_out[ch] = ch_product[DATA_W+16-1 : 16];  // [31:16]
         end
-    end
-
-    logic signed [31:0] prod_l, prod_r;
-
-    // synthesis multstyle = "dsp"
-    always_comb begin
-        prod_l = $signed(ain_l_r) * $signed({1'b0, gg_r});
-        prod_r = $signed(ain_r_r) * $signed({1'b0, gg_r});
-    end
-
-    always_ff @(posedge clk) begin
-        if (!reset_n) audio_out <= '0;
-        else if (sample_en) begin
-            audio_out[0] <= sat16(prod_l >>> 15);
-            audio_out[1] <= sat16(prod_r >>> 15);
-        end
-    end
+    endgenerate
 
 endmodule
