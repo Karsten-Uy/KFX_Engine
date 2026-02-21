@@ -3,24 +3,24 @@
     <sld_info hpath="AVConfig:u1" name="u1">
       <assignment_values>
         <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1769984953"/>
-        <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1771700306"/>
+        <assignment_value text="QSYS_NAME AVConfig HAS_SOPCINFO 1 GENERATION_ID 1771706567"/>
       </assignment_values>
     </sld_info>
     <sld_info hpath="AudioCodec:u2" name="u2">
       <assignment_values>
         <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1769984916"/>
-        <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1771700337"/>
+        <assignment_value text="QSYS_NAME AudioCodec HAS_SOPCINFO 1 GENERATION_ID 1771706585"/>
       </assignment_values>
     </sld_info>
     <sld_info hpath="AudioPLL:u0" name="u0">
       <assignment_values>
         <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1769984936"/>
-        <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1771700321"/>
+        <assignment_value text="QSYS_NAME AudioPLL HAS_SOPCINFO 1 GENERATION_ID 1771706576"/>
       </assignment_values>
     </sld_info>
     <sld_info hpath="FlashMemInterface:F_MEM" name="F_MEM">
       <assignment_values>
-        <assignment_value text="QSYS_NAME FlashMemInterface HAS_SOPCINFO 1 GENERATION_ID 1771700294"/>
+        <assignment_value text="QSYS_NAME FlashMemInterface HAS_SOPCINFO 1 GENERATION_ID 1771706554"/>
       </assignment_values>
     </sld_info>
     <sld_info hpath="sld_hub:auto_hub|alt_sld_fab:\instrumentation_fabric_with_node_gen:instrumentation_fabric" library="alt_sld_fab" name="instrumentation_fabric">
