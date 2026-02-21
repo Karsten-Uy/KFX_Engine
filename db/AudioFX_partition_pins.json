@@ -24,34 +24,6 @@
 					"strict" : false
 				},
 				{
-					"name" : "HEX2[0]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[1]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[2]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[3]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[4]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[5]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX2[6]",
-					"strict" : false
-				},
-				{
 					"name" : "GPIO_0[0]",
 					"strict" : false
 				},
@@ -160,6 +132,34 @@
 					"strict" : false
 				},
 				{
+					"name" : "HEX2[0]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[1]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[2]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[3]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[4]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[5]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX2[6]",
+					"strict" : false
+				},
+				{
 					"name" : "HEX4[0]",
 					"strict" : false
 				},
@@ -208,6 +208,22 @@
 					"strict" : false
 				},
 				{
+					"name" : "SW[9]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[7]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[8]",
+					"strict" : false
+				},
+				{
+					"name" : "SW[6]",
+					"strict" : false
+				},
+				{
 					"name" : "SW[2]",
 					"strict" : false
 				},
@@ -217,22 +233,6 @@
 				},
 				{
 					"name" : "SW[4]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[9]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[6]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[7]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[8]",
 					"strict" : false
 				},
 				{
@@ -248,11 +248,7 @@
 					"strict" : false
 				},
 				{
-					"name" : "KEY[3]",
-					"strict" : false
-				},
-				{
-					"name" : "KEY[2]",
+					"name" : "AUD_ADCDAT",
 					"strict" : false
 				},
 				{
@@ -264,7 +260,11 @@
 					"strict" : false
 				},
 				{
-					"name" : "AUD_ADCDAT",
+					"name" : "KEY[3]",
+					"strict" : false
+				},
+				{
+					"name" : "KEY[2]",
 					"strict" : false
 				}
 			]

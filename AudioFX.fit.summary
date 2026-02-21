@@ -1,12 +1,12 @@
-Fitter Status : Successful - Fri Feb 20 13:54:58 2026
+Fitter Status : Successful - Sat Feb 21 06:38:51 2026
 Quartus Prime Version : 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 Revision Name : AudioFX
 Top-level Entity Name : AudioFX
 Family : Cyclone V
 Device : 5CSEMA5F31C6
 Timing Models : Final
-Logic utilization (in ALMs) : 6,382 / 32,070 ( 20 % )
-Total registers : 8289
+Logic utilization (in ALMs) : 5,902 / 32,070 ( 18 % )
+Total registers : 8455
 Total pins : 91 / 457 ( 20 % )
 Total virtual pins : 0
 Total block memory bits : 1,133,968 / 4,065,280 ( 28 % )
