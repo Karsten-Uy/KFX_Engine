@@ -21,7 +21,13 @@ package lab_pkg;
     parameter DEBOUNCE_CNT_MAX = 1_000_000;
     parameter REPEAT_START_CNT = 15_000_000;  // ~300 ms
     parameter REPEAT_RATE_CNT  = 1_000_000;    // ~40 ms
+    parameter MUTE_START_CNT   = 50_000_000;
+    parameter FLASH_BASE       = 24'h6B0000;    
     parameter INCDEC_AMOUNT = 2; // ~20 ms @ 50 MHz
+
+    // Tuner
+    parameter MAX_LAG       = 1600;    
+    parameter WINDOW_SIZE   = 1024; // ~20 ms @ 50 MHz
 
     // ------------------- Default Parameters ---------------
 
@@ -140,12 +146,12 @@ package lab_pkg;
     parameter SEVSEG_SEG_F     = 7'b0001110;
 
                                 //  6543210
-    parameter SEVSEG_SEG_X     = 7'b0001001;
+    parameter SEVSEG_SEG_R     = 7'b0101111;
     parameter SEVSEG_SEG_P     = 7'b0001100;
 
     parameter SEVSEG_BLANK_INDEX = 5'd16;
     parameter SEVSEG_LINE_INDEX  = 5'd17;
-    parameter SEVSEG_X_INDEX     = 5'd18;
+    parameter SEVSEG_R_INDEX     = 5'd18;
     parameter SEVSEG_P_INDEX     = 5'd19;
     parameter SEVSEG_B_INDEX     = 5'd20;
 

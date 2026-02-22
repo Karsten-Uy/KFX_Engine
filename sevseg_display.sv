@@ -38,7 +38,7 @@ module sevseg_display(
             SEVSEG_LINE_INDEX  : HEX = SEVSEG_SEG_LINE;
 
             // value = 5'd18
-            SEVSEG_X_INDEX     : HEX = SEVSEG_SEG_X;
+            SEVSEG_R_INDEX     : HEX = SEVSEG_SEG_R;
 
             // value = 5'd19
             SEVSEG_P_INDEX     : HEX = SEVSEG_SEG_P;
