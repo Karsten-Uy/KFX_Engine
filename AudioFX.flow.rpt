@@ -1,5 +1,5 @@
 Flow report for AudioFX
-Sun Feb 22 07:51:01 2026
+Sun Feb 22 08:23:22 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -40,15 +40,15 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Flow Summary                                                                  ;
 +---------------------------------+---------------------------------------------+
-; Flow Status                     ; Successful - Sun Feb 22 07:49:30 2026       ;
+; Flow Status                     ; Successful - Sun Feb 22 08:23:21 2026       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
 ; Family                          ; Cyclone V                                   ;
 ; Device                          ; 5CSEMA5F31C6                                ;
 ; Timing Models                   ; Final                                       ;
-; Logic utilization (in ALMs)     ; 7,332 / 32,070 ( 23 % )                     ;
-; Total registers                 ; 7938                                        ;
+; Logic utilization (in ALMs)     ; 7,400 / 32,070 ( 23 % )                     ;
+; Total registers                 ; 7976                                        ;
 ; Total pins                      ; 91 / 457 ( 20 % )                           ;
 ; Total virtual pins              ; 0                                           ;
 ; Total block memory bits         ; 1,265,264 / 4,065,280 ( 31 % )              ;
@@ -67,7 +67,7 @@ refer to the applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 02/22/2026 07:42:16 ;
+; Start date & time ; 02/22/2026 08:16:04 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; AudioFX             ;
 +-------------------+---------------------+
@@ -79,7 +79,7 @@ refer to the applicable agreement for further details.
 ; Assignment Name                      ; Value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ; Default Value      ; Entity Name ; Section Id       ;
 +--------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------+-------------+------------------+
 ; ALM_REGISTER_PACKING_EFFORT          ; Low                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ; Medium             ; --          ; --               ;
-; COMPILER_SIGNATURE_ID                ; 102135040718368.177177493523380                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ; --                 ; --          ; --               ;
+; COMPILER_SIGNATURE_ID                ; 102135040718368.177177696400352                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ; --                 ; --          ; --               ;
 ; ENABLE_SIGNALTAP                     ; On                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ; --                 ; --          ; --               ;
 ; FITTER_EFFORT                        ; Standard Fit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ; Auto Fit           ; --          ; --               ;
 ; MAX_CORE_JUNCTION_TEMP               ; 85                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ; --                 ; --          ; --               ;
@@ -156,11 +156,10 @@ refer to the applicable agreement for further details.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:02:00     ; 1.2                     ; 5168 MB             ; 00:03:17                           ;
-; Fitter               ; 00:04:42     ; 1.3                     ; 6956 MB             ; 00:11:45                           ;
-; Assembler            ; 00:00:18     ; 1.0                     ; 5009 MB             ; 00:00:18                           ;
-; Timing Analyzer      ; 00:01:29     ; 2.2                     ; 5483 MB             ; 00:03:09                           ;
-; Total                ; 00:08:29     ; --                      ; --                  ; 00:18:29                           ;
+; Analysis & Synthesis ; 00:02:28     ; 1.2                     ; 5210 MB             ; 00:03:49                           ;
+; Fitter               ; 00:04:20     ; 1.2                     ; 6938 MB             ; 00:10:56                           ;
+; Assembler            ; 00:00:17     ; 1.0                     ; 5014 MB             ; 00:00:17                           ;
+; Total                ; 00:07:05     ; --                      ; --                  ; 00:15:02                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 
@@ -172,7 +171,6 @@ refer to the applicable agreement for further details.
 ; Analysis & Synthesis ; KarstenKirbyUy-Laptop ; Windows 10 ; 10.0       ; x86_64         ;
 ; Fitter               ; KarstenKirbyUy-Laptop ; Windows 10 ; 10.0       ; x86_64         ;
 ; Assembler            ; KarstenKirbyUy-Laptop ; Windows 10 ; 10.0       ; x86_64         ;
-; Timing Analyzer      ; KarstenKirbyUy-Laptop ; Windows 10 ; 10.0       ; x86_64         ;
 +----------------------+-----------------------+------------+------------+----------------+
 
 
@@ -182,7 +180,6 @@ refer to the applicable agreement for further details.
 quartus_map --read_settings_files=on --write_settings_files=off AudioFX -c AudioFX
 quartus_fit --read_settings_files=off --write_settings_files=off AudioFX -c AudioFX
 quartus_asm --read_settings_files=off --write_settings_files=off AudioFX -c AudioFX
-quartus_sta AudioFX -c AudioFX
 
 
 

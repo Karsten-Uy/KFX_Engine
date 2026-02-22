@@ -30,7 +30,7 @@ module display #(
     input logic [$clog2(PARAM_COUNT)-1:0] param_sel, // 3 bits
     input logic [PARAM_W-1:0]             current_value,
     input logic                           fsm_busy,
-    input logic [9:0]                     SW,
+    input logic                           is_mute,
 
     // UI feedback
     output logic [9:0] LEDR,
@@ -88,7 +88,7 @@ module display #(
         // Param Selected
         val_HEX2 = {1'd0,param_sel};
 
-        if (SW[0]) begin
+        if (is_mute) begin
             val_HEX0 = SEVSEG_LINE_INDEX;
         end
 

@@ -225,8 +225,9 @@ module AudioFX(
         .sw_param_sel(SW[4:2]),
         .key_inc(~KEY[2]),
         .key_dec(~KEY[3]),
-		.save_button(~KEY[1]),
+		.save_button(SW[0]),
 		.load_button(SW[1]),
+		.mute_button(~KEY[1]),
         .params(params),
         .fx_sel(fx_sel),
         .param_sel(param_sel),
@@ -264,7 +265,7 @@ module AudioFX(
 		.param_sel     (param_sel),
 		.current_value (current_value),
 		.fsm_busy      (fsm_busy),
-		.SW            (SW[9:0]),
+		.is_mute       (is_mute),
 		.LEDR          (LEDR),
 		.HEX0          (HEX0),
 		.HEX1          (HEX1),
@@ -428,13 +429,14 @@ module AudioFX(
 		//   Gating the DAC to zero for the brief duration of fsm_busy
 		//   (a few ms for load, ~3 s for save) eliminates this completely.
 		always@(posedge(CLOCK_50)) begin
-			if (SW[0] == 1 || fsm_busy) begin
+			// if (SW[5] == 1 || fsm_busy) begin
+			if (is_mute == 1'd1 || fsm_busy) begin
 				DAC_Data[0] <= 0;
 				DAC_Data[1] <= 0;
 				DAC_Valid[0] <= sample_en_pipe[9];
 				DAC_Valid[1] <= sample_en_pipe[9];
-				ADC_Ready[0] <= DAC_Ready[1];
-				ADC_Ready[1] <= DAC_Ready[0];
+				ADC_Ready[0] <= DAC_Ready[0];
+				ADC_Ready[1] <= DAC_Ready[1];
 			end else begin
 				DAC_Data[0] <= gain_out_out[0];
 				DAC_Data[1] <= gain_out_out[1];
