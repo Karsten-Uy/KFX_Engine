@@ -31,6 +31,7 @@ module display #(
     input logic [PARAM_W-1:0]             current_value,
     input logic                           fsm_busy,
     input logic                           is_mute,
+    input logic [11:0]                    tuner_best_lag,
 
     // UI feedback
     output logic [9:0] LEDR,
@@ -66,9 +67,17 @@ module display #(
     localparam int MAX_VAL   = (1 << PARAM_W) - 1;
 
     logic [3:0] led_level;  // 0–10
+    logic [4:0] tuner_HEX [5:0];
 
     // ---------------- MAIN LOGIC ----------------
+
+    // Tuner UI
+    tuner_ui TUNER_UI (
+        .best_lag(tuner_best_lag),
+        .tuner_vals(tuner_HEX)
+    );
     
+    // HEX display logic
     always_comb begin
 
         val_HEX0 = SEVSEG_BLANK_INDEX;
@@ -88,16 +97,22 @@ module display #(
         // Param Selected
         val_HEX2 = {1'd0,param_sel};
 
-        if (is_mute) begin
-            val_HEX0 = SEVSEG_LINE_INDEX;
-        end
-
         if (fsm_busy) begin
             val_HEX1 = SEVSEG_B_INDEX;
         end
 
+        if (is_mute) begin
+            val_HEX5 = tuner_HEX[5];
+            val_HEX4 = tuner_HEX[4];
+            val_HEX3 = tuner_HEX[3];
+            val_HEX2 = tuner_HEX[2];
+            val_HEX1 = tuner_HEX[1];
+            val_HEX0 = tuner_HEX[0];
+        end
+
     end
 
+    // LEDR display logic
     always_comb begin
         LEDR = '0;
 

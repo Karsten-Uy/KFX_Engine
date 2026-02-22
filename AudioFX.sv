@@ -85,7 +85,7 @@ module AudioFX(
 	logic [9:0]                     cont_LEDR;
 	logic                           fsm_busy;
 	logic                           is_mute;
-	logic                           delay_tick;
+	logic                           delay_pulse;
 	
 	// FX Chain intermediate signals
 	logic [1:0][DATA_W-1:0] pre_fx; 
@@ -102,6 +102,10 @@ module AudioFX(
 
 	// Pipeline
 	logic [FX_STAGES:0] sample_en_pipe;
+
+	// Tuner
+	logic [11:0] tuner_best_lag;
+	logic        tuner_valid;
 
     // ---------------- AUDIO I/O INSTANTIATIONS ----------------
 
@@ -217,7 +221,9 @@ module AudioFX(
         .PARAM_W(PARAM_W),
         .DEBOUNCE_CNT_MAX(DEBOUNCE_CNT_MAX),
 		.REPEAT_START_CNT(REPEAT_START_CNT),
-		.REPEAT_RATE_CNT(REPEAT_RATE_CNT)
+		.REPEAT_RATE_CNT(REPEAT_RATE_CNT),
+		.MUTE_START_CNT(MUTE_START_CNT),
+		.FLASH_BASE(FLASH_BASE)
     ) CONTROL (
         .clk(CLOCK_50),
         .reset_n(KEY[0]),
@@ -233,7 +239,7 @@ module AudioFX(
         .param_sel(param_sel),
         .current_value(current_value),
 		.is_mute(is_mute),
-		.delay_pulse(delay_tick),
+		.delay_pulse(delay_pulse),
 		
 		.LEDR(),
 		.fsm_busy(fsm_busy),
@@ -261,18 +267,19 @@ module AudioFX(
         .PARAM_COUNT(PARAM_COUNT),
         .PARAM_W(PARAM_W)
 	) DISPLAY (
-		.fx_sel        (fx_sel),
-		.param_sel     (param_sel),
-		.current_value (current_value),
-		.fsm_busy      (fsm_busy),
-		.is_mute       (is_mute),
-		.LEDR          (LEDR),
-		.HEX0          (HEX0),
-		.HEX1          (HEX1),
-		.HEX2          (HEX2),
-		.HEX3          (HEX3),
-		.HEX4          (HEX4),
-		.HEX5          (HEX5)
+		.fx_sel         (fx_sel),
+		.param_sel      (param_sel),
+		.current_value  (current_value),
+		.fsm_busy       (fsm_busy),
+		.is_mute        (is_mute),
+		.tuner_best_lag (tuner_best_lag),
+		.LEDR           (LEDR),
+		.HEX0           (HEX0),
+		.HEX1           (HEX1),
+		.HEX2           (HEX2),
+		.HEX3           (HEX3),
+		.HEX4           (HEX4),
+		.HEX5           (HEX5)
 	);
 
 	// ---------------- AUDIO FX INSTANTIATIONS ----------------
@@ -282,6 +289,21 @@ module AudioFX(
 		// Mono converter, needed for guitar
 		assign pre_fx[0] = ADC_Data[0];
 		assign pre_fx[1] = ADC_Data[0];
+
+		// ---------------- TUNER ENGINE ----------------
+		// We feed it the raw ADC_Data[0] (the guitar input)
+		tuner_amdf_engine #(
+			.DATA_W(DATA_W),
+			.MAX_LAG(MAX_LAG),     
+			.WINDOW_SIZE(WINDOW_SIZE)  
+		) TUNER (
+			.clk(CLOCK_50),
+			.reset_n(KEY[0]),
+			.audio_in(ADC_Data[0]),
+			.sample_en(ADC_Valid[0]),
+			.best_lag_out(tuner_best_lag),
+			.data_valid(tuner_valid)
+		);
 
 		// sample_en pipeline: give each FX 1 clock cycle per ADC_Valid pulse
 		always_ff @(posedge CLOCK_50) begin: en_PIPELINE
@@ -429,7 +451,6 @@ module AudioFX(
 		//   Gating the DAC to zero for the brief duration of fsm_busy
 		//   (a few ms for load, ~3 s for save) eliminates this completely.
 		always@(posedge(CLOCK_50)) begin
-			// if (SW[5] == 1 || fsm_busy) begin
 			if (is_mute == 1'd1 || fsm_busy) begin
 				DAC_Data[0] <= 0;
 				DAC_Data[1] <= 0;
