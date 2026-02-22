@@ -1,5 +1,5 @@
 Analysis & Synthesis report for AudioFX
-Sat Feb 21 22:06:20 2026
+Sun Feb 22 07:44:21 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -100,106 +100,109 @@ Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
  92. Parameter Settings for User Entity Instance: controller:CONTROL|debounce_unit:db_d
  93. Parameter Settings for User Entity Instance: controller:CONTROL|debounce_unit:db_s
  94. Parameter Settings for User Entity Instance: controller:CONTROL|debounce_unit:db_l
- 95. Parameter Settings for User Entity Instance: controller:CONTROL|repeat_unit:rp_i
- 96. Parameter Settings for User Entity Instance: controller:CONTROL|repeat_unit:rp_d
- 97. Parameter Settings for User Entity Instance: controller:CONTROL|controller_fsm:fsm_inst
- 98. Parameter Settings for User Entity Instance: display:DISPLAY
- 99. Parameter Settings for User Entity Instance: fx_gain:FX_INPUT_GAIN
-100. Parameter Settings for User Entity Instance: fx_gate:FX_GATE
-101. Parameter Settings for User Entity Instance: fx_eq:FX_EQ_1
-102. Parameter Settings for User Entity Instance: fx_compressor:FX_COMPRESSOR
-103. Parameter Settings for User Entity Instance: fx_distortion:FX_DISTORTION
-104. Parameter Settings for User Entity Instance: fx_eq:FX_EQ_2
-105. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS
-106. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_L
-107. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_R
-108. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_L
-109. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_R
-110. Parameter Settings for User Entity Instance: fx_delay:FX_DELAY
-111. Parameter Settings for User Entity Instance: fx_delay:FX_DELAY|delay_line:unit_L
-112. Parameter Settings for User Entity Instance: fx_delay:FX_DELAY|delay_line:unit_R
-113. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB
-114. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb1_delay_line
-115. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb2_delay_line
-116. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb3_delay_line
-117. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb4_delay_line
-118. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass1_delay_line
-119. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass2_delay_line
-120. Parameter Settings for User Entity Instance: fx_gain:FX_OUTPUT_GAIN
-121. Parameter Settings for Inferred Entity Instance: sld_signaltap:auto_signaltap_0
-122. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass2_delay_line|altsyncram:buffer_rtl_0
-123. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass1_delay_line|altsyncram:buffer_rtl_0
-124. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb4_delay_line|altsyncram:buffer_rtl_0
-125. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb3_delay_line|altsyncram:buffer_rtl_0
-126. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb2_delay_line|altsyncram:buffer_rtl_0
-127. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb1_delay_line|altsyncram:buffer_rtl_0
-128. Parameter Settings for Inferred Entity Instance: fx_delay:FX_DELAY|delay_line:unit_R|altsyncram:buffer_rtl_0
-129. Parameter Settings for Inferred Entity Instance: FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo|altsyncram:mem_rtl_0
-130. Parameter Settings for Inferred Entity Instance: fx_delay:FX_DELAY|delay_line:unit_L|altsyncram:buffer_rtl_0
-131. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_R|altsyncram:buffer_rtl_0
-132. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_R|altsyncram:buffer_rtl_1
-133. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_L|altsyncram:buffer_rtl_0
-134. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_L|altsyncram:buffer_rtl_1
-135. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_R|altsyncram:buffer_rtl_0
-136. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_R|altsyncram:buffer_rtl_1
-137. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_L|altsyncram:buffer_rtl_0
-138. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_L|altsyncram:buffer_rtl_1
-139. Parameter Settings for Inferred Entity Instance: fx_compressor:FX_COMPRESSOR|altshift_taps:audio_lookahead[0][1][15]_rtl_0
-140. Parameter Settings for Inferred Entity Instance: display:DISPLAY|lpm_divide:Div0
-141. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult0
-142. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult7
-143. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult1
-144. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult0
-145. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult8
-146. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult7
-147. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult8
-148. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult1
-149. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult9
-150. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult2
-151. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult9
-152. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult2
-153. scfifo Parameter Settings by Entity Instance
-154. altsyncram Parameter Settings by Entity Instance
-155. altshift_taps Parameter Settings by Entity Instance
-156. lpm_mult Parameter Settings by Entity Instance
-157. Port Connectivity Checks: "fx_reverb:FX_REVERB|delay_line:allpass2_delay_line"
-158. Port Connectivity Checks: "fx_reverb:FX_REVERB|delay_line:allpass1_delay_line"
-159. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H5"
-160. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H4"
-161. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H3"
-162. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H2"
-163. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H1"
-164. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H0"
-165. Port Connectivity Checks: "controller:CONTROL|controller_fsm:fsm_inst"
-166. Port Connectivity Checks: "controller:CONTROL|debounce_unit:db_l"
-167. Port Connectivity Checks: "controller:CONTROL|debounce_unit:db_s"
-168. Port Connectivity Checks: "controller:CONTROL"
-169. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|altera_reset_controller:rst_controller|altera_reset_synchronizer:alt_rst_req_sync_uq1"
-170. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|altera_reset_controller:rst_controller"
-171. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|clk_div:clk_div_new_inst_2"
-172. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|inf_sc_fifo_ser_data:inf_sc_fifo_ser_data_inst|altera_avalon_sc_fifo:inf_sc_fifo_ser_data"
-173. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|inf_sc_fifo_ser_data:inf_sc_fifo_ser_data_inst"
-174. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|qspi_inf_mux:qspi_inf_mux_inst|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst_qspi_inf_mux_qspi_inf_mux:qspi_inf_mux|altera_merlin_arbitrator:arb|altera_merlin_arb_adder:adder"
-175. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|intel_generic_serial_flash_interface_cmd:serial_flash_inf_cmd_gen_inst|data_adapter_8_32:data_adapter_8_32_inst"
-176. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_multiplexer:multiplexer|altera_merlin_arbitrator:arb|altera_merlin_arb_adder:adder"
-177. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo"
-178. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst"
-179. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|intel_generic_serial_flash_interface_csr:csr_controller"
-180. Port Connectivity Checks: "FlashMemInterface:F_MEM"
-181. Port Connectivity Checks: "AudioCodec:u2"
-182. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|altera_up_slow_clock_generator:Serial_Config_Clock_Generator"
-183. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller"
-184. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init"
-185. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0"
-186. Port Connectivity Checks: "AVConfig:u1"
-187. Port Connectivity Checks: "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll|altera_pll:altera_pll_i"
-188. Port Connectivity Checks: "AudioPLL:u0"
-189. Signal Tap Logic Analyzer Settings
-190. Post-Synthesis Netlist Statistics for Top Partition
-191. Elapsed Time Per Partition
-192. Connections to In-System Debugging Instance "auto_signaltap_0"
-193. Analysis & Synthesis Messages
-194. Analysis & Synthesis Suppressed Messages
+ 95. Parameter Settings for User Entity Instance: controller:CONTROL|debounce_unit:db_m
+ 96. Parameter Settings for User Entity Instance: controller:CONTROL|repeat_unit:rp_i
+ 97. Parameter Settings for User Entity Instance: controller:CONTROL|repeat_unit:rp_d
+ 98. Parameter Settings for User Entity Instance: controller:CONTROL|tap_mute_unit:tm_u
+ 99. Parameter Settings for User Entity Instance: controller:CONTROL|controller_fsm:fsm_inst
+100. Parameter Settings for User Entity Instance: display:DISPLAY
+101. Parameter Settings for User Entity Instance: fx_gain:FX_INPUT_GAIN
+102. Parameter Settings for User Entity Instance: fx_gate:FX_GATE
+103. Parameter Settings for User Entity Instance: fx_eq:FX_EQ_1
+104. Parameter Settings for User Entity Instance: fx_compressor:FX_COMPRESSOR
+105. Parameter Settings for User Entity Instance: fx_distortion:FX_DISTORTION
+106. Parameter Settings for User Entity Instance: fx_eq:FX_EQ_2
+107. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS
+108. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_L
+109. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_R
+110. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_L
+111. Parameter Settings for User Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_R
+112. Parameter Settings for User Entity Instance: fx_delay:FX_DELAY
+113. Parameter Settings for User Entity Instance: fx_delay:FX_DELAY|delay_line:unit_L
+114. Parameter Settings for User Entity Instance: fx_delay:FX_DELAY|delay_line:unit_R
+115. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB
+116. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb1_delay_line
+117. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb2_delay_line
+118. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb3_delay_line
+119. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:comb4_delay_line
+120. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass1_delay_line
+121. Parameter Settings for User Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass2_delay_line
+122. Parameter Settings for User Entity Instance: fx_gain:FX_OUTPUT_GAIN
+123. Parameter Settings for Inferred Entity Instance: sld_signaltap:auto_signaltap_0
+124. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass2_delay_line|altsyncram:buffer_rtl_0
+125. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:allpass1_delay_line|altsyncram:buffer_rtl_0
+126. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb4_delay_line|altsyncram:buffer_rtl_0
+127. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb3_delay_line|altsyncram:buffer_rtl_0
+128. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb2_delay_line|altsyncram:buffer_rtl_0
+129. Parameter Settings for Inferred Entity Instance: fx_reverb:FX_REVERB|delay_line:comb1_delay_line|altsyncram:buffer_rtl_0
+130. Parameter Settings for Inferred Entity Instance: fx_delay:FX_DELAY|delay_line:unit_R|altsyncram:buffer_rtl_0
+131. Parameter Settings for Inferred Entity Instance: FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo|altsyncram:mem_rtl_0
+132. Parameter Settings for Inferred Entity Instance: fx_delay:FX_DELAY|delay_line:unit_L|altsyncram:buffer_rtl_0
+133. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_R|altsyncram:buffer_rtl_0
+134. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_R|altsyncram:buffer_rtl_1
+135. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_L|altsyncram:buffer_rtl_0
+136. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V2_L|altsyncram:buffer_rtl_1
+137. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_R|altsyncram:buffer_rtl_0
+138. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_R|altsyncram:buffer_rtl_1
+139. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_L|altsyncram:buffer_rtl_0
+140. Parameter Settings for Inferred Entity Instance: fx_chorus:FX_CHORUS|delay_line_li:DL_V1_L|altsyncram:buffer_rtl_1
+141. Parameter Settings for Inferred Entity Instance: fx_compressor:FX_COMPRESSOR|altshift_taps:audio_lookahead[0][1][15]_rtl_0
+142. Parameter Settings for Inferred Entity Instance: display:DISPLAY|lpm_divide:Div0
+143. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult0
+144. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult7
+145. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult1
+146. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult0
+147. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult8
+148. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult7
+149. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult8
+150. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult1
+151. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult9
+152. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_2|lpm_mult:Mult2
+153. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult9
+154. Parameter Settings for Inferred Entity Instance: fx_eq:FX_EQ_1|lpm_mult:Mult2
+155. scfifo Parameter Settings by Entity Instance
+156. altsyncram Parameter Settings by Entity Instance
+157. altshift_taps Parameter Settings by Entity Instance
+158. lpm_mult Parameter Settings by Entity Instance
+159. Port Connectivity Checks: "fx_reverb:FX_REVERB|delay_line:allpass2_delay_line"
+160. Port Connectivity Checks: "fx_reverb:FX_REVERB|delay_line:allpass1_delay_line"
+161. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H5"
+162. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H4"
+163. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H3"
+164. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H2"
+165. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H1"
+166. Port Connectivity Checks: "display:DISPLAY|sevseg_display:H0"
+167. Port Connectivity Checks: "controller:CONTROL|controller_fsm:fsm_inst"
+168. Port Connectivity Checks: "controller:CONTROL|debounce_unit:db_m"
+169. Port Connectivity Checks: "controller:CONTROL|debounce_unit:db_l"
+170. Port Connectivity Checks: "controller:CONTROL|debounce_unit:db_s"
+171. Port Connectivity Checks: "controller:CONTROL"
+172. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|altera_reset_controller:rst_controller|altera_reset_synchronizer:alt_rst_req_sync_uq1"
+173. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|altera_reset_controller:rst_controller"
+174. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|clk_div:clk_div_new_inst_2"
+175. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|inf_sc_fifo_ser_data:inf_sc_fifo_ser_data_inst|altera_avalon_sc_fifo:inf_sc_fifo_ser_data"
+176. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|inf_sc_fifo_ser_data:inf_sc_fifo_ser_data_inst"
+177. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|qspi_inf_mux:qspi_inf_mux_inst|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst_qspi_inf_mux_qspi_inf_mux:qspi_inf_mux|altera_merlin_arbitrator:arb|altera_merlin_arb_adder:adder"
+178. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|intel_generic_serial_flash_interface_cmd:serial_flash_inf_cmd_gen_inst|data_adapter_8_32:data_adapter_8_32_inst"
+179. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_multiplexer:multiplexer|altera_merlin_arbitrator:arb|altera_merlin_arb_adder:adder"
+180. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo"
+181. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst"
+182. Port Connectivity Checks: "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|intel_generic_serial_flash_interface_csr:csr_controller"
+183. Port Connectivity Checks: "FlashMemInterface:F_MEM"
+184. Port Connectivity Checks: "AudioCodec:u2"
+185. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|altera_up_slow_clock_generator:Serial_Config_Clock_Generator"
+186. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller"
+187. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init"
+188. Port Connectivity Checks: "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0"
+189. Port Connectivity Checks: "AVConfig:u1"
+190. Port Connectivity Checks: "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll|altera_pll:altera_pll_i"
+191. Port Connectivity Checks: "AudioPLL:u0"
+192. Signal Tap Logic Analyzer Settings
+193. Post-Synthesis Netlist Statistics for Top Partition
+194. Elapsed Time Per Partition
+195. Connections to In-System Debugging Instance "auto_signaltap_0"
+196. Analysis & Synthesis Messages
+197. Analysis & Synthesis Suppressed Messages
 
 
 
@@ -225,7 +228,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +---------------------------------+---------------------------------------------+
-; Analysis & Synthesis Status     ; Successful - Sat Feb 21 22:06:20 2026       ;
+; Analysis & Synthesis Status     ; Successful - Sun Feb 22 07:44:20 2026       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
@@ -340,14 +343,14 @@ refer to the applicable agreement for further details.
 ; Number detected on machine ; 8           ;
 ; Maximum allowed            ; 4           ;
 ;                            ;             ;
-; Average used               ; 1.15        ;
+; Average used               ; 1.25        ;
 ; Maximum used               ; 4           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   5.1%      ;
-;     Processor 3            ;   5.1%      ;
-;     Processor 4            ;   5.1%      ;
+;     Processor 2            ;   8.2%      ;
+;     Processor 3            ;   8.2%      ;
+;     Processor 4            ;   8.2%      ;
 +----------------------------+-------------+
 
 
@@ -426,6 +429,7 @@ refer to the applicable agreement for further details.
 ; db/cntr_h2b.tdf                                                                                                                                                                   ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/HaH_processor/db/cntr_h2b.tdf                                                                                                                            ;                   ;
 ; db/cntr_u27.tdf                                                                                                                                                                   ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/HaH_processor/db/cntr_u27.tdf                                                                                                                            ;                   ;
 ; db/cntr_i2b.tdf                                                                                                                                                                   ; yes             ; Auto-Generated Megafunction                  ; C:/Users/karst/Documents/HaH_processor/db/cntr_i2b.tdf                                                                                                                            ;                   ;
+; tap_mute_unit.sv                                                                                                                                                                  ; yes             ; Auto-Found SystemVerilog HDL File            ; C:/Users/karst/Documents/HaH_processor/tap_mute_unit.sv                                                                                                                           ;                   ;
 ; sld_signaltap.vhd                                                                                                                                                                 ; yes             ; Megafunction                                 ; c:/intelfpga_lite/18.1/quartus/libraries/megafunctions/sld_signaltap.vhd                                                                                                          ;                   ;
 ; sld_signaltap_impl.vhd                                                                                                                                                            ; yes             ; Encrypted Megafunction                       ; c:/intelfpga_lite/18.1/quartus/libraries/megafunctions/sld_signaltap_impl.vhd                                                                                                     ;                   ;
 ; sld_ela_control.vhd                                                                                                                                                               ; yes             ; Encrypted Megafunction                       ; c:/intelfpga_lite/18.1/quartus/libraries/megafunctions/sld_ela_control.vhd                                                                                                        ;                   ;
@@ -4122,6 +4126,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; DEBOUNCE_CNT_MAX ; 1000000                  ; Signed Integer    ;
 ; REPEAT_START_CNT ; 15000000                 ; Signed Integer    ;
 ; REPEAT_RATE_CNT  ; 1000000                  ; Signed Integer    ;
+; MUTE_START_CNT   ; 50000000                 ; Signed Integer    ;
 ; FLASH_BASE       ; 011010110000000000000000 ; Unsigned Binary   ;
 +------------------+--------------------------+-------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
@@ -4167,6 +4172,16 @@ Note: In order to hide this table in the UI and the text report file, please set
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
 
++------------------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: controller:CONTROL|debounce_unit:db_m ;
++----------------+---------+---------------------------------------------------------+
+; Parameter Name ; Value   ; Type                                                    ;
++----------------+---------+---------------------------------------------------------+
+; CNT_MAX        ; 1000000 ; Signed Integer                                          ;
++----------------+---------+---------------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
 +----------------------------------------------------------------------------------+
 ; Parameter Settings for User Entity Instance: controller:CONTROL|repeat_unit:rp_i ;
 +----------------+----------+------------------------------------------------------+
@@ -4186,6 +4201,16 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; START_CNT      ; 15000000 ; Signed Integer                                       ;
 ; RATE_CNT       ; 1000000  ; Signed Integer                                       ;
 +----------------+----------+------------------------------------------------------+
+Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
+
+
++------------------------------------------------------------------------------------+
+; Parameter Settings for User Entity Instance: controller:CONTROL|tap_mute_unit:tm_u ;
++----------------+----------+--------------------------------------------------------+
+; Parameter Name ; Value    ; Type                                                   ;
++----------------+----------+--------------------------------------------------------+
+; LONG_PRESS_CNT ; 50000000 ; Signed Integer                                         ;
++----------------+----------+--------------------------------------------------------+
 Note: In order to hide this table in the UI and the text report file, please set the "Show Parameter Settings in Synthesis Report" option in "Analysis and Synthesis Settings -> More Settings" to "Off".
 
 
@@ -6515,6 +6540,15 @@ Note: In order to hide this table in the UI and the text report file, please set
 +-------------------------+--------+----------+-------------------------------------------------------------------------------------+
 
 
++-------------------------------------------------------------------+
+; Port Connectivity Checks: "controller:CONTROL|debounce_unit:db_m" ;
++-------+--------+----------+---------------------------------------+
+; Port  ; Type   ; Severity ; Details                               ;
++-------+--------+----------+---------------------------------------+
+; pulse ; Output ; Info     ; Explicitly unconnected                ;
++-------+--------+----------+---------------------------------------+
+
+
 +------------------------------------------------------------------------------------------------------------------+
 ; Port Connectivity Checks: "controller:CONTROL|debounce_unit:db_l"                                                ;
 +--------+--------+----------+-------------------------------------------------------------------------------------+
@@ -6533,24 +6567,27 @@ Note: In order to hide this table in the UI and the text report file, please set
 +--------+--------+----------+-------------------------------------------------------------------------------------+
 
 
-+---------------------------------------------------------------------------------------------------------------------------+
-; Port Connectivity Checks: "controller:CONTROL"                                                                            ;
-+-----------------+--------+----------+-------------------------------------------------------------------------------------+
-; Port            ; Type   ; Severity ; Details                                                                             ;
-+-----------------+--------+----------+-------------------------------------------------------------------------------------+
-; params[10..15]  ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[0][1..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[1][5..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[2][4..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[3][7]    ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[4][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[5][4..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[6][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[7][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[8][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; params[9][1..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed. ;
-; LEDR            ; Output ; Info     ; Explicitly unconnected                                                              ;
-+-----------------+--------+----------+-------------------------------------------------------------------------------------+
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Port Connectivity Checks: "controller:CONTROL"                                                                                                                                     ;
++-----------------+--------+----------+----------------------------------------------------------------------------------------------------------------------------------------------+
+; Port            ; Type   ; Severity ; Details                                                                                                                                      ;
++-----------------+--------+----------+----------------------------------------------------------------------------------------------------------------------------------------------+
+; params[10..15]  ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[0][1..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[1][5..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[2][4..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[3][7]    ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[4][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[5][4..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[6][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[7][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[8][3..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; params[9][1..7] ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; is_mute         ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; delay_pulse     ; Output ; Info     ; Connected to dangling logic. Logic that only feeds a dangling port will be removed.                                                          ;
+; LEDR            ; Output ; Info     ; Explicitly unconnected                                                                                                                       ;
+; mute_button     ; Input  ; Warning  ; Declared by entity but not connected by instance. If a default value exists, it will be used.  Otherwise, the port will be connected to GND. ;
++-----------------+--------+----------+----------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 +---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -6907,7 +6944,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+--------------+
 ; Partition Name ; Elapsed Time ;
 +----------------+--------------+
-; Top            ; 00:00:32     ;
+; Top            ; 00:00:36     ;
 +----------------+--------------+
 
 
@@ -7570,7 +7607,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Sat Feb 21 22:03:56 2026
+    Info: Processing started: Sun Feb 22 07:42:15 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off AudioFX -c AudioFX
 Info (16303): High Performance Effort optimization mode selected -- timing performance will be prioritized at the potential cost of increased compilation time
     Info (16304): Mode behavior is affected by advanced setting Physical Synthesis Effort Level (default for this mode is Normal)
@@ -7578,16 +7615,16 @@ Info (16303): High Performance Effort optimization mode selected -- timing perfo
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
 Info (12248): Elaborating Platform Designer system entity "FlashMemInterface.qsys"
-Info (12250): 2026.02.21.22:04:17 Progress: Loading HaH_processor/FlashMemInterface.qsys
-Info (12250): 2026.02.21.22:04:18 Progress: Reading input file
-Info (12250): 2026.02.21.22:04:18 Progress: Adding clk_0 [clock_source 18.1]
-Info (12250): 2026.02.21.22:04:19 Progress: Parameterizing module clk_0
-Info (12250): 2026.02.21.22:04:19 Progress: Adding intel_generic_serial_flash_interface_top_0 [intel_generic_serial_flash_interface_top 18.1]
-Info (12250): 2026.02.21.22:04:19 Progress: Parameterizing module intel_generic_serial_flash_interface_top_0
-Info (12250): 2026.02.21.22:04:19 Progress: Building connections
-Info (12250): 2026.02.21.22:04:19 Progress: Parameterizing connections
-Info (12250): 2026.02.21.22:04:19 Progress: Validating
-Info (12250): 2026.02.21.22:04:21 Progress: Done reading input file
+Info (12250): 2026.02.22.07:42:28 Progress: Loading HaH_processor/FlashMemInterface.qsys
+Info (12250): 2026.02.22.07:42:28 Progress: Reading input file
+Info (12250): 2026.02.22.07:42:28 Progress: Adding clk_0 [clock_source 18.1]
+Info (12250): 2026.02.22.07:42:29 Progress: Parameterizing module clk_0
+Info (12250): 2026.02.22.07:42:29 Progress: Adding intel_generic_serial_flash_interface_top_0 [intel_generic_serial_flash_interface_top 18.1]
+Info (12250): 2026.02.22.07:42:29 Progress: Parameterizing module intel_generic_serial_flash_interface_top_0
+Info (12250): 2026.02.22.07:42:29 Progress: Building connections
+Info (12250): 2026.02.22.07:42:29 Progress: Parameterizing connections
+Info (12250): 2026.02.22.07:42:29 Progress: Validating
+Info (12250): 2026.02.22.07:42:31 Progress: Done reading input file
 Info (12250): FlashMemInterface: Generating FlashMemInterface "FlashMemInterface" for QUARTUS_SYNTH
 Info (12250): Intel_generic_serial_flash_interface_top_0: "FlashMemInterface" instantiated intel_generic_serial_flash_interface_top "intel_generic_serial_flash_interface_top_0"
 Info (12250): Csr_controller: "intel_generic_serial_flash_interface_top_0" instantiated intel_generic_serial_flash_interface_csr "csr_controller"
@@ -7610,28 +7647,28 @@ Info (12250): Reusing file C:/Users/karst/Documents/HaH_processor/db/ip/FlashMem
 Info (12250): FlashMemInterface: Done "FlashMemInterface" with 15 modules, 19 files
 Info (12249): Finished elaborating Platform Designer system entity "FlashMemInterface.qsys"
 Info (12248): Elaborating Platform Designer system entity "AVConfig.qsys"
-Info (12250): 2026.02.21.22:04:31 Progress: Loading HaH_processor/AVConfig.qsys
-Info (12250): 2026.02.21.22:04:33 Progress: Reading input file
-Info (12250): 2026.02.21.22:04:33 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
-Info (12250): 2026.02.21.22:04:34 Progress: Parameterizing module audio_and_video_config_0
-Info (12250): 2026.02.21.22:04:34 Progress: Building connections
-Info (12250): 2026.02.21.22:04:34 Progress: Parameterizing connections
-Info (12250): 2026.02.21.22:04:34 Progress: Validating
-Info (12250): 2026.02.21.22:04:34 Progress: Done reading input file
+Info (12250): 2026.02.22.07:42:39 Progress: Loading HaH_processor/AVConfig.qsys
+Info (12250): 2026.02.22.07:42:40 Progress: Reading input file
+Info (12250): 2026.02.22.07:42:40 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
+Info (12250): 2026.02.22.07:42:41 Progress: Parameterizing module audio_and_video_config_0
+Info (12250): 2026.02.22.07:42:41 Progress: Building connections
+Info (12250): 2026.02.22.07:42:41 Progress: Parameterizing connections
+Info (12250): 2026.02.22.07:42:41 Progress: Validating
+Info (12250): 2026.02.22.07:42:41 Progress: Done reading input file
 Info (12250): AVConfig: Generating AVConfig "AVConfig" for QUARTUS_SYNTH
 Info (12250): Audio_and_video_config_0: Starting Generation of Audio and Video Config
 Info (12250): Audio_and_video_config_0: "AVConfig" instantiated altera_up_avalon_audio_and_video_config "audio_and_video_config_0"
 Info (12250): AVConfig: Done "AVConfig" with 2 modules, 16 files
 Info (12249): Finished elaborating Platform Designer system entity "AVConfig.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioPLL.qsys"
-Info (12250): 2026.02.21.22:04:42 Progress: Loading HaH_processor/AudioPLL.qsys
-Info (12250): 2026.02.21.22:04:42 Progress: Reading input file
-Info (12250): 2026.02.21.22:04:43 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
-Info (12250): 2026.02.21.22:04:43 Progress: Parameterizing module audio_pll_0
-Info (12250): 2026.02.21.22:04:43 Progress: Building connections
-Info (12250): 2026.02.21.22:04:43 Progress: Parameterizing connections
-Info (12250): 2026.02.21.22:04:43 Progress: Validating
-Info (12250): 2026.02.21.22:04:46 Progress: Done reading input file
+Info (12250): 2026.02.22.07:42:47 Progress: Loading HaH_processor/AudioPLL.qsys
+Info (12250): 2026.02.22.07:42:48 Progress: Reading input file
+Info (12250): 2026.02.22.07:42:48 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info (12250): 2026.02.22.07:42:48 Progress: Parameterizing module audio_pll_0
+Info (12250): 2026.02.22.07:42:48 Progress: Building connections
+Info (12250): 2026.02.22.07:42:48 Progress: Parameterizing connections
+Info (12250): 2026.02.22.07:42:48 Progress: Validating
+Info (12250): 2026.02.22.07:42:52 Progress: Done reading input file
 Info (12250): AudioPLL: Generating AudioPLL "AudioPLL" for QUARTUS_SYNTH
 Info (12250): Audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
 Info (12250): Audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
@@ -7639,14 +7676,14 @@ Info (12250): Reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_res
 Info (12250): AudioPLL: Done "AudioPLL" with 4 modules, 5 files
 Info (12249): Finished elaborating Platform Designer system entity "AudioPLL.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioCodec.qsys"
-Info (12250): 2026.02.21.22:04:57 Progress: Loading HaH_processor/AudioCodec.qsys
-Info (12250): 2026.02.21.22:04:58 Progress: Reading input file
-Info (12250): 2026.02.21.22:04:58 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
-Info (12250): 2026.02.21.22:05:00 Progress: Parameterizing module audio_0
-Info (12250): 2026.02.21.22:05:00 Progress: Building connections
-Info (12250): 2026.02.21.22:05:00 Progress: Parameterizing connections
-Info (12250): 2026.02.21.22:05:00 Progress: Validating
-Info (12250): 2026.02.21.22:05:01 Progress: Done reading input file
+Info (12250): 2026.02.22.07:43:01 Progress: Loading HaH_processor/AudioCodec.qsys
+Info (12250): 2026.02.22.07:43:01 Progress: Reading input file
+Info (12250): 2026.02.22.07:43:01 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
+Info (12250): 2026.02.22.07:43:02 Progress: Parameterizing module audio_0
+Info (12250): 2026.02.22.07:43:02 Progress: Building connections
+Info (12250): 2026.02.22.07:43:02 Progress: Parameterizing connections
+Info (12250): 2026.02.22.07:43:02 Progress: Validating
+Info (12250): 2026.02.22.07:43:03 Progress: Done reading input file
 Info (12250): AudioCodec: Generating AudioCodec "AudioCodec" for QUARTUS_SYNTH
 Info (12250): Audio_0: Starting Generation of Audio Controller
 Info (12250): Audio_0: "AudioCodec" instantiated altera_up_avalon_audio "audio_0"
@@ -7849,7 +7886,7 @@ Info (15248): File "c:/users/karst/documents/hah_processor/db/ip/audiocodec/subm
 Info (12021): Found 0 design units, including 0 entities, in source file db/ip/audiocodec/submodules/altera_up_sync_fifo.v
 Info (12127): Elaborating entity "AudioFX" for the top level hierarchy
 Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "params" into its bus
-Info (12128): Elaborating entity "AudioPLL" for hierarchy "AudioPLL:u0" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 114
+Info (12128): Elaborating entity "AudioPLL" for hierarchy "AudioPLL:u0" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 116
 Info (12128): Elaborating entity "AudioPLL_audio_pll_0" for hierarchy "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0" File: C:/Users/karst/Documents/HaH_processor/AudioPLL/synthesis/AudioPLL.v Line: 18
 Info (12128): Elaborating entity "AudioPLL_audio_pll_0_audio_pll" for hierarchy "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll" File: C:/Users/karst/Documents/HaH_processor/AudioPLL/synthesis/submodules/AudioPLL_audio_pll_0.v Line: 23
 Info (12128): Elaborating entity "altera_pll" for hierarchy "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|AudioPLL_audio_pll_0_audio_pll:audio_pll|altera_pll:altera_pll_i" File: C:/Users/karst/Documents/HaH_processor/AudioPLL/synthesis/submodules/AudioPLL_audio_pll_0_audio_pll.v Line: 85
@@ -7917,7 +7954,7 @@ Info (12133): Instantiated megafunction "AudioPLL:u0|AudioPLL_audio_pll_0:audio_
     Info (12134): Parameter "pll_type" = "General"
     Info (12134): Parameter "pll_subtype" = "General"
 Info (12128): Elaborating entity "altera_up_avalon_reset_from_locked_signal" for hierarchy "AudioPLL:u0|AudioPLL_audio_pll_0:audio_pll_0|altera_up_avalon_reset_from_locked_signal:reset_from_locked" File: C:/Users/karst/Documents/HaH_processor/AudioPLL/synthesis/submodules/AudioPLL_audio_pll_0.v Line: 28
-Info (12128): Elaborating entity "AVConfig" for hierarchy "AVConfig:u1" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 129
+Info (12128): Elaborating entity "AVConfig" for hierarchy "AVConfig:u1" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 131
 Info (12128): Elaborating entity "AVConfig_audio_and_video_config_0" for hierarchy "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0" File: C:/Users/karst/Documents/HaH_processor/AVConfig/synthesis/AVConfig.v Line: 32
 Info (12128): Elaborating entity "altera_up_av_config_auto_init" for hierarchy "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init" File: C:/Users/karst/Documents/HaH_processor/AVConfig/synthesis/submodules/AVConfig_audio_and_video_config_0.v Line: 412
 Warning (10230): Verilog HDL assignment warning at altera_up_av_config_auto_init.v(137): truncated value with size 32 to match size of target (6) File: C:/Users/karst/Documents/HaH_processor/AVConfig/synthesis/submodules/altera_up_av_config_auto_init.v Line: 137
@@ -7928,7 +7965,7 @@ Info (12128): Elaborating entity "altera_up_av_config_serial_bus_controller" for
 Warning (10230): Verilog HDL assignment warning at altera_up_av_config_serial_bus_controller.v(241): truncated value with size 32 to match size of target (5) File: C:/Users/karst/Documents/HaH_processor/AVConfig/synthesis/submodules/altera_up_av_config_serial_bus_controller.v Line: 241
 Info (12128): Elaborating entity "altera_up_slow_clock_generator" for hierarchy "AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_serial_bus_controller:Serial_Bus_Controller|altera_up_slow_clock_generator:Serial_Config_Clock_Generator" File: C:/Users/karst/Documents/HaH_processor/AVConfig/synthesis/submodules/altera_up_av_config_serial_bus_controller.v Line: 294
 Warning (10230): Verilog HDL assignment warning at altera_up_slow_clock_generator.v(109): truncated value with size 32 to match size of target (11) File: C:/Users/karst/Documents/HaH_processor/AVConfig/synthesis/submodules/altera_up_slow_clock_generator.v Line: 109
-Info (12128): Elaborating entity "AudioCodec" for hierarchy "AudioCodec:u2" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 151
+Info (12128): Elaborating entity "AudioCodec" for hierarchy "AudioCodec:u2" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 153
 Info (12128): Elaborating entity "AudioCodec_audio_0" for hierarchy "AudioCodec:u2|AudioCodec_audio_0:audio_0" File: C:/Users/karst/Documents/HaH_processor/AudioCodec/synthesis/AudioCodec.v Line: 48
 Info (12128): Elaborating entity "altera_up_clock_edge" for hierarchy "AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_clock_edge:Bit_Clock_Edges" File: C:/Users/karst/Documents/HaH_processor/AudioCodec/synthesis/submodules/AudioCodec_audio_0.v Line: 190
 Info (12128): Elaborating entity "altera_up_audio_in_deserializer" for hierarchy "AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer" File: C:/Users/karst/Documents/HaH_processor/AudioCodec/synthesis/submodules/AudioCodec_audio_0.v Line: 245
@@ -7970,7 +8007,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/cntr
     Info (12023): Found entity 1: cntr_i2b File: C:/Users/karst/Documents/HaH_processor/db/cntr_i2b.tdf Line: 25
 Info (12128): Elaborating entity "cntr_i2b" for hierarchy "AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_in_deserializer:Audio_In_Deserializer|altera_up_sync_fifo:Audio_In_Left_Channel_FIFO|scfifo:Sync_FIFO|scfifo_9ba1:auto_generated|a_dpfifo_s2a1:dpfifo|cntr_i2b:wr_ptr" File: C:/Users/karst/Documents/HaH_processor/db/a_dpfifo_s2a1.tdf Line: 58
 Info (12128): Elaborating entity "altera_up_audio_out_serializer" for hierarchy "AudioCodec:u2|AudioCodec_audio_0:audio_0|altera_up_audio_out_serializer:Audio_Out_Serializer" File: C:/Users/karst/Documents/HaH_processor/AudioCodec/synthesis/submodules/AudioCodec_audio_0.v Line: 273
-Info (12128): Elaborating entity "FlashMemInterface" for hierarchy "FlashMemInterface:F_MEM" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 209
+Info (12128): Elaborating entity "FlashMemInterface" for hierarchy "FlashMemInterface:F_MEM" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 211
 Info (12128): Elaborating entity "FlashMemInterface_intel_generic_serial_flash_interface_top_0" for hierarchy "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0" File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/flashmeminterface.v Line: 49
 Info (12128): Elaborating entity "intel_generic_serial_flash_interface_csr" for hierarchy "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|intel_generic_serial_flash_interface_csr:csr_controller" File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/submodules/flashmeminterface_intel_generic_serial_flash_interface_top_0.v Line: 193
 Info (12128): Elaborating entity "FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller" for hierarchy "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller" File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/submodules/flashmeminterface_intel_generic_serial_flash_interface_top_0.v Line: 231
@@ -8006,31 +8043,35 @@ Info (12128): Elaborating entity "intel_generic_serial_flash_interface_asmiblock
 Info (12128): Elaborating entity "altera_reset_controller" for hierarchy "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|altera_reset_controller:rst_controller" File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/submodules/flashmeminterface_intel_generic_serial_flash_interface_top_0.v Line: 435
 Info (12128): Elaborating entity "altera_reset_synchronizer" for hierarchy "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|altera_reset_controller:rst_controller|altera_reset_synchronizer:alt_rst_sync_uq1" File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/submodules/altera_reset_controller.v Line: 208
 Info (12128): Elaborating entity "altera_reset_synchronizer" for hierarchy "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|altera_reset_controller:rst_controller|altera_reset_synchronizer:alt_rst_req_sync_uq1" File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/submodules/altera_reset_controller.v Line: 220
-Info (12128): Elaborating entity "controller" for hierarchy "controller:CONTROL" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 251
+Info (12128): Elaborating entity "controller" for hierarchy "controller:CONTROL" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 255
 Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "params" into its bus
 Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "params" into its bus
-Info (12128): Elaborating entity "debounce_unit" for hierarchy "controller:CONTROL|debounce_unit:db_i" File: C:/Users/karst/Documents/HaH_processor/controller.sv Line: 190
+Info (12128): Elaborating entity "debounce_unit" for hierarchy "controller:CONTROL|debounce_unit:db_i" File: C:/Users/karst/Documents/HaH_processor/controller.sv Line: 176
 Warning (10230): Verilog HDL assignment warning at debounce_unit.sv(29): truncated value with size 32 to match size of target (20) File: C:/Users/karst/Documents/HaH_processor/debounce_unit.sv Line: 29
-Info (12128): Elaborating entity "repeat_unit" for hierarchy "controller:CONTROL|repeat_unit:rp_i" File: C:/Users/karst/Documents/HaH_processor/controller.sv Line: 199
+Info (12128): Elaborating entity "repeat_unit" for hierarchy "controller:CONTROL|repeat_unit:rp_i" File: C:/Users/karst/Documents/HaH_processor/controller.sv Line: 187
 Warning (10230): Verilog HDL assignment warning at repeat_unit.sv(15): truncated value with size 32 to match size of target (24) File: C:/Users/karst/Documents/HaH_processor/repeat_unit.sv Line: 15
 Warning (10230): Verilog HDL assignment warning at repeat_unit.sv(18): truncated value with size 32 to match size of target (20) File: C:/Users/karst/Documents/HaH_processor/repeat_unit.sv Line: 18
-Info (12128): Elaborating entity "controller_fsm" for hierarchy "controller:CONTROL|controller_fsm:fsm_inst" File: C:/Users/karst/Documents/HaH_processor/controller.sv Line: 241
+Warning (12125): Using design file tap_mute_unit.sv, which is not specified as a design file for the current project, but contains definitions for 1 design units and 1 entities in project
+    Info (12023): Found entity 1: tap_mute_unit File: C:/Users/karst/Documents/HaH_processor/tap_mute_unit.sv Line: 1
+Info (12128): Elaborating entity "tap_mute_unit" for hierarchy "controller:CONTROL|tap_mute_unit:tm_u" File: C:/Users/karst/Documents/HaH_processor/controller.sv Line: 204
+Warning (10230): Verilog HDL assignment warning at tap_mute_unit.sv(41): truncated value with size 32 to match size of target (26) File: C:/Users/karst/Documents/HaH_processor/tap_mute_unit.sv Line: 41
+Info (12128): Elaborating entity "controller_fsm" for hierarchy "controller:CONTROL|controller_fsm:fsm_inst" File: C:/Users/karst/Documents/HaH_processor/controller.sv Line: 244
 Warning (10036): Verilog HDL or VHDL warning at controller_fsm.sv(151): object "sentinel_ok" assigned a value but never read File: C:/Users/karst/Documents/HaH_processor/controller_fsm.sv Line: 151
-Info (12128): Elaborating entity "display" for hierarchy "display:DISPLAY" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 271
+Info (12128): Elaborating entity "display" for hierarchy "display:DISPLAY" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 275
 Warning (10230): Verilog HDL assignment warning at display.sv(107): truncated value with size 32 to match size of target (4) File: C:/Users/karst/Documents/HaH_processor/display.sv Line: 107
 Warning (10230): Verilog HDL assignment warning at display.sv(112): truncated value with size 32 to match size of target (4) File: C:/Users/karst/Documents/HaH_processor/display.sv Line: 112
 Info (12128): Elaborating entity "sevseg_display" for hierarchy "display:DISPLAY|sevseg_display:H0" File: C:/Users/karst/Documents/HaH_processor/display.sv Line: 58
-Info (12128): Elaborating entity "fx_gain" for hierarchy "fx_gain:FX_INPUT_GAIN" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 301
-Info (12128): Elaborating entity "fx_gate" for hierarchy "fx_gate:FX_GATE" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 315
-Info (12128): Elaborating entity "fx_eq" for hierarchy "fx_eq:FX_EQ_1" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 328
-Info (12128): Elaborating entity "fx_compressor" for hierarchy "fx_compressor:FX_COMPRESSOR" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 344
+Info (12128): Elaborating entity "fx_gain" for hierarchy "fx_gain:FX_INPUT_GAIN" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 305
+Info (12128): Elaborating entity "fx_gate" for hierarchy "fx_gate:FX_GATE" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 319
+Info (12128): Elaborating entity "fx_eq" for hierarchy "fx_eq:FX_EQ_1" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 332
+Info (12128): Elaborating entity "fx_compressor" for hierarchy "fx_compressor:FX_COMPRESSOR" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 348
 Warning (10036): Verilog HDL or VHDL warning at fx_compressor.sv(83): object "dv_comp" assigned a value but never read File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 83
 Warning (10230): Verilog HDL assignment warning at fx_compressor.sv(113): truncated value with size 32 to match size of target (5) File: C:/Users/karst/Documents/HaH_processor/fx_compressor.sv Line: 113
 Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "audio_lookahead" into its bus
-Info (12128): Elaborating entity "fx_distortion" for hierarchy "fx_distortion:FX_DISTORTION" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 356
+Info (12128): Elaborating entity "fx_distortion" for hierarchy "fx_distortion:FX_DISTORTION" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 360
 Warning (10230): Verilog HDL assignment warning at fx_distortion.sv(106): truncated value with size 97 to match size of target (64) File: C:/Users/karst/Documents/HaH_processor/fx_distortion.sv Line: 106
 Warning (10230): Verilog HDL assignment warning at fx_distortion.sv(121): truncated value with size 64 to match size of target (32) File: C:/Users/karst/Documents/HaH_processor/fx_distortion.sv Line: 121
-Info (12128): Elaborating entity "fx_chorus" for hierarchy "fx_chorus:FX_CHORUS" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 381
+Info (12128): Elaborating entity "fx_chorus" for hierarchy "fx_chorus:FX_CHORUS" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 385
 Warning (10230): Verilog HDL assignment warning at fx_chorus.sv(77): truncated value with size 32 to match size of target (24) File: C:/Users/karst/Documents/HaH_processor/fx_chorus.sv Line: 77
 Warning (10230): Verilog HDL assignment warning at fx_chorus.sv(98): truncated value with size 33 to match size of target (32) File: C:/Users/karst/Documents/HaH_processor/fx_chorus.sv Line: 98
 Warning (10230): Verilog HDL assignment warning at fx_chorus.sv(100): truncated value with size 33 to match size of target (32) File: C:/Users/karst/Documents/HaH_processor/fx_chorus.sv Line: 100
@@ -8039,13 +8080,13 @@ Info (12128): Elaborating entity "delay_line_li" for hierarchy "fx_chorus:FX_CHO
 Warning (10230): Verilog HDL assignment warning at delay_line_li.sv(58): truncated value with size 32 to match size of target (11) File: C:/Users/karst/Documents/HaH_processor/delay_line_li.sv Line: 58
 Warning (10230): Verilog HDL assignment warning at delay_line_li.sv(61): truncated value with size 32 to match size of target (11) File: C:/Users/karst/Documents/HaH_processor/delay_line_li.sv Line: 61
 Warning (10230): Verilog HDL assignment warning at delay_line_li.sv(100): truncated value with size 32 to match size of target (11) File: C:/Users/karst/Documents/HaH_processor/delay_line_li.sv Line: 100
-Info (12128): Elaborating entity "fx_delay" for hierarchy "fx_delay:FX_DELAY" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 393
+Info (12128): Elaborating entity "fx_delay" for hierarchy "fx_delay:FX_DELAY" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 397
 Warning (10036): Verilog HDL or VHDL warning at fx_delay.sv(59): object "dry_gain" assigned a value but never read File: C:/Users/karst/Documents/HaH_processor/fx_delay.sv Line: 59
 Warning (10230): Verilog HDL assignment warning at fx_delay.sv(98): truncated value with size 16 to match size of target (15) File: C:/Users/karst/Documents/HaH_processor/fx_delay.sv Line: 98
 Info (12128): Elaborating entity "delay_line" for hierarchy "fx_delay:FX_DELAY|delay_line:unit_L" File: C:/Users/karst/Documents/HaH_processor/fx_delay.sv Line: 74
 Warning (10230): Verilog HDL assignment warning at delay_line.sv(44): truncated value with size 32 to match size of target (15) File: C:/Users/karst/Documents/HaH_processor/delay_line.sv Line: 44
 Warning (10230): Verilog HDL assignment warning at delay_line.sv(69): truncated value with size 32 to match size of target (15) File: C:/Users/karst/Documents/HaH_processor/delay_line.sv Line: 69
-Info (12128): Elaborating entity "fx_reverb" for hierarchy "fx_reverb:FX_REVERB" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 405
+Info (12128): Elaborating entity "fx_reverb" for hierarchy "fx_reverb:FX_REVERB" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 409
 Warning (10230): Verilog HDL assignment warning at fx_reverb.sv(208): truncated value with size 32 to match size of target (12) File: C:/Users/karst/Documents/HaH_processor/fx_reverb.sv Line: 208
 Warning (10230): Verilog HDL assignment warning at fx_reverb.sv(209): truncated value with size 32 to match size of target (12) File: C:/Users/karst/Documents/HaH_processor/fx_reverb.sv Line: 209
 Warning (10230): Verilog HDL assignment warning at fx_reverb.sv(210): truncated value with size 32 to match size of target (12) File: C:/Users/karst/Documents/HaH_processor/fx_reverb.sv Line: 210
@@ -8081,7 +8122,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr
     Info (12023): Found entity 1: cmpr_99c File: C:/Users/karst/Documents/HaH_processor/db/cmpr_99c.tdf Line: 22
 Info (12033): Analysis and Synthesis generated Signal Tap or debug node instance "auto_signaltap_0"
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.02.21.22:05:31 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.02.22.07:43:28 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: Generating alt_sld_fab "alt_sld_fab" for QUARTUS_SYNTH
 Info (11172): Alt_sld_fab: "alt_sld_fab" instantiated alt_sld_fab "alt_sld_fab"
@@ -8696,7 +8737,7 @@ Info (12131): Elaborated megafunction instantiation "fx_eq:FX_EQ_2|lpm_mult:Mult
 Info (12021): Found 1 design units, including 1 entities, in source file db/add_sub_0dh.tdf
     Info (12023): Found entity 1: add_sub_0dh File: C:/Users/karst/Documents/HaH_processor/db/add_sub_0dh.tdf Line: 22
 Info (12131): Elaborated megafunction instantiation "fx_eq:FX_EQ_2|lpm_mult:Mult9|altshift:external_latency_ffs", which is child of megafunction instantiation "fx_eq:FX_EQ_2|lpm_mult:Mult9" File: c:/intelfpga_lite/18.1/quartus/libraries/megafunctions/lpm_mult.tdf Line: 351
-Warning (12241): 5 hierarchies have connectivity warnings - see the Connectivity Checks report folder
+Warning (12241): 6 hierarchies have connectivity warnings - see the Connectivity Checks report folder
 Warning (14284): Synthesized away the following node(s):
     Warning (14285): Synthesized away the following RAM node(s):
         Warning (14320): Synthesized away node "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo|altsyncram:mem_rtl_0|altsyncram_i0n1:auto_generated|ram_block1a0" File: C:/Users/karst/Documents/HaH_processor/db/altsyncram_i0n1.tdf Line: 37
@@ -8707,12 +8748,12 @@ Warning (14284): Synthesized away the following node(s):
         Warning (14320): Synthesized away node "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo|altsyncram:mem_rtl_0|altsyncram_i0n1:auto_generated|ram_block1a5" File: C:/Users/karst/Documents/HaH_processor/db/altsyncram_i0n1.tdf Line: 177
         Warning (14320): Synthesized away node "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo|altsyncram:mem_rtl_0|altsyncram_i0n1:auto_generated|ram_block1a6" File: C:/Users/karst/Documents/HaH_processor/db/altsyncram_i0n1.tdf Line: 205
         Warning (14320): Synthesized away node "FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_xip_controller:xip_controller|avst_fifo:avst_fifo_inst|altera_avalon_sc_fifo:avst_fifo|altsyncram:mem_rtl_0|altsyncram_i0n1:auto_generated|ram_block1a7" File: C:/Users/karst/Documents/HaH_processor/db/altsyncram_i0n1.tdf Line: 233
+Info (13000): Registers with preset signals will power-up high File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/submodules/flashmeminterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst.sv Line: 2701
+Info (13003): DEV_CLRn pin will set, and not reset, register with preset signal due to NOT Gate Push-Back
 Warning (13039): The following bidirectional pins have no drivers
     Warning (13040): bidirectional pin "AUD_BCLK" has no driver File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 52
     Warning (13040): bidirectional pin "AUD_ADCLRCK" has no driver File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 53
     Warning (13040): bidirectional pin "AUD_DACLRCK" has no driver File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 54
-Info (13000): Registers with preset signals will power-up high File: C:/Users/karst/Documents/HaH_processor/db/ip/flashmeminterface/submodules/flashmeminterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst.sv Line: 2701
-Info (13003): DEV_CLRn pin will set, and not reset, register with preset signal due to NOT Gate Push-Back
 Warning (13024): Output pins are stuck at VCC or GND
     Warning (13410): Pin "HEX0[0]" is stuck at VCC File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 62
     Warning (13410): Pin "HEX0[1]" is stuck at VCC File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 62
@@ -8751,11 +8792,11 @@ Info (21057): Implemented 17227 device resources after synthesis - the final res
     Info (21064): Implemented 707 RAM segments
     Info (21065): Implemented 1 PLLs
     Info (21062): Implemented 98 DSP elements
-Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 104 warnings
-    Info: Peak virtual memory: 5200 megabytes
-    Info: Processing ended: Sat Feb 21 22:06:20 2026
-    Info: Elapsed time: 00:02:24
-    Info: Total CPU time (on all processors): 00:03:44
+Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 106 warnings
+    Info: Peak virtual memory: 5168 megabytes
+    Info: Processing ended: Sun Feb 22 07:44:21 2026
+    Info: Elapsed time: 00:02:06
+    Info: Total CPU time (on all processors): 00:03:22
 
 
 +------------------------------------------+
