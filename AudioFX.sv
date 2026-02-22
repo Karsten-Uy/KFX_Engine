@@ -84,6 +84,8 @@ module AudioFX(
 	logic [PARAM_W-1:0]             current_value;
 	logic [9:0]                     cont_LEDR;
 	logic                           fsm_busy;
+	logic                           is_mute;
+	logic                           delay_tick;
 	
 	// FX Chain intermediate signals
 	logic [1:0][DATA_W-1:0] pre_fx; 
@@ -229,6 +231,8 @@ module AudioFX(
         .fx_sel(fx_sel),
         .param_sel(param_sel),
         .current_value(current_value),
+		.is_mute(is_mute),
+		.delay_pulse(delay_tick),
 		
 		.LEDR(),
 		.fsm_busy(fsm_busy),

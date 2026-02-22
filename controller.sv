@@ -5,18 +5,21 @@ module controller #(
     parameter DEBOUNCE_CNT_MAX = 1_000_000,
     parameter REPEAT_START_CNT = 15_000_000,
     parameter REPEAT_RATE_CNT  = 2_000_000,
-    parameter FLASH_BASE       = 24'h6B0000  // byte address, 64 KB aligned,
-                                             // past end of bitstream in flash
+    parameter MUTE_START_CNT   = 50_000_000,   // added for tap_mute_unit
+    parameter FLASH_BASE       = 24'h6B0000
 )(
     input  logic clk, reset_n,
     input  logic [$clog2(FX_COUNT)-1:0]    sw_fx_sel,
     input  logic [$clog2(PARAM_COUNT)-1:0] sw_param_sel,
     input  logic key_inc, key_dec, save_button, load_button,
+    input  logic mute_button,                  // added: physical mute/tap button
 
     output logic [PARAM_W-1:0]             params [0:FX_COUNT-1][0:PARAM_COUNT-1],
     output logic [$clog2(FX_COUNT)-1:0]    fx_sel,
     output logic [$clog2(PARAM_COUNT)-1:0] param_sel,
     output logic [PARAM_W-1:0]             current_value,
+    output logic                           is_mute,
+    output logic                           delay_pulse,
 
     // Debug signals
     output logic [9:0] LEDR,
@@ -47,6 +50,7 @@ module controller #(
 
     logic inc_p, dec_p, sav_p, ld_p;
     logic inc_s, dec_s, sav_s, ld_s;
+    logic mute_stable;                         // debounced mute button
 
     logic inc_r, dec_r;
     logic ld_mem, inc_idx, rst_idx;
@@ -63,27 +67,14 @@ module controller #(
 
     // ----------------------------------------------------------------
     // Write data to flash
-    //
-    // write_sentinel=1 only during SAVE_SENTINEL / SAVE_SEN_HOLD.
-    // All other writes use params[f_fx][f_p] directly.
     // ----------------------------------------------------------------
     assign flash_mem_writedata  = write_sentinel
                                     ? {24'b0, SENTINEL}
                                     : {24'b0, params[f_fx][f_p]};
-    assign flash_mem_byteenable = 4'b0001;   // byte 0 only
+    assign flash_mem_byteenable = 4'b0001;
 
     // ----------------------------------------------------------------
     // Diagnostic LEDs
-    //
-    // Before any save/load:  LEDR[7:0] = current_value  (live)
-    // After save:            LEDR[7:0] = save_latch
-    //   → 0xA5 (10100101b) means all writes succeeded (sentinel written)
-    //   → 0xFF means writes never started (XIP not accepting)
-    //   → 0x00 means params were all zero at save time
-    // After load:            LEDR[7:0] = load_latch
-    //   → 0xFF means sentinel missing (flash unwritten or wrong address)
-    // During op:             LEDR[9]=1 (busy indicator)
-    // After load:            LEDR[8]=1 means sentinel was found and trusted
     // ----------------------------------------------------------------
     logic [7:0] save_latch;
     logic [7:0] load_latch;
@@ -101,27 +92,22 @@ module controller #(
         end else begin
             fsm_busy_prev <= fsm_busy;
 
-            // Capture every write byte that the XIP accepts
             if (flash_mem_write && !flash_mem_waitrequest)
                 save_latch <= flash_mem_writedata[7:0];
 
-            // Capture every read byte returned from flash
             if (flash_mem_readdatavalid)
                 load_latch <= flash_mem_readdata[7:0];
 
-            // Reset sticky flags when a new operation starts
             if (sav_p || ld_p) begin
                 save_op_done <= 1'b0;
                 load_op_done <= 1'b0;
             end
 
-            // Reset sticky flags when the user edits a param
             if (inc_p || inc_r || dec_p || dec_r) begin
                 save_op_done <= 1'b0;
                 load_op_done <= 1'b0;
             end
 
-            // Mark which operation just completed
             if (fsm_busy_prev && !fsm_busy) begin
                 save_op_done <= !load_valid;
                 load_op_done <=  load_valid;
@@ -142,7 +128,7 @@ module controller #(
     assign LEDR[9]   = fsm_busy;
 
     // ----------------------------------------------------------------
-    // Flash index counters  (f_fx / f_p)
+    // Flash index counters
     // ----------------------------------------------------------------
     always_ff @(posedge clk) begin
         if (!reset_n || rst_idx) begin
@@ -184,16 +170,18 @@ module controller #(
     end
 
     // ----------------------------------------------------------------
-    // Debounce
+    // Button debounce + repeat
     // ----------------------------------------------------------------
     debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_i (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s), .pulse(inc_p));
+        db_i (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s),    .pulse(inc_p));
     debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_d (.clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s), .pulse(dec_p));
+        db_d (.clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s),    .pulse(dec_p));
     debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_s (.clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s), .pulse(sav_p));
+        db_s (.clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s),    .pulse(sav_p));
     debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_l (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),  .pulse(ld_p));
+        db_l (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),     .pulse(ld_p));
+    debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
+        db_m (.clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable), .pulse());
 
     repeat_unit #(.START_CNT(REPEAT_START_CNT), .RATE_CNT(REPEAT_RATE_CNT))
         rp_i (.clk(clk), .rst_n(reset_n), .stable(inc_s), .pulse(inc_r));
@@ -201,12 +189,27 @@ module controller #(
         rp_d (.clk(clk), .rst_n(reset_n), .stable(dec_s), .pulse(dec_r));
 
     // ----------------------------------------------------------------
+    // Tap / mute unit
+    //   - short press  -> delay_pulse pulse (tap tempo)
+    //   - long press   -> assert is_mute
+    //   - press while muted -> clear is_mute immediately
+    // ----------------------------------------------------------------
+    tap_mute_unit #(.LONG_PRESS_CNT(MUTE_START_CNT))
+        tm_u (
+            .clk        (clk),
+            .rst_n      (reset_n),
+            .stable     (mute_stable),
+            .is_mute    (is_mute),
+            .delay_pulse(delay_pulse)
+        );
+
+    // ----------------------------------------------------------------
     // FSM
     // ----------------------------------------------------------------
     controller_fsm #(
         .FX_COUNT   (FX_COUNT),
         .PARAM_COUNT(PARAM_COUNT),
-        .FLASH_BASE (FLASH_BASE)   // 24-bit byte address passed through
+        .FLASH_BASE (FLASH_BASE)
     ) fsm_inst (
         .clk    (clk),
         .rst_n  (reset_n),
