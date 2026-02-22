@@ -10,14 +10,6 @@ module tap_mute_unit #(
     logic long_press_triggered;
     logic prev_stable;
 
-    // NOTE: do NOT use a wire/assign for rising edge detection.
-    // A combinatorial wire is high between clock edges whenever
-    // stable=1 and prev_stable=0, including routing glitches between
-    // the two signals. That spuriously toggles is_mute mid-cycle,
-    // which gates the DAC on/off at glitch rate = buzz.
-    // Instead, evaluate (stable && !prev_stable) only inside always_ff
-    // so it resolves once per clock edge.
-
     always_ff @(posedge clk) begin
         if (!rst_n) begin
             timer                <= 0;
@@ -30,25 +22,30 @@ module tap_mute_unit #(
             prev_stable <= stable;
 
             if (stable) begin
-                // Rising edge detected synchronously — safe from glitches
                 if (stable && !prev_stable && is_mute) begin
+                    // Rising edge while muted: unmute immediately
                     is_mute              <= 1'b0;
                     long_press_triggered <= 1'b1;
-                end
-
-                if (!long_press_triggered) begin
-                    if (timer < LONG_PRESS_CNT) begin
+                end else if (!long_press_triggered) begin
+                    // Not yet triggered: count toward long press
+                    if (timer < LONG_PRESS_CNT - 1) begin
                         timer <= timer + 1;
                     end else begin
+                        // Long press threshold reached: engage mute
                         is_mute              <= 1'b1;
                         long_press_triggered <= 1'b1;
                     end
                 end
+                // If long_press_triggered and not a rising-edge-while-muted,
+                // do nothing: hold current state until release
             end else begin
-                // Button released: short press -> tap pulse
-                if (prev_stable && !long_press_triggered)
+                // Button released
+                if (prev_stable && !long_press_triggered) begin
+                    // Was a short press: emit tap tempo pulse
                     delay_pulse <= 1'b1;
+                end
 
+                // Reset for next press
                 timer                <= 0;
                 long_press_triggered <= 0;
             end
