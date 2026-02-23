@@ -10,27 +10,29 @@ module tuner_amdf_engine #(
     output logic        data_valid
 );
 
-    localparam BUF_DEPTH       = MAX_LAG + WINDOW_SIZE;
-    localparam LAG_W           = $clog2(MAX_LAG + 1);
-    localparam IDX_W           = $clog2(BUF_DEPTH);
-    localparam SUM_W           = $clog2(WINDOW_SIZE * 65536);
+    localparam BUF_DEPTH      = MAX_LAG + WINDOW_SIZE;
+    localparam LAG_W          = $clog2(MAX_LAG + 1);
+    localparam IDX_W          = $clog2(BUF_DEPTH);
+    localparam SUM_W          = $clog2(WINDOW_SIZE * 65536);
     localparam SEARCH_INTERVAL = 8192;
-    localparam INTV_W          = $clog2(SEARCH_INTERVAL + 1);
-    localparam MIN_SEARCH_LAG  = 80;    // 96000/80  = 1200 Hz ceiling (safe margin)
+    localparam INTV_W         = $clog2(SEARCH_INTERVAL + 1);
+    localparam MIN_SEARCH_LAG = 80;
 
-    // Sub-harmonic rejection:
-    // During the scan we track TWO minimums:
-    //   - global:    best over [MIN_SEARCH_LAG .. MAX_LAG-1]
-    //   - lo:        best over [MIN_SEARCH_LAG .. HALF_MAX_LAG]
+    // Range boundaries — chosen so guitar string fundamentals are separated
+    // from their own sub-harmonics:
     //
-    // HALF_MAX_LAG = 1600 → 96000/1600 = 60 Hz, covers all 6 guitar strings.
+    //   hi  [80..500]:  High E(291), B(389), G(490) fundamentals
+    //                   2T of those would be 582+, safely in mid range
+    //   mid [501..1600]: D(653), A(873), Low E(1170) fundamentals
+    //   global:          fallback for genuine sub-bass
     //
-    // At the end we prefer `best_lag_lo` unless the global minimum is more than
-    // 2^SUBHARM_SHIFT (= 4×) better.  A sub-harmonic at 2T is typically only
-    // 10–50% lower than T, so 4× catches it; genuine 30 Hz (lag=3200, outside
-    // lo range) has an AMDF much lower than anything in lo range so global wins.
-    localparam HALF_MAX_LAG  = MAX_LAG / 2;   // 1600
-    localparam SUBHARM_SHIFT = 2;             // prefer lo unless global is 4× better
+    // Cascade preference: prefer hi unless mid AMDF is more than CASCADE_SHIFT
+    // times better (i.e. hi is spurious noise). Then prefer mid over global
+    // with same check.
+    localparam HI_LAG_MAX     = 500;
+    localparam MID_LAG_MAX    = 1600;
+    localparam CASCADE_SHIFT  = 1;   // 2^1 = 2× threshold; increase if low strings
+                                     // wrongly trigger hi range
 
     // ---- Circular buffer ----
     logic signed [DATA_W-1:0] buffer [0:BUF_DEPTH-1];
@@ -44,12 +46,18 @@ module tuner_amdf_engine #(
 
     // ---- Search state ----
     logic [SUM_W-1:0]  current_sum;
-    logic [SUM_W-1:0]  min_sum;           // global minimum AMDF value
-    logic [SUM_W-1:0]  min_sum_lo;        // lo-range minimum AMDF value
+
+    // Three range trackers
+    logic [SUM_W-1:0]  min_sum;         // global
+    logic [SUM_W-1:0]  min_sum_hi;      // hi range  [80..500]
+    logic [SUM_W-1:0]  min_sum_mid;     // mid range [501..1600]
+
     logic [LAG_W-1:0]  current_lag;
     logic [IDX_W-1:0]  window_idx;
-    logic [LAG_W-1:0]  best_lag_internal; // lag of global minimum
-    logic [LAG_W-1:0]  best_lag_lo;       // lag of lo-range minimum
+
+    logic [LAG_W-1:0]  best_lag_internal;
+    logic [LAG_W-1:0]  best_lag_hi;
+    logic [LAG_W-1:0]  best_lag_mid;
 
     // ---- Pipelined RAM signals ----
     logic [IDX_W-1:0]         addr_v0, addr_vlag;
@@ -102,7 +110,7 @@ module tuner_amdf_engine #(
         end
     end
 
-    // ---- RAM read (1-cycle latency) ----
+    // ---- RAM read ----
     always_ff @(posedge clk) begin
         v0   <= buffer[addr_v0];
         vLag <= buffer[addr_vlag];
@@ -121,14 +129,16 @@ module tuner_amdf_engine #(
             state             <= IDLE;
             search_base_ptr   <= '0;
             best_lag_out      <= '0;
-            best_lag_internal <= '0;
-            best_lag_lo       <= LAG_W'(MIN_SEARCH_LAG);
+            best_lag_internal <= LAG_W'(MIN_SEARCH_LAG);
+            best_lag_hi       <= LAG_W'(MIN_SEARCH_LAG);
+            best_lag_mid      <= LAG_W'(MIN_SEARCH_LAG);
             data_valid        <= 1'b0;
             current_lag       <= '0;
             window_idx        <= '0;
             current_sum       <= '0;
             min_sum           <= '1;
-            min_sum_lo        <= '1;
+            min_sum_hi        <= '1;
+            min_sum_mid       <= '1;
             addr_v0           <= '0;
             addr_vlag         <= '0;
         end else begin
@@ -142,9 +152,11 @@ module tuner_amdf_engine #(
                         window_idx        <= '0;
                         current_sum       <= '0;
                         min_sum           <= '1;
-                        min_sum_lo        <= '1;
+                        min_sum_hi        <= '1;
+                        min_sum_mid       <= '1;
                         best_lag_internal <= LAG_W'(MIN_SEARCH_LAG);
-                        best_lag_lo       <= LAG_W'(MIN_SEARCH_LAG);
+                        best_lag_hi       <= LAG_W'(MIN_SEARCH_LAG);
+                        best_lag_mid      <= LAG_W'(MIN_SEARCH_LAG);
 
                         addr_v0   <= circ(wr_ptr, IDX_W'(0));
                         addr_vlag <= circ(wr_ptr, IDX_W'(MIN_SEARCH_LAG));
@@ -165,40 +177,62 @@ module tuner_amdf_engine #(
                     addr_v0   <= circ(search_base_ptr, window_idx + 1'b1);
                     addr_vlag <= circ(search_base_ptr, (window_idx + 1'b1) + IDX_W'(current_lag));
 
-                    if (window_idx == IDX_W'(WINDOW_SIZE + 1)) begin
+                    if (window_idx == IDX_W'(WINDOW_SIZE + 1))
                         state <= EVALUATE;
-                    end else begin
+                    else
                         window_idx <= window_idx + 1'b1;
-                    end
                 end
 
                 EVALUATE: begin
-                    // Always update global minimum
+                    // Global minimum
                     if (current_sum < min_sum) begin
                         min_sum           <= current_sum;
                         best_lag_internal <= current_lag;
                     end
 
-                    // Update lo-range minimum (covers 60–1200 Hz displayed,
-                    // i.e. all 6 standard guitar strings)
-                    if (current_lag <= LAG_W'(HALF_MAX_LAG) &&
-                            current_sum < min_sum_lo) begin
-                        min_sum_lo  <= current_sum;
-                        best_lag_lo <= current_lag;
+                    // Hi-range minimum [MIN_SEARCH_LAG .. HI_LAG_MAX]
+                    // Captures High E (291), B (389), G (490)
+                    // Their 2T sub-harmonics are 582+ so cannot appear here
+                    if (current_lag <= LAG_W'(HI_LAG_MAX) &&
+                            current_sum < min_sum_hi) begin
+                        min_sum_hi  <= current_sum;
+                        best_lag_hi <= current_lag;
+                    end
+
+                    // Mid-range minimum [HI_LAG_MAX+1 .. MID_LAG_MAX]
+                    // Captures D (653), A (873), Low E (1170)
+                    // Also contains sub-harmonics of high strings, but cascade
+                    // logic below suppresses those by preferring hi-range
+                    if (current_lag > LAG_W'(HI_LAG_MAX) &&
+                            current_lag <= LAG_W'(MID_LAG_MAX) &&
+                            current_sum < min_sum_mid) begin
+                        min_sum_mid  <= current_sum;
+                        best_lag_mid <= current_lag;
                     end
 
                     if (current_lag == LAG_W'(MAX_LAG - 1)) begin
-                        // Sub-harmonic rejection:
-                        // Prefer best_lag_lo (higher freq, truer fundamental) unless
-                        // the global minimum is 4× better — which only happens for
-                        // genuine sub-bass (<60 Hz) whose lag falls outside lo range.
-                        if ((min_sum_lo >> SUBHARM_SHIFT) <= min_sum)
-                            best_lag_out <= 12'(best_lag_lo);
+
+                        // Cascade preference: hi > mid > global
+                        //
+                        // Use hi_range if its best AMDF is within CASCADE_SHIFT
+                        // times the mid_range best. When a low string is played,
+                        // hi_range has no good match (min_sum_hi stays near '1)
+                        // while min_sum_mid is small, so the shift easily separates
+                        // them and we fall through to mid_range.
+                        //
+                        // When B or High E is played, both hi_range (fundamental)
+                        // and mid_range (sub-harmonic) have low AMDF, but hi_range
+                        // is within 2× of mid_range, so we correctly pick hi_range.
+                        if (min_sum_hi <= (min_sum_mid << CASCADE_SHIFT))
+                            best_lag_out <= 12'(best_lag_hi);
+                        else if (min_sum_mid <= (min_sum << CASCADE_SHIFT))
+                            best_lag_out <= 12'(best_lag_mid);
                         else
                             best_lag_out <= 12'(best_lag_internal);
 
                         data_valid <= 1'b1;
                         state      <= IDLE;
+
                     end else begin
                         current_lag <= current_lag + 1'b1;
                         window_idx  <= '0;
