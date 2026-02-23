@@ -1,5 +1,5 @@
 Analysis & Synthesis report for AudioFX
-Sun Feb 22 18:41:32 2026
+Sun Feb 22 19:51:41 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -237,7 +237,7 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +---------------------------------+---------------------------------------------+
-; Analysis & Synthesis Status     ; Successful - Sun Feb 22 18:41:32 2026       ;
+; Analysis & Synthesis Status     ; Successful - Sun Feb 22 19:51:40 2026       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
@@ -352,14 +352,14 @@ refer to the applicable agreement for further details.
 ; Number detected on machine ; 8           ;
 ; Maximum allowed            ; 4           ;
 ;                            ;             ;
-; Average used               ; 1.30        ;
+; Average used               ; 1.23        ;
 ; Maximum used               ; 4           ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   9.9%      ;
-;     Processor 3            ;   9.9%      ;
-;     Processor 4            ;   9.9%      ;
+;     Processor 2            ;   7.6%      ;
+;     Processor 3            ;   7.6%      ;
+;     Processor 4            ;   7.6%      ;
 +----------------------------+-------------+
 
 
@@ -578,14 +578,14 @@ refer to the applicable agreement for further details.
 +---------------------------------------------+----------------+
 ; Resource                                    ; Usage          ;
 +---------------------------------------------+----------------+
-; Estimate of Logic utilization (ALMs needed) ; 8248           ;
+; Estimate of Logic utilization (ALMs needed) ; 8278           ;
 ;                                             ;                ;
-; Combinational ALUT usage for logic          ; 13374          ;
+; Combinational ALUT usage for logic          ; 13430          ;
 ;     -- 7 input functions                    ; 11             ;
-;     -- 6 input functions                    ; 2535           ;
-;     -- 5 input functions                    ; 1109           ;
-;     -- 4 input functions                    ; 1819           ;
-;     -- <=3 input functions                  ; 7900           ;
+;     -- 6 input functions                    ; 2538           ;
+;     -- 5 input functions                    ; 1100           ;
+;     -- 4 input functions                    ; 1823           ;
+;     -- <=3 input functions                  ; 7958           ;
 ;                                             ;                ;
 ; Dedicated logic registers                   ; 5801           ;
 ;                                             ;                ;
@@ -600,8 +600,8 @@ refer to the applicable agreement for further details.
 ;                                             ;                ;
 ; Maximum fan-out node                        ; CLOCK_50~input ;
 ; Maximum fan-out                             ; 5732           ;
-; Total fan-out                               ; 85015          ;
-; Average fan-out                             ; 4.25           ;
+; Total fan-out                               ; 85170          ;
+; Average fan-out                             ; 4.24           ;
 +---------------------------------------------+----------------+
 
 
@@ -610,7 +610,7 @@ refer to the applicable agreement for further details.
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+-------------------+
 ; Compilation Hierarchy Node                                                                                                              ; Combinational ALUTs ; Dedicated Logic Registers ; Block Memory Bits ; DSP Blocks ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                                                                                                                                                                                                                                                                                             ; Entity Name                                                                                          ; Library Name      ;
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+-------------------+
-; |AudioFX                                                                                                                                ; 13374 (6)           ; 5801 (44)                 ; 1602160           ; 98         ; 91   ; 0            ; |AudioFX                                                                                                                                                                                                                                                                                                                                                                                                        ; AudioFX                                                                                              ; work              ;
+; |AudioFX                                                                                                                                ; 13430 (6)           ; 5801 (44)                 ; 1602160           ; 98         ; 91   ; 0            ; |AudioFX                                                                                                                                                                                                                                                                                                                                                                                                        ; AudioFX                                                                                              ; work              ;
 ;    |AVConfig:u1|                                                                                                                        ; 123 (0)             ; 109 (0)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1                                                                                                                                                                                                                                                                                                                                                                                            ; AVConfig                                                                                             ; AVConfig          ;
 ;       |AVConfig_audio_and_video_config_0:audio_and_video_config_0|                                                                      ; 123 (0)             ; 109 (0)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0                                                                                                                                                                                                                                                                                                                                 ; AVConfig_audio_and_video_config_0                                                                    ; AVConfig          ;
 ;          |altera_up_av_config_auto_init:AV_Config_Auto_Init|                                                                            ; 11 (11)             ; 28 (28)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|altera_up_av_config_auto_init:AV_Config_Auto_Init                                                                                                                                                                                                                                                                               ; altera_up_av_config_auto_init                                                                        ; AVConfig          ;
@@ -1189,7 +1189,7 @@ refer to the applicable agreement for further details.
 ;                |lpm_shiftreg:ram_data_shift_out|                                                                                        ; 1 (1)               ; 90 (90)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|sld_signaltap:auto_signaltap_0|sld_signaltap_impl:sld_signaltap_body|sld_signaltap_implb:sld_signaltap_body|sld_offload_buffer_mgr:\stp_non_zero_depth_offload_gen:stp_offload_buff_mgr_inst|lpm_shiftreg:ram_data_shift_out                                                                                                                                                                           ; lpm_shiftreg                                                                                         ; work              ;
 ;                |lpm_shiftreg:status_data_shift_out|                                                                                     ; 1 (1)               ; 15 (15)                   ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|sld_signaltap:auto_signaltap_0|sld_signaltap_impl:sld_signaltap_body|sld_signaltap_implb:sld_signaltap_body|sld_offload_buffer_mgr:\stp_non_zero_depth_offload_gen:stp_offload_buff_mgr_inst|lpm_shiftreg:status_data_shift_out                                                                                                                                                                        ; lpm_shiftreg                                                                                         ; work              ;
 ;             |sld_rom_sr:crc_rom_sr|                                                                                                     ; 20 (20)             ; 8 (8)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|sld_signaltap:auto_signaltap_0|sld_signaltap_impl:sld_signaltap_body|sld_signaltap_implb:sld_signaltap_body|sld_rom_sr:crc_rom_sr                                                                                                                                                                                                                                                                      ; sld_rom_sr                                                                                           ; work              ;
-;    |tuner_amdf_engine:TUNER|                                                                                                            ; 627 (593)           ; 301 (299)                 ; 364544            ; 0          ; 0    ; 0            ; |AudioFX|tuner_amdf_engine:TUNER                                                                                                                                                                                                                                                                                                                                                                                ; tuner_amdf_engine                                                                                    ; work              ;
+;    |tuner_amdf_engine:TUNER|                                                                                                            ; 683 (649)           ; 301 (299)                 ; 364544            ; 0          ; 0    ; 0            ; |AudioFX|tuner_amdf_engine:TUNER                                                                                                                                                                                                                                                                                                                                                                                ; tuner_amdf_engine                                                                                    ; work              ;
 ;       |altsyncram:buffer_rtl_0|                                                                                                         ; 18 (0)              ; 1 (0)                     ; 182272            ; 0          ; 0    ; 0            ; |AudioFX|tuner_amdf_engine:TUNER|altsyncram:buffer_rtl_0                                                                                                                                                                                                                                                                                                                                                        ; altsyncram                                                                                           ; work              ;
 ;          |altsyncram_ofn1:auto_generated|                                                                                               ; 18 (0)              ; 1 (1)                     ; 182272            ; 0          ; 0    ; 0            ; |AudioFX|tuner_amdf_engine:TUNER|altsyncram:buffer_rtl_0|altsyncram_ofn1:auto_generated                                                                                                                                                                                                                                                                                                                         ; altsyncram_ofn1                                                                                      ; work              ;
 ;             |decode_5la:decode2|                                                                                                        ; 2 (2)               ; 0 (0)                     ; 0                 ; 0          ; 0    ; 0            ; |AudioFX|tuner_amdf_engine:TUNER|altsyncram:buffer_rtl_0|altsyncram_ofn1:auto_generated|decode_5la:decode2                                                                                                                                                                                                                                                                                                      ; decode_5la                                                                                           ; work              ;
@@ -2875,10 +2875,10 @@ Encoding Type:  One-Hot
 ; 6:1                ; 7 bits    ; 28 LEs        ; 28 LEs               ; 0 LEs                  ; No         ; |AudioFX|fx_compressor:FX_COMPRESSOR|ShiftRight4                                                                                                                                                                                                                                                                                                                                                                                    ;
 ; 6:1                ; 10 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|best_lag_mid[8]                                                                                                                                                                                                                                                                                                                                                                                    ;
 ; 6:1                ; 31 bits   ; 124 LEs       ; 31 LEs               ; 93 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|min_sum_mid[10]                                                                                                                                                                                                                                                                                                                                                                                    ;
-; 6:1                ; 10 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|best_lag_hi[9]                                                                                                                                                                                                                                                                                                                                                                                     ;
+; 6:1                ; 10 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|best_lag_hi[11]                                                                                                                                                                                                                                                                                                                                                                                    ;
 ; 6:1                ; 31 bits   ; 124 LEs       ; 31 LEs               ; 93 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|min_sum_hi[0]                                                                                                                                                                                                                                                                                                                                                                                      ;
-; 6:1                ; 10 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|best_lag_internal[7]                                                                                                                                                                                                                                                                                                                                                                               ;
-; 6:1                ; 31 bits   ; 124 LEs       ; 31 LEs               ; 93 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|min_sum[13]                                                                                                                                                                                                                                                                                                                                                                                        ;
+; 6:1                ; 10 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|best_lag_internal[5]                                                                                                                                                                                                                                                                                                                                                                               ;
+; 6:1                ; 31 bits   ; 124 LEs       ; 31 LEs               ; 93 LEs                 ; Yes        ; |AudioFX|tuner_amdf_engine:TUNER|min_sum[17]                                                                                                                                                                                                                                                                                                                                                                                        ;
 ; 4:1                ; 26 bits   ; 52 LEs        ; 0 LEs                ; 52 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|tap_mute_unit:tm_u|timer[16]                                                                                                                                                                                                                                                                                                                                                                            ;
 ; 4:1                ; 20 bits   ; 40 LEs        ; 0 LEs                ; 40 LEs                 ; Yes        ; |AudioFX|controller:CONTROL|debounce_unit:db_m|count[2]                                                                                                                                                                                                                                                                                                                                                                             ;
 ; 5:1                ; 16 bits   ; 48 LEs        ; 32 LEs               ; 16 LEs                 ; Yes        ; |AudioFX|fx_gain:FX_OUTPUT_GAIN|audio_out[0][8]                                                                                                                                                                                                                                                                                                                                                                                     ;
@@ -7121,28 +7121,28 @@ Note: In order to hide this table in the UI and the text report file, please set
 ;     SLD               ; 19                          ;
 ;     plain             ; 109                         ;
 ; arriav_io_obuf        ; 4                           ;
-; arriav_lcell_comb     ; 12988                       ;
-;     arith             ; 5304                        ;
+; arriav_lcell_comb     ; 13044                       ;
+;     arith             ; 5332                        ;
 ;         0 data inputs ; 246                         ;
 ;         1 data inputs ; 1286                        ;
-;         2 data inputs ; 3072                        ;
+;         2 data inputs ; 3100                        ;
 ;         3 data inputs ; 247                         ;
 ;         4 data inputs ; 242                         ;
 ;         5 data inputs ; 211                         ;
 ;     extend            ; 11                          ;
 ;         7 data inputs ; 11                          ;
-;     normal            ; 6574                        ;
+;     normal            ; 6573                        ;
 ;         0 data inputs ; 2                           ;
 ;         1 data inputs ; 42                          ;
-;         2 data inputs ; 827                         ;
-;         3 data inputs ; 973                         ;
-;         4 data inputs ; 1523                        ;
-;         5 data inputs ; 759                         ;
-;         6 data inputs ; 2448                        ;
-;     shared            ; 1099                        ;
+;         2 data inputs ; 831                         ;
+;         3 data inputs ; 970                         ;
+;         4 data inputs ; 1527                        ;
+;         5 data inputs ; 750                         ;
+;         6 data inputs ; 2451                        ;
+;     shared            ; 1128                        ;
 ;         0 data inputs ; 15                          ;
-;         1 data inputs ; 94                          ;
-;         2 data inputs ; 822                         ;
+;         1 data inputs ; 96                          ;
+;         2 data inputs ; 849                         ;
 ;         3 data inputs ; 152                         ;
 ;         4 data inputs ; 16                          ;
 ; arriav_mac            ; 98                          ;
@@ -7160,7 +7160,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 +----------------+--------------+
 ; Partition Name ; Elapsed Time ;
 +----------------+--------------+
-; Top            ; 00:00:42     ;
+; Top            ; 00:00:46     ;
 +----------------+--------------+
 
 
@@ -7391,7 +7391,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Sun Feb 22 18:39:11 2026
+    Info: Processing started: Sun Feb 22 19:48:24 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off AudioFX -c AudioFX
 Info (16303): High Performance Effort optimization mode selected -- timing performance will be prioritized at the potential cost of increased compilation time
     Info (16304): Mode behavior is affected by advanced setting Physical Synthesis Effort Level (default for this mode is Normal)
@@ -7399,16 +7399,16 @@ Info (16303): High Performance Effort optimization mode selected -- timing perfo
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 4 of the 4 processors detected
 Info (12248): Elaborating Platform Designer system entity "FlashMemInterface.qsys"
-Info (12250): 2026.02.22.18:39:28 Progress: Loading HaH_processor/FlashMemInterface.qsys
-Info (12250): 2026.02.22.18:39:29 Progress: Reading input file
-Info (12250): 2026.02.22.18:39:29 Progress: Adding clk_0 [clock_source 18.1]
-Info (12250): 2026.02.22.18:39:30 Progress: Parameterizing module clk_0
-Info (12250): 2026.02.22.18:39:30 Progress: Adding intel_generic_serial_flash_interface_top_0 [intel_generic_serial_flash_interface_top 18.1]
-Info (12250): 2026.02.22.18:39:30 Progress: Parameterizing module intel_generic_serial_flash_interface_top_0
-Info (12250): 2026.02.22.18:39:30 Progress: Building connections
-Info (12250): 2026.02.22.18:39:30 Progress: Parameterizing connections
-Info (12250): 2026.02.22.18:39:30 Progress: Validating
-Info (12250): 2026.02.22.18:39:32 Progress: Done reading input file
+Info (12250): 2026.02.22.19:48:54 Progress: Loading HaH_processor/FlashMemInterface.qsys
+Info (12250): 2026.02.22.19:48:55 Progress: Reading input file
+Info (12250): 2026.02.22.19:48:55 Progress: Adding clk_0 [clock_source 18.1]
+Info (12250): 2026.02.22.19:48:57 Progress: Parameterizing module clk_0
+Info (12250): 2026.02.22.19:48:57 Progress: Adding intel_generic_serial_flash_interface_top_0 [intel_generic_serial_flash_interface_top 18.1]
+Info (12250): 2026.02.22.19:48:57 Progress: Parameterizing module intel_generic_serial_flash_interface_top_0
+Info (12250): 2026.02.22.19:48:57 Progress: Building connections
+Info (12250): 2026.02.22.19:48:57 Progress: Parameterizing connections
+Info (12250): 2026.02.22.19:48:57 Progress: Validating
+Info (12250): 2026.02.22.19:49:00 Progress: Done reading input file
 Info (12250): FlashMemInterface: Generating FlashMemInterface "FlashMemInterface" for QUARTUS_SYNTH
 Info (12250): Intel_generic_serial_flash_interface_top_0: "FlashMemInterface" instantiated intel_generic_serial_flash_interface_top "intel_generic_serial_flash_interface_top_0"
 Info (12250): Csr_controller: "intel_generic_serial_flash_interface_top_0" instantiated intel_generic_serial_flash_interface_csr "csr_controller"
@@ -7431,28 +7431,28 @@ Info (12250): Reusing file C:/Users/karst/Documents/HaH_processor/db/ip/FlashMem
 Info (12250): FlashMemInterface: Done "FlashMemInterface" with 15 modules, 19 files
 Info (12249): Finished elaborating Platform Designer system entity "FlashMemInterface.qsys"
 Info (12248): Elaborating Platform Designer system entity "AVConfig.qsys"
-Info (12250): 2026.02.22.18:39:41 Progress: Loading HaH_processor/AVConfig.qsys
-Info (12250): 2026.02.22.18:39:42 Progress: Reading input file
-Info (12250): 2026.02.22.18:39:42 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
-Info (12250): 2026.02.22.18:39:43 Progress: Parameterizing module audio_and_video_config_0
-Info (12250): 2026.02.22.18:39:43 Progress: Building connections
-Info (12250): 2026.02.22.18:39:43 Progress: Parameterizing connections
-Info (12250): 2026.02.22.18:39:43 Progress: Validating
-Info (12250): 2026.02.22.18:39:43 Progress: Done reading input file
+Info (12250): 2026.02.22.19:49:20 Progress: Loading HaH_processor/AVConfig.qsys
+Info (12250): 2026.02.22.19:49:21 Progress: Reading input file
+Info (12250): 2026.02.22.19:49:21 Progress: Adding audio_and_video_config_0 [altera_up_avalon_audio_and_video_config 18.0]
+Info (12250): 2026.02.22.19:49:25 Progress: Parameterizing module audio_and_video_config_0
+Info (12250): 2026.02.22.19:49:25 Progress: Building connections
+Info (12250): 2026.02.22.19:49:25 Progress: Parameterizing connections
+Info (12250): 2026.02.22.19:49:25 Progress: Validating
+Info (12250): 2026.02.22.19:49:25 Progress: Done reading input file
 Info (12250): AVConfig: Generating AVConfig "AVConfig" for QUARTUS_SYNTH
 Info (12250): Audio_and_video_config_0: Starting Generation of Audio and Video Config
 Info (12250): Audio_and_video_config_0: "AVConfig" instantiated altera_up_avalon_audio_and_video_config "audio_and_video_config_0"
 Info (12250): AVConfig: Done "AVConfig" with 2 modules, 16 files
 Info (12249): Finished elaborating Platform Designer system entity "AVConfig.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioPLL.qsys"
-Info (12250): 2026.02.22.18:39:49 Progress: Loading HaH_processor/AudioPLL.qsys
-Info (12250): 2026.02.22.18:39:50 Progress: Reading input file
-Info (12250): 2026.02.22.18:39:50 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
-Info (12250): 2026.02.22.18:39:50 Progress: Parameterizing module audio_pll_0
-Info (12250): 2026.02.22.18:39:50 Progress: Building connections
-Info (12250): 2026.02.22.18:39:50 Progress: Parameterizing connections
-Info (12250): 2026.02.22.18:39:50 Progress: Validating
-Info (12250): 2026.02.22.18:39:53 Progress: Done reading input file
+Info (12250): 2026.02.22.19:49:45 Progress: Loading HaH_processor/AudioPLL.qsys
+Info (12250): 2026.02.22.19:49:46 Progress: Reading input file
+Info (12250): 2026.02.22.19:49:47 Progress: Adding audio_pll_0 [altera_up_avalon_audio_pll 18.0]
+Info (12250): 2026.02.22.19:49:47 Progress: Parameterizing module audio_pll_0
+Info (12250): 2026.02.22.19:49:47 Progress: Building connections
+Info (12250): 2026.02.22.19:49:47 Progress: Parameterizing connections
+Info (12250): 2026.02.22.19:49:47 Progress: Validating
+Info (12250): 2026.02.22.19:49:53 Progress: Done reading input file
 Info (12250): AudioPLL: Generating AudioPLL "AudioPLL" for QUARTUS_SYNTH
 Info (12250): Audio_pll_0: "AudioPLL" instantiated altera_up_avalon_audio_pll "audio_pll_0"
 Info (12250): Audio_pll: "audio_pll_0" instantiated altera_pll "audio_pll"
@@ -7460,14 +7460,14 @@ Info (12250): Reset_from_locked: "audio_pll_0" instantiated altera_up_avalon_res
 Info (12250): AudioPLL: Done "AudioPLL" with 4 modules, 5 files
 Info (12249): Finished elaborating Platform Designer system entity "AudioPLL.qsys"
 Info (12248): Elaborating Platform Designer system entity "AudioCodec.qsys"
-Info (12250): 2026.02.22.18:40:02 Progress: Loading HaH_processor/AudioCodec.qsys
-Info (12250): 2026.02.22.18:40:03 Progress: Reading input file
-Info (12250): 2026.02.22.18:40:03 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
-Info (12250): 2026.02.22.18:40:04 Progress: Parameterizing module audio_0
-Info (12250): 2026.02.22.18:40:04 Progress: Building connections
-Info (12250): 2026.02.22.18:40:04 Progress: Parameterizing connections
-Info (12250): 2026.02.22.18:40:04 Progress: Validating
-Info (12250): 2026.02.22.18:40:04 Progress: Done reading input file
+Info (12250): 2026.02.22.19:50:06 Progress: Loading HaH_processor/AudioCodec.qsys
+Info (12250): 2026.02.22.19:50:07 Progress: Reading input file
+Info (12250): 2026.02.22.19:50:07 Progress: Adding audio_0 [altera_up_avalon_audio 18.0]
+Info (12250): 2026.02.22.19:50:08 Progress: Parameterizing module audio_0
+Info (12250): 2026.02.22.19:50:08 Progress: Building connections
+Info (12250): 2026.02.22.19:50:08 Progress: Parameterizing connections
+Info (12250): 2026.02.22.19:50:08 Progress: Validating
+Info (12250): 2026.02.22.19:50:09 Progress: Done reading input file
 Info (12250): AudioCodec: Generating AudioCodec "AudioCodec" for QUARTUS_SYNTH
 Info (12250): Audio_0: Starting Generation of Audio Controller
 Info (12250): Audio_0: "AudioCodec" instantiated altera_up_avalon_audio "audio_0"
@@ -7916,7 +7916,7 @@ Info (12021): Found 1 design units, including 1 entities, in source file db/cmpr
     Info (12023): Found entity 1: cmpr_99c File: C:/Users/karst/Documents/HaH_processor/db/cmpr_99c.tdf Line: 22
 Info (12033): Analysis and Synthesis generated Signal Tap or debug node instance "auto_signaltap_0"
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.02.22.18:40:31 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.02.22.19:50:35 Progress: Loading sld30451bca/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: Generating alt_sld_fab "alt_sld_fab" for QUARTUS_SYNTH
 Info (11172): Alt_sld_fab: "alt_sld_fab" instantiated alt_sld_fab "alt_sld_fab"
@@ -8682,19 +8682,19 @@ Info (16010): Generating hard_block partition "hard_block:auto_generated_inst"
     Info (16011): Adding 17 node(s), including 0 DDIO, 1 PLL, 0 transceiver and 0 LCELL
 Warning (21074): Design contains 1 input pin(s) that do not drive logic
     Warning (15610): No output dependent on input pin "SW[5]" File: C:/Users/karst/Documents/HaH_processor/AudioFX.sv Line: 47
-Info (21057): Implemented 16407 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 16463 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 19 input pins
     Info (21059): Implemented 72 output pins
     Info (21060): Implemented 4 bidirectional pins
-    Info (21061): Implemented 15656 logic cells
+    Info (21061): Implemented 15712 logic cells
     Info (21064): Implemented 555 RAM segments
     Info (21065): Implemented 1 PLLs
     Info (21062): Implemented 98 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 94 warnings
     Info: Peak virtual memory: 5190 megabytes
-    Info: Processing ended: Sun Feb 22 18:41:32 2026
-    Info: Elapsed time: 00:02:21
-    Info: Total CPU time (on all processors): 00:03:35
+    Info: Processing ended: Sun Feb 22 19:51:41 2026
+    Info: Elapsed time: 00:03:17
+    Info: Total CPU time (on all processors): 00:05:16
 
 
 +------------------------------------------+
