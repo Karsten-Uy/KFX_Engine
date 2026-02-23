@@ -16,6 +16,7 @@ module tuner_amdf_engine #(
     localparam SUM_W           = $clog2(WINDOW_SIZE * 65536);
     localparam SEARCH_INTERVAL = 8192;
     localparam INTV_W          = $clog2(SEARCH_INTERVAL + 1);
+    localparam MIN_SEARCH_LAG  = 80;
 
     // ---- Circular buffer ----
     logic signed [DATA_W-1:0] buffer [0:BUF_DEPTH-1];
@@ -122,14 +123,14 @@ module tuner_amdf_engine #(
                     data_valid <= 1'b0;
                     if (start_search && buf_ready) begin
                         search_base_ptr <= wr_ptr;
-                        current_lag     <= LAG_W'(40);
+                        current_lag     <= LAG_W'(MIN_SEARCH_LAG);
                         window_idx      <= '0;
                         current_sum     <= '0;
                         min_sum         <= '1;
 
                         // Set addresses for index 0
                         addr_v0   <= circ(wr_ptr, IDX_W'(0));
-                        addr_vlag <= circ(wr_ptr, IDX_W'(40));
+                        addr_vlag <= circ(wr_ptr, IDX_W'(MIN_SEARCH_LAG));
 
                         state <= ADDR_SETUP;  // Drain 1 cycle for RAM + diff pipeline
                     end
