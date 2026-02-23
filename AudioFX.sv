@@ -292,7 +292,8 @@ module AudioFX(
 
 		// ---------------- TUNER ENGINE ----------------
 		// We feed it the raw ADC_Data[0] (the guitar input)
-		tuner_amdf_engine #(
+		// tuner_amdf_engine #(
+		tuner_yin_engine #(
 			.DATA_W(DATA_W),
 			.MAX_LAG(MAX_LAG),     
 			.WINDOW_SIZE(WINDOW_SIZE)  

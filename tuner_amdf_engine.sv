@@ -10,59 +10,59 @@ module tuner_amdf_engine #(
     output logic        data_valid
 );
 
-    localparam BUF_DEPTH      = MAX_LAG + WINDOW_SIZE;
-    localparam LAG_W          = $clog2(MAX_LAG + 1);
-    localparam IDX_W          = $clog2(BUF_DEPTH);
-    localparam SUM_W          = $clog2(WINDOW_SIZE * 65536);
-    localparam SEARCH_INTERVAL = 8192;
-    localparam INTV_W         = $clog2(SEARCH_INTERVAL + 1);
-    localparam MIN_SEARCH_LAG = 80;
-
-    // Range boundaries and sub-harmonic relationships (at 96 kHz):
+    // ---------------------------------------------------------------
+    // Algorithm: YIN Cumulative Mean Normalized Difference Function
+    // ---------------------------------------------------------------
     //
-    //   hi  [80..500]:  High E (291), B (389), G (490) fundamentals
-    //                   Their half-periods (146, 195, 245) are ALSO in hi range.
-    //                   Their 2T sub-harmonics (582, 778, 980) are in mid range.
+    // Standard AMDF picks the global minimum of d(tau), which can be a
+    // sub-harmonic (2T, 3T) because d(nT) is also near-zero for periodic
+    // signals.  YIN solves this with normalization:
     //
-    //   mid [501..1600]: D (654), A (873), Low E (1165) fundamentals
-    //                   D/A half-periods (327, 436) are in hi range.
-    //                   D sub-harmonic (1308) is in mid range.
-    //                   A/Low-E sub-harmonics (1746, 2330) are in global range.
+    //   d(tau)  = sum_{n} |x(n) - x(n-tau)|          (raw AMDF)
+    //   S(tau)  = sum_{j=MIN_LAG}^{tau} d(j)          (cumulative sum)
+    //   d'(tau) = tau * d(tau) / S(tau)               (CMNDF)
     //
-    //   global:         fallback; no guitar fundamental lives here.
+    // The pitch period is the FIRST tau where d'(tau) < threshold.
+    // "First" is the sub-harmonic rejection mechanism: the fundamental
+    // always appears at a shorter lag than 2T, 3T, etc., so it is chosen
+    // before they get a chance.
+    //
+    // Division is eliminated by cross-multiplying:
+    //   d'(tau) < threshold  <=>  tau * d(tau) < S(tau) * threshold
+    //
+    // With threshold = 1/8 (THRESHOLD_SHIFT = 3):
+    //   tau * d(tau) < S(tau) >> 3
     //
     // ---------------------------------------------------------------
-    // Hi-range tracker — plain minimum, NO hysteresis:
-    //   Half-periods of hi-range strings (e.g. G at lag 245) appear in the
-    //   search before their fundamentals (G at lag 490).  For guitar, AMDF at
-    //   the fundamental is clearly lower than at T/2, so simple minimum
-    //   tracking naturally picks the fundamental.  Adding hysteresis here was
-    //   wrong: it prevented the fundamental from displacing the half-period
-    //   when the improvement was less than 25%, causing G to lock onto lag 245
-    //   (392 Hz instead of 196 Hz).
+    // Timing notes:
     //
-    // Mid-range tracker — 25% hysteresis:
-    //   D's sub-harmonic (lag ~1308) is also inside mid range and appears after
-    //   the fundamental (lag ~654).  The 25% bar stops it from displacing the
-    //   shorter (fundamental) lag when the two AMDF scores are close.
+    //   prod_r is computed COMBINATIONALLY in EVALUATE from the fully
+    //   accumulated current_sum (which has its final value by the time
+    //   EVALUATE is entered).  At 50 MHz a 29×12→41b multiply is well
+    //   within a single clock cycle on Cyclone-V DSP blocks.
     //
-    // HI_MID cascade — 3× threshold:
-    //   hi wins if  min_sum_hi <= 3 × min_sum_mid
-    //   3× is the sweet spot between two failure modes:
-    //     • Too tight (2×): High E/B sub-harmonics in mid range are only
-    //       ~1.5–2× worse than the hi fundamental → sub-harmonic wins ✗
-    //     • Too loose (4×): D/A half-periods in hi range are 5–10× worse
-    //       than the mid fundamental, but 4× lets them slip through ✗
-    //   At 3×: hi strings still win (their mid sub-harmonic is < 3× worse),
-    //   while D/A correctly fall through (their hi half-period is > 3× worse).
-    //   Expressed as (mid << 1) + mid to avoid a hardware multiplier.
+    //   cumulative_sum is updated AND used in the same EVALUATE cycle:
+    //   we form cumsum_new = cumulative_sum + current_sum combinationally,
+    //   register it (cumulative_sum <= cumsum_new), and compare against
+    //   cumsum_new.  This fixes the off-by-one lag bug where the previous
+    //   version compared against S(tau-1) instead of S(tau).
     //
-    // MID_GLOB cascade — 8× threshold (shift by 3):
-    //   Low E / A sub-harmonics in global range can be 3–4× lower than the
-    //   mid fundamental.  8× ensures mid always wins.
-    localparam HI_LAG_MAX             = 500;
-    localparam MID_LAG_MAX            = 1600;
-    localparam MID_GLOB_CASCADE_SHIFT = 3;   // 8× — mid vs global
+    // ---------------------------------------------------------------
+    // Bit widths:
+    //   SUM_W    = clog2(WINDOW_SIZE * 65536) = 29  (d(tau) per lag)
+    //   CUMSUM_W = SUM_W + LAG_W              = 41  (S(tau))
+    //   PROD_W   = SUM_W + LAG_W              = 41  (tau * d(tau))
+
+    localparam BUF_DEPTH       = MAX_LAG + WINDOW_SIZE;
+    localparam LAG_W           = $clog2(MAX_LAG + 1);          // 12
+    localparam IDX_W           = $clog2(BUF_DEPTH);
+    localparam SUM_W           = $clog2(WINDOW_SIZE * 65536);  // 29
+    localparam CUMSUM_W        = SUM_W + LAG_W;                // 41
+    localparam PROD_W          = SUM_W + LAG_W;                // 41
+    localparam SEARCH_INTERVAL = 8192;
+    localparam INTV_W          = $clog2(SEARCH_INTERVAL + 1);
+    localparam MIN_SEARCH_LAG  = 80;    // well above 96000/1200 Hz guitar max
+    localparam THRESHOLD_SHIFT = 4;     // threshold = 1/8 = 0.125
 
     // ---- Circular buffer ----
     logic signed [DATA_W-1:0] buffer [0:BUF_DEPTH-1];
@@ -74,26 +74,35 @@ module tuner_amdf_engine #(
     logic              start_search;
     logic              buf_ready;
 
-    // ---- Search state ----
-    logic [SUM_W-1:0]  current_sum;
+    // ---- Per-lag AMDF accumulator ----
+    logic [SUM_W-1:0] current_sum;
 
-    // Three range trackers
-    logic [SUM_W-1:0]  min_sum;         // global
-    logic [SUM_W-1:0]  min_sum_hi;      // hi range  [80..500]
-    logic [SUM_W-1:0]  min_sum_mid;     // mid range [501..1600]
+    // ---- YIN state ----
+    logic [CUMSUM_W-1:0] cumulative_sum;  // S(tau): running sum of all d(j)
+    logic                yin_found;       // true once first dip below threshold seen
+    logic [LAG_W-1:0]    yin_lag;         // lag of that first dip
 
+    // ---- Fallback: raw global minimum (used if YIN finds nothing) ----
+    logic [SUM_W-1:0]  min_sum;
+    logic [LAG_W-1:0]  best_lag_internal;
+
+    // ---- Search control ----
     logic [LAG_W-1:0]  current_lag;
     logic [IDX_W-1:0]  window_idx;
-
-    logic [LAG_W-1:0]  best_lag_internal;
-    logic [LAG_W-1:0]  best_lag_hi;
-    logic [LAG_W-1:0]  best_lag_mid;
 
     // ---- Pipelined RAM signals ----
     logic [IDX_W-1:0]         addr_v0, addr_vlag;
     logic signed [DATA_W-1:0] v0, vLag;
     logic signed [DATA_W:0]   diff_signed_r;
     logic [DATA_W-1:0]        diff_r;
+
+    // ---- Combinational YIN signals (evaluated in EVALUATE state) ----
+    // These are wires; the always_ff block reads them the same cycle.
+    logic [PROD_W-1:0]   yin_prod;      // tau * d(tau)
+    logic [CUMSUM_W-1:0] cumsum_new;    // S(tau) including this lag
+
+    assign yin_prod   = PROD_W'(current_sum) * PROD_W'(current_lag);
+    assign cumsum_new = cumulative_sum + CUMSUM_W'(current_sum);
 
     function automatic logic [IDX_W-1:0] circ(
         input logic [IDX_W-1:0] base,
@@ -160,15 +169,14 @@ module tuner_amdf_engine #(
             search_base_ptr   <= '0;
             best_lag_out      <= '0;
             best_lag_internal <= LAG_W'(MIN_SEARCH_LAG);
-            best_lag_hi       <= LAG_W'(MIN_SEARCH_LAG);
-            best_lag_mid      <= LAG_W'(MIN_SEARCH_LAG);
             data_valid        <= 1'b0;
             current_lag       <= '0;
             window_idx        <= '0;
             current_sum       <= '0;
             min_sum           <= '1;
-            min_sum_hi        <= '1;
-            min_sum_mid       <= '1;
+            cumulative_sum    <= '0;
+            yin_found         <= 1'b0;
+            yin_lag           <= '0;
             addr_v0           <= '0;
             addr_vlag         <= '0;
         end else begin
@@ -182,11 +190,10 @@ module tuner_amdf_engine #(
                         window_idx        <= '0;
                         current_sum       <= '0;
                         min_sum           <= '1;
-                        min_sum_hi        <= '1;
-                        min_sum_mid       <= '1;
+                        cumulative_sum    <= '0;
+                        yin_found         <= 1'b0;
+                        yin_lag           <= '0;
                         best_lag_internal <= LAG_W'(MIN_SEARCH_LAG);
-                        best_lag_hi       <= LAG_W'(MIN_SEARCH_LAG);
-                        best_lag_mid      <= LAG_W'(MIN_SEARCH_LAG);
 
                         addr_v0   <= circ(wr_ptr, IDX_W'(0));
                         addr_vlag <= circ(wr_ptr, IDX_W'(MIN_SEARCH_LAG));
@@ -214,68 +221,49 @@ module tuner_amdf_engine #(
                 end
 
                 EVALUATE: begin
-                    // Global minimum — plain minimum, no hysteresis
+                    // ---- Update S(tau) ----
+                    // cumsum_new = cumulative_sum + current_sum is computed
+                    // combinationally above and registered here.  We compare
+                    // against cumsum_new (not the stale cumulative_sum) so
+                    // the YIN criterion uses S(tau) inclusive of this lag.
+                    cumulative_sum <= cumsum_new;
+
+                    // ---- Update raw global minimum (fallback) ----
                     if (current_sum < min_sum) begin
                         min_sum           <= current_sum;
                         best_lag_internal <= current_lag;
                     end
 
-                    // Hi-range minimum [MIN_SEARCH_LAG .. HI_LAG_MAX]
-                    // Captures High E (291), B (389), G (490).
+                    // ---- YIN threshold test ----
                     //
-                    // Plain minimum — NO hysteresis here.
-                    // Half-periods of these strings (146, 195, 245) also fall
-                    // in hi range and are encountered first.  For guitar, the
-                    // AMDF at the true fundamental is clearly lower than at T/2,
-                    // so simple minimum tracking naturally picks the right lag.
-                    // Hysteresis was previously blocking the fundamental (e.g. G
-                    // at 490) from beating its half-period (245) when the margin
-                    // was < 25%, causing G to read an octave too high.
-                    if (current_lag <= LAG_W'(HI_LAG_MAX) &&
-                            current_sum < min_sum_hi) begin
-                        min_sum_hi  <= current_sum;
-                        best_lag_hi <= current_lag;
-                    end
-
-                    // Mid-range minimum [HI_LAG_MAX+1 .. MID_LAG_MAX]
-                    // Captures D (654), A (873), Low E (1165).
+                    //   Accept the FIRST tau where d'(tau) < threshold:
+                    //     tau * d(tau)  <  S(tau) >> THRESHOLD_SHIFT
+                    //     yin_prod      <  cumsum_new >> THRESHOLD_SHIFT
                     //
-                    // 25% hysteresis: a later (longer-lag) candidate must beat
-                    // the current best by > 25% to displace it.  This prevents
-                    // D's in-range sub-harmonic (lag ~1308) from displacing the
-                    // fundamental (lag ~654) when both scores are low.
-                    if (current_lag > LAG_W'(HI_LAG_MAX) &&
-                            current_lag <= LAG_W'(MID_LAG_MAX) &&
-                            current_sum < (min_sum_mid - (min_sum_mid >> 2))) begin
-                        min_sum_mid  <= current_sum;
-                        best_lag_mid <= current_lag;
+                    //   Both sides are computed combinationally from the fully
+                    //   settled current_sum (registered at end of ACCUMULATE)
+                    //   and cumulative_sum (stale-read fixed by using cumsum_new).
+                    //
+                    //   "First" is the sub-harmonic rejection:
+                    //   Once yin_found is true we stop updating yin_lag.
+                    //   The fundamental at lag T is always encountered before
+                    //   its sub-harmonics at 2T, 3T, so it wins naturally.
+                    if (!yin_found &&
+                            cumsum_new > 0 &&
+                            yin_prod < (PROD_W'(cumsum_new) >> THRESHOLD_SHIFT)) begin
+                        yin_found <= 1'b1;
+                        yin_lag   <= current_lag;
                     end
 
                     if (current_lag == LAG_W'(MAX_LAG - 1)) begin
-
-                        // Cascade preference: hi > mid > global
-                        //
-                        // HI_MID: 3× threshold  →  (mid << 1) + mid
-                        //   Hi wins if min_sum_hi <= 3 × min_sum_mid.
-                        //   High E/B/G: their mid sub-harmonics are 1.5–2.5× worse
-                        //   than the hi fundamental → comfortably within 3× → hi wins.
-                        //   D/A: their hi half-periods are 5–10× worse than the mid
-                        //   fundamental → exceed 3× → fall through to mid.
-                        //   (Cannot use a simple shift for 3×; expressed as shift+add.)
-                        //
-                        // MID_GLOB: 8× threshold  →  (min_sum << MID_GLOB_CASCADE_SHIFT)
-                        //   Mid wins if min_sum_mid <= 8 × min_sum_global.
-                        //   Low E / A sub-harmonics in global range can be 3–4× lower
-                        //   than the mid fundamental, so 8× ensures mid always wins.
-                        if (min_sum_hi <= (min_sum_mid << 1) + min_sum_mid)
-                            best_lag_out <= 12'(best_lag_hi);
-                        else if (min_sum_mid <= (min_sum << MID_GLOB_CASCADE_SHIFT))
-                            best_lag_out <= 12'(best_lag_mid);
-                        else
-                            best_lag_out <= 12'(best_lag_internal);
-
-                        data_valid <= 1'b1;
-                        state      <= IDLE;
+                        // Output the YIN result, or fall back to raw minimum
+                        // if the signal never crossed the threshold (silence /
+                        // heavy noise — the fallback value is don't-care in
+                        // tuner mode but avoids emitting lag=0).
+                        best_lag_out <= yin_found ? 12'(yin_lag)
+                                                  : 12'(best_lag_internal);
+                        data_valid   <= 1'b1;
+                        state        <= IDLE;
 
                     end else begin
                         current_lag <= current_lag + 1'b1;
