@@ -1,7 +1,7 @@
 module tuner_amdf_engine #(
     parameter DATA_W      = 16,
-    parameter MAX_LAG     = 1600,
-    parameter WINDOW_SIZE = 1024
+    parameter MAX_LAG     = 2400,
+    parameter WINDOW_SIZE = 8192
 )(
     input  logic clk, reset_n,
     input  logic signed [DATA_W-1:0] audio_in,
@@ -14,7 +14,7 @@ module tuner_amdf_engine #(
     localparam LAG_W           = $clog2(MAX_LAG + 1);
     localparam IDX_W           = $clog2(BUF_DEPTH);
     localparam SUM_W           = $clog2(WINDOW_SIZE * 65536);
-    localparam SEARCH_INTERVAL = 2048;
+    localparam SEARCH_INTERVAL = 8192;
     localparam INTV_W          = $clog2(SEARCH_INTERVAL + 1);
 
     // ---- Circular buffer ----
