@@ -26,8 +26,8 @@ package lab_pkg;
     parameter INCDEC_AMOUNT = 2; // ~20 ms @ 50 MHz
 
     // Tuner
-    parameter MAX_LAG       = 1600;    
-    parameter WINDOW_SIZE   = 1024; // ~20 ms @ 50 MHz
+    parameter MAX_LAG       = 2400;    
+    parameter WINDOW_SIZE   = 8192; // ~20 ms @ 50 MHz
 
     // ------------------- Default Parameters ---------------
 
