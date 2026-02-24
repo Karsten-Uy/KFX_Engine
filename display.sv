@@ -12,6 +12,7 @@ module display #(
     input logic                           is_mute,
     input logic [11:0]                    tuner_best_lag,
     input logic                           tuner_valid,
+    input logic [9:0]                     SW,
 
     output logic [9:0] LEDR,
     output logic [6:0] HEX0,
@@ -75,6 +76,7 @@ end
     // Feed the stable latch — 0 when silent → tuner_ui shows blank
     tuner_ui TUNER_UI (
         .best_lag   (tuner_lag_latch),
+        .mode_sel   (SW[9]),
         .tuner_vals (tuner_HEX)
     );
 
@@ -95,7 +97,7 @@ end
         val_HEX2 = {1'd0, param_sel};
 
         if (fsm_busy)
-            val_HEX1 = SEVSEG_B_INDEX;
+            val_HEX1 = SEVSEG_SEG_B;
 
         if (is_mute) begin
             val_HEX5 = tuner_HEX[5];

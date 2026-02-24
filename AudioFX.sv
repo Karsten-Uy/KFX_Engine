@@ -276,6 +276,7 @@ module AudioFX(
 		.is_mute        (is_mute),
 		.tuner_best_lag (tuner_best_lag),
 		.tuner_valid    (tuner_valid),
+		.SW             (SW),
 		.LEDR           (LEDR),
 		.HEX0           (HEX0),
 		.HEX1           (HEX1),

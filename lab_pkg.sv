@@ -150,12 +150,18 @@ package lab_pkg;
                                 //  6543210
     parameter SEVSEG_SEG_R     = 7'b0101111;
     parameter SEVSEG_SEG_P     = 7'b0001100;
+    parameter SEVSEG_SEG_UP    = 7'b1011100;
+    parameter SEVSEG_SEG_DOWN  = 7'b1100011;
+    parameter SEVSEG_SEG_SHARP = 7'b0011100;
 
     parameter SEVSEG_BLANK_INDEX = 5'd16;
     parameter SEVSEG_LINE_INDEX  = 5'd17;
     parameter SEVSEG_R_INDEX     = 5'd18;
     parameter SEVSEG_P_INDEX     = 5'd19;
-    parameter SEVSEG_B_INDEX     = 5'd20;
+
+    parameter SEVSEG_UP_INDEX    = 5'd20;
+    parameter SEVSEG_DOWN_INDEX  = 5'd21;
+    parameter SEVSEG_SHARP_INDEX = 5'd22;
 
     // ------------------- DSP Params -------------------
     parameter FX_STAGES = 9;
