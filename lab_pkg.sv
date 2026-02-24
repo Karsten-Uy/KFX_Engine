@@ -66,6 +66,8 @@ package lab_pkg;
                         1: param_default = 8'd0;  // No compression
                         2: param_default = 8'd64;
                         3: param_default = 8'd128;
+                        4: param_default = 8'd64;
+                        5: param_default = 8'd64;
                     endcase
                 end
 
