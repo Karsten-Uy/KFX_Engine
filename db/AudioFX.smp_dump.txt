@@ -1,12 +1,4 @@
 
-State Machine - |AudioFX|tuner_yin_engine:TUNER|state
-Name state.S_ACCUM state.S_FETCH state.S_SETUP state.S_IDLE state.S_YIN_EVAL 
-state.S_IDLE 0 0 0 0 0 
-state.S_SETUP 0 0 1 1 0 
-state.S_FETCH 0 1 0 1 0 
-state.S_ACCUM 1 0 0 1 0 
-state.S_YIN_EVAL 0 0 0 1 1 
-
 State Machine - |AudioFX|FlashMemInterface:F_MEM|FlashMemInterface_intel_generic_serial_flash_interface_top_0:intel_generic_serial_flash_interface_top_0|FlashMemInterface_intel_generic_serial_flash_interface_top_0_qspi_inf_inst:qspi_inf_inst|state
 Name state.ST_DEASSERT_CS_DLY state.ST_DEASSERT_CS state.ST_STOP_CLK state.ST_RECEIVE state.ST_DUMMY_CYCLES state.ST_SEND state.ST_ASSERT_CS state.ST_START_CLK state.ST_ASSERT_CS_DLY state.ST_IDLE 
 state.ST_IDLE 0 0 0 0 0 0 0 0 0 0 
@@ -55,6 +47,14 @@ state.ST_SEND_HEADER 0 0 0 1 1
 state.ST_SEND_DATA_0 0 0 1 0 1 
 state.ST_SEND_DATA_1 0 1 0 0 1 
 state.ST_WAIT_RSP 1 0 0 0 1 
+
+State Machine - |AudioFX|tuner_yin_engine:TUNER|state
+Name state.S_ACCUM state.S_FETCH state.S_SETUP state.S_IDLE state.S_YIN_EVAL 
+state.S_IDLE 0 0 0 0 0 
+state.S_SETUP 0 0 1 1 0 
+state.S_FETCH 0 1 0 1 0 
+state.S_ACCUM 1 0 0 1 0 
+state.S_YIN_EVAL 0 0 0 1 1 
 
 State Machine - |AudioFX|AVConfig:u1|AVConfig_audio_and_video_config_0:audio_and_video_config_0|s_serial_transfer
 Name s_serial_transfer.STATE_6_POST_READ s_serial_transfer.STATE_5_READ_TRANSFER s_serial_transfer.STATE_4_PRE_READ s_serial_transfer.STATE_3_POST_WRITE s_serial_transfer.STATE_2_WRITE_TRANSFER s_serial_transfer.STATE_1_PRE_WRITE s_serial_transfer.STATE_0_IDLE 

@@ -13170,16 +13170,16 @@ tuner_vals[3][1] <= <GND>
 tuner_vals[3][2] <= <GND>
 tuner_vals[3][3] <= <GND>
 tuner_vals[3][4] <= <VCC>
-tuner_vals[4][0] <= Equal0.DB_MAX_OUTPUT_PORT_TYPE
-tuner_vals[4][1] <= Equal0.DB_MAX_OUTPUT_PORT_TYPE
+tuner_vals[4][0] <= <GND>
+tuner_vals[4][1] <= <VCC>
 tuner_vals[4][2] <= <GND>
 tuner_vals[4][3] <= <GND>
 tuner_vals[4][4] <= <VCC>
 tuner_vals[5][0] <= <VCC>
-tuner_vals[5][1] <= Equal0.DB_MAX_OUTPUT_PORT_TYPE
-tuner_vals[5][2] <= Equal0.DB_MAX_OUTPUT_PORT_TYPE
-tuner_vals[5][3] <= Equal0.DB_MAX_OUTPUT_PORT_TYPE
-tuner_vals[5][4] <= Equal0.DB_MAX_OUTPUT_PORT_TYPE
+tuner_vals[5][1] <= <VCC>
+tuner_vals[5][2] <= <VCC>
+tuner_vals[5][3] <= <VCC>
+tuner_vals[5][4] <= <GND>
 
 
 |AudioFX|tuner_yin_engine:TUNER

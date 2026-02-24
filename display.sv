@@ -42,15 +42,16 @@ module display #(
             tuner_lag_latch <= 12'd0;
             silence_cnt     <= '0;
         end else if (tuner_valid) begin
-            tuner_lag_latch <= tuner_best_lag;  // fresh reading — latch & reset
+            tuner_lag_latch <= tuner_best_lag;
             silence_cnt     <= '0;
+        end else if (silence_cnt < 25'(TIMEOUT_CYCLES)) begin
+            silence_cnt <= silence_cnt + 1'b1;
         end else begin
-            if (silence_cnt < TIMEOUT_CYCLES)
-                silence_cnt <= silence_cnt + 1'b1;
-            else
-                tuner_lag_latch <= 12'd0;       // timed out — go blank
+            // Only zero the latch once on the exact timeout transition,
+            // not every cycle after — silence_cnt stays saturated
+            tuner_lag_latch <= 12'd0;
         end
-    end
+end
 
     // -----------------------------------------------------------------------
     // Seven-segment drivers
