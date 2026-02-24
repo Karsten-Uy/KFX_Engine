@@ -153,6 +153,7 @@ package lab_pkg;
     parameter SEVSEG_SEG_UP    = 7'b1011100;
     parameter SEVSEG_SEG_DOWN  = 7'b1100011;
     parameter SEVSEG_SEG_SHARP = 7'b0011100;
+    parameter SEVSEG_SEG_G     = 7'b0010000;
 
     parameter SEVSEG_BLANK_INDEX = 5'd16;
     parameter SEVSEG_LINE_INDEX  = 5'd17;
@@ -162,6 +163,7 @@ package lab_pkg;
     parameter SEVSEG_UP_INDEX    = 5'd20;
     parameter SEVSEG_DOWN_INDEX  = 5'd21;
     parameter SEVSEG_SHARP_INDEX = 5'd22;
+    parameter SEVSEG_G_INDEX     = 5'd23;
 
     // ------------------- DSP Params -------------------
     parameter FX_STAGES = 9;
