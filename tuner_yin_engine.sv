@@ -3,7 +3,7 @@ module tuner_yin_engine #(
     parameter int MAX_LAG     = 1600,
     parameter int MIN_LAG     = 120,
     parameter int WINDOW_SIZE = 8192,
-    parameter int AMP_THRESHOLD = 800 
+    parameter int AMP_THRESHOLD = 100 
 )(
     input  logic clk, reset_n,
     input  logic signed [DATA_W-1:0] audio_in,

@@ -23,12 +23,12 @@ module tuner_ui (
         tuner_vals[5] = 5'hF;   // 'F'
         tuner_vals[4] = 5'd18;  // 'r'        
 
-        if (frequency !== 0) begin
+        if (frequency != 0) begin
             tuner_vals[2] = {1'b0, hundreds};
             tuner_vals[1] = {1'b0, tens};
             tuner_vals[0] = {1'b0, ones};
         end else begin
-            for (int i = 0; i < 6; i++) tuner_vals[i] = SEVSEG_LINE_INDEX;        
+            for (int i = 0; i < 4; i++) tuner_vals[i] = SEVSEG_LINE_INDEX;        
         end
     end
 endmodule
