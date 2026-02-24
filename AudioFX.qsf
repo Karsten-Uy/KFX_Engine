@@ -1,3 +1,4 @@
+set_global_assignment -name FITTER_EFFORT "AUTO FIT"
 #============================================================
 # Altera DE1-SoC board settings
 #============================================================

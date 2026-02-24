@@ -180,6 +180,10 @@
 					"strict" : false
 				},
 				{
+					"name" : "FPGA_I2C_SCLK",
+					"strict" : false
+				},
+				{
 					"name" : "AUD_DACDAT",
 					"strict" : false
 				},
@@ -245,10 +249,6 @@
 				},
 				{
 					"name" : "HEX4[6]",
-					"strict" : false
-				},
-				{
-					"name" : "FPGA_I2C_SCLK",
 					"strict" : false
 				},
 				{
