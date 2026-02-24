@@ -43,12 +43,17 @@ module sevseg_display(
             // value = 5'd19
             SEVSEG_P_INDEX     : HEX = SEVSEG_SEG_P;
 
-            // value = 5'd19
+            // value = 5'd20
             SEVSEG_UP_INDEX    : HEX = SEVSEG_SEG_UP;
 
-            // value = 5'd19
+            // value = 5'd21
             SEVSEG_DOWN_INDEX  : HEX = SEVSEG_SEG_DOWN;
 
+            // value = 5'd22
+            SEVSEG_SHARP_INDEX : HEX = SEVSEG_SEG_SHARP;
+
+            // value = 5'd23
+            SEVSEG_G_INDEX     : HEX = SEVSEG_SEG_G;
 
             default : HEX = SEVSEG_SEG_BLANK; // SHOULD NOT HAPPEN
         endcase

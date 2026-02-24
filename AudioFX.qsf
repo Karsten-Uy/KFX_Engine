@@ -1,4 +1,4 @@
-set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
 #============================================================
 # Altera DE1-SoC board settings
 #============================================================
@@ -985,7 +985,7 @@ set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
 set_global_assignment -name SMART_RECOMPILE OFF
 set_global_assignment -name OPTIMIZE_POWER_DURING_SYNTHESIS "NORMAL COMPILATION"
 set_global_assignment -name SYNTHESIS_EFFORT AUTO
-set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MINIMUM
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL NORMAL
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING OFF
 set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING OFF
 set_global_assignment -name OPTIMIZE_TIMING "NORMAL COMPILATION"
