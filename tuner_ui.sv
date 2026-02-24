@@ -10,9 +10,9 @@ module tuner_ui (
 
     always_comb begin
         if (best_lag > 0) 
-            frequency = 17'd48000 / {5'b0, best_lag};  // 17'd96000 fits correctly
+            frequency = (17'd48000 / {5'b0, best_lag}) * 2;
         else 
-            frequency = 0;
+            frequency = 0;        
 
         thousands = (frequency / 1000) % 10;
         hundreds  = (frequency / 100)  % 10;
