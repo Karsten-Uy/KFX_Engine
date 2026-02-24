@@ -100,7 +100,7 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd95;
-                        2: param_default = 8'd30;
+                        2: param_default = 8'd0;
                     endcase
                 end
 
@@ -108,7 +108,7 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        2: param_default = 8'd32;
+                        2: param_default = 8'd255;
                     endcase
                 end
 
