@@ -267,12 +267,15 @@ module AudioFX(
         .PARAM_COUNT(PARAM_COUNT),
         .PARAM_W(PARAM_W)
 	) DISPLAY (
+		.clk(CLOCK_50),
+        .reset_n(KEY[0]),
 		.fx_sel         (fx_sel),
 		.param_sel      (param_sel),
 		.current_value  (current_value),
 		.fsm_busy       (fsm_busy),
 		.is_mute        (is_mute),
 		.tuner_best_lag (tuner_best_lag),
+		.tuner_valid    (tuner_valid),
 		.LEDR           (LEDR),
 		.HEX0           (HEX0),
 		.HEX1           (HEX1),

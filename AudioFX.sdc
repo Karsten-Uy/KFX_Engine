@@ -106,11 +106,6 @@ set_output_delay -min -clock clk_vga -1.485 [get_ports VGA_BLANK]
 #**************************************************************
 
 set_false_path \
-    -from [get_registers {*tuner_amdf_engine*|best_lag_out[*]}] \
-    -to   [get_registers {sld_signaltap:*}]
-
-set_false_path \
-    -from [get_registers {*tuner_yin_engine*|best_lag_out[*]}] \
     -to   [get_registers {sld_signaltap:*}]
 
 #**************************************************************
