@@ -96,7 +96,11 @@ package lab_pkg;
                     endcase
                 end
 
-                7: begin // Delay
+                7: begin // Spectral gain
+                    if (param == 0) param_default = 8'd128;
+                end
+
+                8: begin // Delay
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd95;
@@ -104,7 +108,7 @@ package lab_pkg;
                     endcase
                 end
 
-                8: begin // Reverb
+                9: begin // Reverb
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
@@ -112,7 +116,7 @@ package lab_pkg;
                     endcase
                 end
 
-                9: begin // Output gain
+                10: begin // Output gain
                     if (param == 0) param_default = 8'd255;
                 end
 
@@ -166,7 +170,7 @@ package lab_pkg;
     parameter SEVSEG_G_INDEX     = 5'd23;
 
     // ------------------- DSP Params -------------------
-    parameter FX_STAGES = 9;
+    parameter FX_STAGES = 11;
 
     // Compressor + Gate Shared Params
     parameter COMP_LOOKAHEAD = 16;

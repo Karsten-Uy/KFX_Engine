@@ -96,12 +96,13 @@ module AudioFX(
 	logic [1:0][DATA_W-1:0] comp_out;
 	logic [1:0][DATA_W-1:0] dist_out;
 	logic [1:0][DATA_W-1:0] chorus_out;
+	logic [1:0][DATA_W-1:0] gain_spectral_out;
 	logic [1:0][DATA_W-1:0] delay_out;
 	logic [1:0][DATA_W-1:0] reverb_out;
 	logic [1:0][DATA_W-1:0] gain_out_out;
 
 	// Pipeline
-	logic [FX_STAGES:0] sample_en_pipe;
+	logic [FX_STAGES-1:0] sample_en_pipe;
 
 	// Tuner
 	logic [11:0] tuner_best_lag;
@@ -316,7 +317,7 @@ module AudioFX(
 				sample_en_pipe <= '0;
 			end else begin
 				sample_en_pipe[0] <= ADC_Valid[0];
-				for (int i = 1; i <= FX_STAGES; i++) begin
+				for (int i = 1; i <= FX_STAGES-1; i++) begin
 					sample_en_pipe[i] <= sample_en_pipe[i-1];
 				end
 			end
@@ -412,38 +413,48 @@ module AudioFX(
 			.sample_en(sample_en_pipe[6])
 		);
 
-		// Delay (FX 7)
-		fx_delay #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DELAY (
+		// Spectral Gain for Expression Pedal (FX 7)
+		fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_SPECTRAL_GAIN (
 			.clk(CLOCK_50), 
 			.reset_n(KEY[0]),
 			.audio_in(chorus_out), 
-			.audio_out(delay_out),
-			.fx_time(params[7][0]), 
-			.fx_feedback(params[7][1]),
-			.fx_mix(params[7][2]), 
+			.audio_out(gain_spectral_out),
+			.fx_gain(params[7][0]), 
 			.sample_en(sample_en_pipe[7])
 		);
 
-		// Reverb (FX 8)
+		// Delay (FX 8)
+		fx_delay #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DELAY (
+			.clk(CLOCK_50), 
+			.reset_n(KEY[0]),
+			.audio_in(gain_spectral_out), 
+			.audio_out(delay_out),
+			.fx_time(params[8][0]), 
+			.fx_feedback(params[8][1]),
+			.fx_mix(params[8][2]), 
+			.sample_en(sample_en_pipe[8])
+		);
+
+		// Reverb (FX 9)
 		fx_reverb #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_REVERB (
 			.clk(CLOCK_50), 
 			.reset_n(KEY[0]),
 			.audio_in(delay_out), 
 			.audio_out(reverb_out),
-			.fx_size(params[8][0]), 
-			.fx_damping(params[8][1]),
-			.fx_mix(params[8][2]), 
-			.sample_en(sample_en_pipe[8])
+			.fx_size(params[9][0]), 
+			.fx_damping(params[9][1]),
+			.fx_mix(params[9][2]), 
+			.sample_en(sample_en_pipe[9])
 		);
 
-		// Output Gain (FX 9)
+		// Output Gain (FX A)
 		fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_OUTPUT_GAIN (
 			.clk(CLOCK_50), 
 			.reset_n(KEY[0]),
 			.audio_in(reverb_out), 
 			.audio_out(gain_out_out),
 			.fx_gain(params[9][0]), 
-			.sample_en(sample_en_pipe[9])
+			.sample_en(sample_en_pipe[10])
 		);
 
 		// FX Chain output to DAC.
@@ -459,15 +470,15 @@ module AudioFX(
 			if (is_mute == 1'd1 || fsm_busy) begin
 				DAC_Data[0] <= 0;
 				DAC_Data[1] <= 0;
-				DAC_Valid[0] <= sample_en_pipe[9];
-				DAC_Valid[1] <= sample_en_pipe[9];
+				DAC_Valid[0] <= sample_en_pipe[FX_STAGES-1];
+				DAC_Valid[1] <= sample_en_pipe[FX_STAGES-1];
 				ADC_Ready[0] <= DAC_Ready[0];
 				ADC_Ready[1] <= DAC_Ready[1];
 			end else begin
 				DAC_Data[0] <= gain_out_out[0];
 				DAC_Data[1] <= gain_out_out[1];
-				DAC_Valid[0] <= sample_en_pipe[9];
-				DAC_Valid[1] <= sample_en_pipe[9];
+				DAC_Valid[0] <= sample_en_pipe[FX_STAGES-1];
+				DAC_Valid[1] <= sample_en_pipe[FX_STAGES-1];
 				ADC_Ready[0] <= DAC_Ready[0];
 				ADC_Ready[1] <= DAC_Ready[1];
 			end

@@ -4,6 +4,30 @@
 			"name" : "Top",
 			"pins" : [
 				{
+					"name" : "HEX0[0]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX0[1]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX0[2]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX0[3]",
+					"strict" : false
+				},
+				{
+					"name" : "HEX0[4]",
+					"strict" : false
+				},
+				{
+					"name" : "AUD_DACDAT",
+					"strict" : false
+				},
+				{
 					"name" : "LEDR[0]",
 					"strict" : false
 				},
@@ -36,23 +60,7 @@
 					"strict" : false
 				},
 				{
-					"name" : "HEX0[0]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX0[1]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX0[2]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX0[3]",
-					"strict" : false
-				},
-				{
-					"name" : "HEX0[4]",
+					"name" : "LEDR[8]",
 					"strict" : false
 				},
 				{
@@ -65,82 +73,6 @@
 				},
 				{
 					"name" : "HEX1[0]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[0]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[1]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[2]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[3]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[4]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[5]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[6]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[7]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[8]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[9]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[10]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[11]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[12]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[13]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[14]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_0[15]",
-					"strict" : false
-				},
-				{
-					"name" : "FPGA_I2C_SCLK",
-					"strict" : false
-				},
-				{
-					"name" : "AUD_DACDAT",
-					"strict" : false
-				},
-				{
-					"name" : "LEDR[8]",
 					"strict" : false
 				},
 				{
@@ -280,6 +212,74 @@
 					"strict" : false
 				},
 				{
+					"name" : "FPGA_I2C_SCLK",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[0]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[1]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[2]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[3]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[4]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[5]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[6]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[7]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[8]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[9]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[10]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[11]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[12]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[13]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[14]",
+					"strict" : false
+				},
+				{
+					"name" : "GPIO_0[15]",
+					"strict" : false
+				},
+				{
 					"name" : "AUD_BCLK",
 					"strict" : false
 				},
@@ -308,7 +308,7 @@
 					"strict" : false
 				},
 				{
-					"name" : "SW[4]",
+					"name" : "SW[6]",
 					"strict" : false
 				},
 				{
@@ -320,7 +320,11 @@
 					"strict" : false
 				},
 				{
-					"name" : "SW[6]",
+					"name" : "SW[4]",
+					"strict" : false
+				},
+				{
+					"name" : "CLOCK_50",
 					"strict" : false
 				},
 				{
@@ -328,7 +332,7 @@
 					"strict" : false
 				},
 				{
-					"name" : "CLOCK_50",
+					"name" : "KEY[1]",
 					"strict" : false
 				},
 				{
@@ -337,10 +341,6 @@
 				},
 				{
 					"name" : "KEY[2]",
-					"strict" : false
-				},
-				{
-					"name" : "KEY[1]",
 					"strict" : false
 				},
 				{
