@@ -3,7 +3,7 @@
     Applies a gain multiplier to the signal
 
     Parameters:
-        fx_gain - Gain multiplier from 0 to 255, 128 => UNITY
+        fx_gain - Gain multiplier from 0 to 255, 32 => UNITY
 
     Latency = 1 Sample
 
@@ -37,8 +37,8 @@ module fx_gain #(
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
-            audio_out[0] <= sat16(mult_l >>> 7);
-            audio_out[1] <= sat16(mult_r >>> 7);
+            audio_out[0] <= sat16(mult_l >>> 5);
+            audio_out[1] <= sat16(mult_r >>> 5);
         end
     end
 

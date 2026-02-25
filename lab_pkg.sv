@@ -97,7 +97,7 @@ package lab_pkg;
                 end
 
                 7: begin // Spectral gain
-                    if (param == 0) param_default = 8'd128;
+                    if (param == 0) param_default = 8'd32;
                 end
 
                 8: begin // Delay
@@ -117,7 +117,7 @@ package lab_pkg;
                 end
 
                 10: begin // Output gain
-                    if (param == 0) param_default = 8'd64;
+                    if (param == 0) param_default = 8'd32;
                 end
 
                 default: begin
