@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="AudioPLL" kind="system" version="18.1" fabric="QSYS">
  <!-- Format version 18.1 625 (Future versions may contain additional information.) -->
- <!-- 2026.02.24.21:55:11 -->
+ <!-- 2026.02.24.22:30:16 -->
  <!-- A collection of modules and connections -->
  <parameter name="clockCrossingAdapter">
   <type>com.altera.sopcmodel.ensemble.EClockAdapter</type>
@@ -53,7 +53,7 @@
  </parameter>
  <parameter name="generationId">
   <type>int</type>
-  <value>1771998908</value>
+  <value>1772001013</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>true</visible>
@@ -483,5 +483,5 @@ parameters are a RESULT of the module parameters. -->
   <version>18.1</version>
  </plugin>
  <reportVersion>18.1 625</reportVersion>
- <uniqueIdentifier>5CE42AD236230000019C935D96C3</uniqueIdentifier>
+ <uniqueIdentifier>5CE42AD236230000019C937DB2EE</uniqueIdentifier>
 </EnsembleReport>
