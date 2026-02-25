@@ -453,7 +453,7 @@ module AudioFX(
 			.reset_n(KEY[0]),
 			.audio_in(reverb_out), 
 			.audio_out(gain_out_out),
-			.fx_gain(params[9][0]), 
+			.fx_gain(params[10][0]), 
 			.sample_en(sample_en_pipe[10])
 		);
 

@@ -112,12 +112,12 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        2: param_default = 8'd255;
+                        2: param_default = 8'd0;
                     endcase
                 end
 
                 10: begin // Output gain
-                    if (param == 0) param_default = 8'd255;
+                    if (param == 0) param_default = 8'd64;
                 end
 
                 default: begin
