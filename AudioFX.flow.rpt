@@ -1,5 +1,5 @@
 Flow report for AudioFX
-Wed Feb 25 09:15:28 2026
+Wed Feb 25 11:29:36 2026
 Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 
 
@@ -40,15 +40,15 @@ refer to the applicable agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Flow Summary                                                                  ;
 +---------------------------------+---------------------------------------------+
-; Flow Status                     ; Successful - Wed Feb 25 09:13:54 2026       ;
+; Flow Status                     ; Successful - Wed Feb 25 11:28:39 2026       ;
 ; Quartus Prime Version           ; 18.1.0 Build 625 09/12/2018 SJ Lite Edition ;
 ; Revision Name                   ; AudioFX                                     ;
 ; Top-level Entity Name           ; AudioFX                                     ;
 ; Family                          ; Cyclone V                                   ;
 ; Device                          ; 5CSEMA5F31C6                                ;
 ; Timing Models                   ; Final                                       ;
-; Logic utilization (in ALMs)     ; 9,877 / 32,070 ( 31 % )                     ;
-; Total registers                 ; 5702                                        ;
+; Logic utilization (in ALMs)     ; 9,772 / 32,070 ( 30 % )                     ;
+; Total registers                 ; 5743                                        ;
 ; Total pins                      ; 92 / 457 ( 20 % )                           ;
 ; Total virtual pins              ; 0                                           ;
 ; Total block memory bits         ; 1,861,472 / 4,065,280 ( 46 % )              ;
@@ -67,7 +67,7 @@ refer to the applicable agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 02/25/2026 09:01:41 ;
+; Start date & time ; 02/25/2026 11:21:08 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; AudioFX             ;
 +-------------------+---------------------+
@@ -79,7 +79,7 @@ refer to the applicable agreement for further details.
 ; Assignment Name                      ; Value                                                                                                                                                                                                                                                ; Default Value      ; Entity Name ; Section Id       ;
 +--------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------+-------------+------------------+
 ; ALM_REGISTER_PACKING_EFFORT          ; Low                                                                                                                                                                                                                                                  ; Medium             ; --          ; --               ;
-; COMPILER_SIGNATURE_ID                ; 102135040718368.177203890012148                                                                                                                                                                                                                      ; --                 ; --          ; --               ;
+; COMPILER_SIGNATURE_ID                ; 102135040718368.177204726821864                                                                                                                                                                                                                      ; --                 ; --          ; --               ;
 ; ENABLE_SIGNALTAP                     ; On                                                                                                                                                                                                                                                   ; --                 ; --          ; --               ;
 ; FITTER_EFFORT                        ; Standard Fit                                                                                                                                                                                                                                         ; Auto Fit           ; --          ; --               ;
 ; MAX_CORE_JUNCTION_TEMP               ; 85                                                                                                                                                                                                                                                   ; --                 ; --          ; --               ;
@@ -155,11 +155,11 @@ refer to the applicable agreement for further details.
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name          ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis ; 00:03:11     ; 1.2                     ; 5189 MB             ; 00:05:05                           ;
-; Fitter               ; 00:07:52     ; 1.2                     ; 6915 MB             ; 00:18:50                           ;
-; Assembler            ; 00:00:52     ; 1.0                     ; 5045 MB             ; 00:00:51                           ;
-; Timing Analyzer      ; 00:01:31     ; 2.9                     ; 5523 MB             ; 00:04:03                           ;
-; Total                ; 00:13:26     ; --                      ; --                  ; 00:28:49                           ;
+; Analysis & Synthesis ; 00:02:11     ; 1.2                     ; 5203 MB             ; 00:03:26                           ;
+; Fitter               ; 00:04:50     ; 1.2                     ; 6940 MB             ; 00:12:19                           ;
+; Assembler            ; 00:00:17     ; 1.0                     ; 5038 MB             ; 00:00:17                           ;
+; Timing Analyzer      ; 00:00:55     ; 3.0                     ; 5531 MB             ; 00:02:33                           ;
+; Total                ; 00:08:13     ; --                      ; --                  ; 00:18:35                           ;
 +----------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 

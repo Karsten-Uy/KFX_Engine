@@ -26,7 +26,11 @@ module fx_delay #(
     input  logic [PARAM_W-1:0]            fx_time,    
     input  logic [PARAM_W-1:0]            fx_feedback, 
     input  logic [PARAM_W-1:0]            fx_mix,      
-    input  logic                          sample_en
+    input  logic                          sample_en,
+
+    // ---- Tap-tempo override (from tap_tempo_unit) ----
+    input  logic [$clog2(MAX_SAMPLES)-1:0] tap_samples,  // raw sample count
+    input  logic                           tap_active     // 1 = use tap_samples
 );
     
     // ---------------- PACKAGE IMPORTS ----------------
@@ -88,18 +92,17 @@ module fx_delay #(
 
     // ---------------- DELAY CALCULATION ----------------
 
-    // Num delay sample calculation for delay lines
+    logic [ADDR_W-1:0] knob_delay;
+
     always_comb begin
-        // 8-bit * 15-bit = 23-bit
-        scaled_delay = fx_time * DELAY_RANGE[14:0];  
-        
-        // Shift right by 8 to divide by 256, then add minimum
-        // Result fits in ADDR_W bits
-        target_delay = MIN_DELAY_SAMPLES[ADDR_W-1:0] + scaled_delay[23:8];
-        
-        // Safety clamp (should never happen)
-        if (target_delay > MAX_SAMPLES[ADDR_W-1:0])
-            target_delay = MAX_SAMPLES[ADDR_W-1:0];
+        // Knob path (unchanged)
+        scaled_delay = fx_time * DELAY_RANGE[14:0];
+        knob_delay   = MIN_DELAY_SAMPLES[ADDR_W-1:0] + scaled_delay[23:8];
+        if (knob_delay > MAX_SAMPLES[ADDR_W-1:0])
+            knob_delay = MAX_SAMPLES[ADDR_W-1:0];
+
+        // Mux: tap overrides the knob when tap_active is asserted
+        target_delay = tap_active ? tap_samples : knob_delay;
     end
 
     // Feedback and Mix Calculations

@@ -423,16 +423,35 @@ module AudioFX(
 			.sample_en(sample_en_pipe[7])
 		);
 
+		// Tap tempo
+		logic [$clog2(24000)-1:0] tap_delay_samples;
+		logic                     tap_tempo_active;
+
+		tap_tempo_unit #(
+			.TIMEOUT_CYCLES    (100_000_000),
+			.MIN_DELAY_SAMPLES (2_400),
+			.MAX_DELAY_SAMPLES (24_000),
+			.MAX_SAMPLES       (24_000)
+		) TAP_TEMPO (
+			.clk          (CLOCK_50),
+			.rst_n        (KEY[0]),
+			.tap_pulse    (delay_pulse),      // from controller → tap_mute_unit
+			.delay_samples(tap_delay_samples),
+			.tap_active   (tap_tempo_active)
+		);
+
 		// Delay (FX 8)
 		fx_delay #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DELAY (
-			.clk(CLOCK_50), 
-			.reset_n(KEY[0]),
-			.audio_in(gain_spectral_out), 
-			.audio_out(delay_out),
-			.fx_time(params[8][0]), 
+			.clk        (CLOCK_50),
+			.reset_n    (KEY[0]),
+			.audio_in   (gain_spectral_out),
+			.audio_out  (delay_out),
+			.fx_time    (params[8][0]),
 			.fx_feedback(params[8][1]),
-			.fx_mix(params[8][2]), 
-			.sample_en(sample_en_pipe[8])
+			.fx_mix     (params[8][2]),
+			.sample_en  (sample_en_pipe[8]),
+			.tap_samples(tap_delay_samples),  // new
+			.tap_active (tap_tempo_active)    // new
 		);
 
 		// Reverb (FX 9)

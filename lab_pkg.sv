@@ -40,7 +40,7 @@ package lab_pkg;
 
             case (fx)
                 0: begin // Input gain
-                    if (param == 0) param_default = 8'd255;
+                    if (param == 0) param_default = 8'd32;
                 end
 
                 1: begin // Gate
@@ -68,6 +68,7 @@ package lab_pkg;
                         3: param_default = 8'd128;
                         4: param_default = 8'd64;
                         5: param_default = 8'd64;
+                        6: param_default = 8'd0;
                     endcase
                 end
 
@@ -75,7 +76,7 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd64; 
-                        2: param_default = 8'd255; 
+                        2: param_default = 8'd0; 
                     endcase
                 end
 
@@ -92,7 +93,7 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd128;
-                        2: param_default = 8'd110;
+                        2: param_default = 8'd0;
                     endcase
                 end
 
@@ -104,7 +105,7 @@ package lab_pkg;
                     case (param)
                         0: param_default = 8'd128;
                         1: param_default = 8'd95;
-                        2: param_default = 8'd0;
+                        2: param_default = 8'd255;
                     endcase
                 end
 
