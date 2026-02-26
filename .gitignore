@@ -6,6 +6,7 @@ simulation/
 greybox_tmp/
 hc_output/
 hps_isw_handoff/
+ip_upgrade_port_diff_reports/
 work/
 *.rpt
 *.summary
@@ -29,6 +30,7 @@ work/
 
 
 # --- IP & System Design (Qsys/Platform Designer) ---
+.qsys_edit/
 AVConfig/
 AudioCodec/
 AudioPLL/

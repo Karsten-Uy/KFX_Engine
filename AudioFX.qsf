@@ -1022,36 +1022,6 @@ set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[18] -
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to auto_signaltap_0|gnd -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[8] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[31] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
-set_global_assignment -name SYSTEMVERILOG_FILE tuner_yin_engine.sv
-set_global_assignment -name SYSTEMVERILOG_FILE tuner_ui.sv
-set_global_assignment -name SYSTEMVERILOG_FILE tuner_amdf_engine.sv
-set_global_assignment -name SYSTEMVERILOG_FILE repeat_unit.sv
-set_global_assignment -name SYSTEMVERILOG_FILE debounce_unit.sv
-set_global_assignment -name SYSTEMVERILOG_FILE controller_fsm.sv
-set_global_assignment -name QSYS_FILE FlashMemInterface.qsys
-set_global_assignment -name SYSTEMVERILOG_FILE delay_line_li.sv
-set_global_assignment -name SYSTEMVERILOG_FILE delay_line.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_reverb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_gate.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_gain.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_eq.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_distortion.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_delay.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_compressor.sv
-set_global_assignment -name SYSTEMVERILOG_FILE fx_chorus.sv
-set_global_assignment -name SYSTEMVERILOG_FILE sevseg_display.sv
-set_global_assignment -name SYSTEMVERILOG_FILE display.sv
-set_global_assignment -name SYSTEMVERILOG_FILE controller.sv
-set_global_assignment -name SYSTEMVERILOG_FILE lab_pkg.sv
-set_global_assignment -name SYSTEMVERILOG_FILE AudioFX.sv
-set_global_assignment -name QSYS_FILE AVConfig.qsys
-set_global_assignment -name QSYS_FILE AudioPLL.qsys
-set_global_assignment -name QSYS_FILE AudioCodec.qsys
-set_global_assignment -name QIP_FILE AVConfig/synthesis/AVConfig.qip
-set_global_assignment -name QIP_FILE AudioPLL/synthesis/AudioPLL.qip
-set_global_assignment -name QIP_FILE AudioCodec/synthesis/AudioCodec.qip
-set_global_assignment -name SDC_FILE AudioFX.sdc
-set_global_assignment -name SIGNALTAP_FILE stp1.stp
 set_instance_assignment -name CONNECT_PIN_TO_SLD_NODE_ENTITY_PORT acq_clk -to auto_stp_external_clock_0 -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[3] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[11] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
@@ -1085,5 +1055,33 @@ set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[22] -
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[25] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
-set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name SYSTEMVERILOG_FILE src/lab_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/AudioFX.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_reverb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_gate.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_gain.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_eq.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_distortion.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_delay.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_compressor.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/fx_chorus.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/delay_line_li.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/fx/delay_line.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/display/tuner_ui.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/display/sevseg_display.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/display/display.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/tuner_yin_engine.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/tap_tempo_unit.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/tap_mute_unit.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/repeat_unit.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/debounce_unit.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/controller_fsm.sv
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/controller.sv
+set_global_assignment -name QSYS_FILE ip/FlashMemInterface.qsys
+set_global_assignment -name QSYS_FILE ip/AVConfig.qsys
+set_global_assignment -name QSYS_FILE ip/AudioPLL.qsys
+set_global_assignment -name QSYS_FILE ip/AudioCodec.qsys
+set_global_assignment -name TCL_SCRIPT_FILE build.tcl
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
