@@ -1,4 +1,44 @@
-module display (
+/*
+ * display.sv
+ *
+ * Top-level display controller: drives LEDR and HEX0–HEX5 from controller state
+ * and the tuner engine output.
+ *
+ * Normal mode  (is_mute = 0)
+ * --------------------------
+ *   HEX5 = 'F' (FX label)    HEX4 = fx_sel index    HEX3 = 'P' (param label)
+ *   HEX2 = param_sel index   HEX1 = 'b' if fsm_busy, else blank
+ *   LEDR  = bar-graph of current_value (always at least 1 LED lit)
+ *
+ * Mute / tuner mode  (is_mute = 1)
+ * ----------------------------------
+ *   All six HEX digits are taken from tuner_display, showing either the
+ *   nearest note name + tuning indicator, or the frequency in Hz (SW[9]).
+ *
+ * Tuner silence timeout
+ * ---------------------
+ *   tuner_valid is a single-cycle pulse at ~16 Hz when a signal is present.
+ *   best_lag is latched on every pulse and the silence counter resets.
+ *   If TIMEOUT_CYCLES (~500 ms) elapse with no pulse, the latch is cleared
+ *   so tuner_display receives best_lag == 0 and shows dashes.
+ *
+ * Ports
+ * -----
+ *   fx_sel        — current FX index (from controller)
+ *   param_sel     — current parameter index (from controller)
+ *   current_value — params[fx_sel][param_sel], used for the LEDR bar graph
+ *   fsm_busy      — high while save / load is in progress; shows 'b' on HEX1
+ *   is_mute       — switches all HEX digits to the tuner display
+ *   tuner_best_lag — raw lag from tuner_yin_engine
+ *   tuner_valid   — single-cycle pulse when tuner_best_lag is updated
+ *   SW[9]         — tuner display mode: 0 = note, 1 = frequency
+ */
+
+module display #(
+    parameter FX_COUNT    = 16,
+    parameter PARAM_COUNT = 8,
+    parameter PARAM_W     = 8
+)(
     input logic                           clk,
     input logic                           reset_n,
     input logic [$clog2(FX_COUNT)-1:0]    fx_sel,
@@ -21,18 +61,19 @@ module display (
 
     import lab_pkg::*;
 
-    // -----------------------------------------------------------------------
-    // Silence timeout
+    // ----------------------------------------------------------------
+    // Tuner Silence Timeout
     //
-    // tuner_valid is a single-cycle pulse (~16 Hz when signal is present).
-    // Latch best_lag on every pulse and reset the silence counter.
-    // If no pulse arrives for TIMEOUT_CYCLES (~500 ms), zero the latch so
-    // tuner_ui sees best_lag == 0 and shows blank digits.
-    // -----------------------------------------------------------------------
-    localparam int TIMEOUT_CYCLES = 25_000_000; // 500 ms @ 50 MHz
+    // Latch best_lag on every valid pulse and reset the counter.
+    // Once TIMEOUT_CYCLES have elapsed with no new pulse, zero the latch
+    // so tuner_display shows dashes.  The counter saturates after timeout
+    // rather than rolling over, so the latch is only cleared once.
+    // ----------------------------------------------------------------
+
+    localparam int TIMEOUT_CYCLES = 25_000_000;  // 500 ms @ 50 MHz
 
     logic [11:0] tuner_lag_latch;
-    logic [24:0] silence_cnt;           // 25 bits covers 33 M cycles
+    logic [24:0] silence_cnt;  // 25 bits covers 33 M cycles
 
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
@@ -44,57 +85,52 @@ module display (
         end else if (silence_cnt < 25'(TIMEOUT_CYCLES)) begin
             silence_cnt <= silence_cnt + 1'b1;
         end else begin
-            // Only zero the latch once on the exact timeout transition,
-            // not every cycle after — silence_cnt stays saturated
-            tuner_lag_latch <= 12'd0;
+            tuner_lag_latch <= 12'd0;  // clear once on timeout; counter stays saturated
         end
-end
+    end
 
-    // -----------------------------------------------------------------------
-    // Seven-segment drivers
-    // -----------------------------------------------------------------------
+    // ----------------------------------------------------------------
+    // Seven-Segment Drivers
+    // ----------------------------------------------------------------
+
     logic [4:0] val_HEX0, val_HEX1, val_HEX2,
                 val_HEX3, val_HEX4, val_HEX5;
 
-    sevseg_display H0 (val_HEX0, HEX0);
-    sevseg_display H1 (val_HEX1, HEX1);
-    sevseg_display H2 (val_HEX2, HEX2);
-    sevseg_display H3 (val_HEX3, HEX3);
-    sevseg_display H4 (val_HEX4, HEX4);
-    sevseg_display H5 (val_HEX5, HEX5);
+    sevseg_display H0 (.value(val_HEX0), .HEX(HEX0));
+    sevseg_display H1 (.value(val_HEX1), .HEX(HEX1));
+    sevseg_display H2 (.value(val_HEX2), .HEX(HEX2));
+    sevseg_display H3 (.value(val_HEX3), .HEX(HEX3));
+    sevseg_display H4 (.value(val_HEX4), .HEX(HEX4));
+    sevseg_display H5 (.value(val_HEX5), .HEX(HEX5));
 
-    localparam int LED_COUNT = 10;
-    localparam int MAX_VAL   = (1 << PARAM_W) - 1;
+    // ----------------------------------------------------------------
+    // Tuner Display Submodule
+    // ----------------------------------------------------------------
 
-    logic [3:0] led_level;
     logic [4:0] tuner_HEX [5:0];
 
-    // Feed the stable latch — 0 when silent → tuner_ui shows blank
-    tuner_ui TUNER_UI (
-        .best_lag   (tuner_lag_latch),
-        .mode_sel   (SW[9]),
-        .tuner_vals (tuner_HEX)
+    tuner_display TUNER_DISPLAY (
+        .best_lag  (tuner_lag_latch),  // 0 when silent → shows dashes
+        .mode_sel  (SW[9]),
+        .tuner_vals(tuner_HEX)
     );
 
-    // -----------------------------------------------------------------------
-    // HEX display logic
-    // -----------------------------------------------------------------------
+    // ----------------------------------------------------------------
+    // HEX Display Logic
+    //
+    // Normal mode defaults; overridden entirely by tuner when muted.
+    // ----------------------------------------------------------------
+
     always_comb begin
-        val_HEX0 = SEVSEG_BLANK_INDEX;
-        val_HEX1 = SEVSEG_BLANK_INDEX;
-        val_HEX2 = SEVSEG_BLANK_INDEX;
-        val_HEX3 = SEVSEG_BLANK_INDEX;
-        val_HEX4 = SEVSEG_BLANK_INDEX;
-        val_HEX5 = SEVSEG_BLANK_INDEX;
-
-        val_HEX5 = 5'hF;
-        val_HEX3 = SEVSEG_P_INDEX;
+        // Normal mode defaults
+        val_HEX5 = 5'hF;             // 'F' for FX
         val_HEX4 = fx_sel;
-        val_HEX2 = {1'd0, param_sel};
+        val_HEX3 = SEVSEG_P_INDEX;   // 'P' for param
+        val_HEX2 = {1'b0, param_sel};
+        val_HEX1 = fsm_busy ? 5'hB : SEVSEG_BLANK_INDEX;  // 'b' while busy
+        val_HEX0 = SEVSEG_BLANK_INDEX;
 
-        if (fsm_busy)
-            val_HEX1 = 5'hB;
-
+        // Mute mode: hand all digits to the tuner display
         if (is_mute) begin
             val_HEX5 = tuner_HEX[5];
             val_HEX4 = tuner_HEX[4];
@@ -105,9 +141,18 @@ end
         end
     end
 
-    // -----------------------------------------------------------------------
-    // LEDR bar display
-    // -----------------------------------------------------------------------
+    // ----------------------------------------------------------------
+    // LEDR Bar Graph
+    //
+    // Maps current_value (0–255) onto 1–10 LEDs.  The bar always shows
+    // at least one LED so the user can tell the display is active at zero.
+    // ----------------------------------------------------------------
+
+    localparam int LED_COUNT = 10;
+    localparam int MAX_VAL   = (1 << PARAM_W) - 1;
+
+    logic [3:0] led_level;
+
     always_comb begin
         LEDR = '0;
 
@@ -115,7 +160,7 @@ end
             led_level = 1;
         end else begin
             led_level = (current_value * LED_COUNT + MAX_VAL) / MAX_VAL;
-            if (led_level < 1)              led_level = 1;
+            if      (led_level < 1)         led_level = 1;
             else if (led_level > LED_COUNT) led_level = LED_COUNT;
         end
 

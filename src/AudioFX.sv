@@ -169,7 +169,7 @@ module AudioFX (
     `ifndef NO_DSP
 
         // Audio PLL — generates AUD_XCK for the WM8731 codec
-        AudioPLL u0 (
+        AudioPLL AUDIO_PLL (
             .ref_clk_clk        (CLOCK_50),
             .ref_reset_reset    (~KEY[0]),
             .audio_clk_clk      (AUD_XCK),
@@ -177,7 +177,7 @@ module AudioFX (
         );
 
         // I2C codec configuration (16-bit audio, 48 kHz)
-        AVConfig u1 (
+        AVConfig AV_CONFIG (
             .clk         (CLOCK_50),
             .reset       (~KEY[0]),
             .address     (i2c_read_data),
@@ -192,7 +192,7 @@ module AudioFX (
         );
 
         // Avalon-streaming codec: ADC capture and DAC playback
-        AudioCodec u2 (
+        AudioCodec AUDIO_CODEC (
             .clk                          (CLOCK_50),
             .reset                        (~KEY[0]),
             .AUD_ADCDAT                   (AUD_ADCDAT),

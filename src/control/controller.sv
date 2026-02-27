@@ -244,24 +244,24 @@ module controller (
     // Button Debounce
     // ----------------------------------------------------------------
 
-    debounce_unit db_i (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s),    .pulse(inc_p));
-    debounce_unit db_d (.clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s),    .pulse(dec_p));
-    debounce_unit db_s (.clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s),    .pulse(sav_p));
-    debounce_unit db_l (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),     .pulse(ld_p));
-    debounce_unit db_m (.clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable), .pulse());
+    debounce_unit DEBOUNCE_INC  (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s),    .pulse(inc_p));
+    debounce_unit DEBOUNCE_DEC  (.clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s),    .pulse(dec_p));
+    debounce_unit DEBOUNCE_SAVE (.clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s),    .pulse(sav_p));
+    debounce_unit DEBOUNCE_LOAD (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),     .pulse(ld_p));
+    debounce_unit DEBOUNCE_MUTE (.clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable), .pulse());
 
     // ----------------------------------------------------------------
     // Auto-Repeat  (increment and decrement only)
     // ----------------------------------------------------------------
 
-    repeat_unit rp_i (.clk(clk), .rst_n(reset_n), .stable(inc_s), .pulse(inc_r));
-    repeat_unit rp_d (.clk(clk), .rst_n(reset_n), .stable(dec_s), .pulse(dec_r));
+    repeat_unit REPEAT_INC (.clk(clk), .rst_n(reset_n), .stable(inc_s), .pulse(inc_r));
+    repeat_unit REPEAT_DEC (.clk(clk), .rst_n(reset_n), .stable(dec_s), .pulse(dec_r));
 
     // ----------------------------------------------------------------
     // Tap / Mute  (footswitch: short = tap, long = mute)
     // ----------------------------------------------------------------
 
-    tap_mute_unit tm_u (
+    tap_mute_unit TAP_MUTE_UNIT (
         .clk        (clk),
         .rst_n      (reset_n),
         .stable     (mute_stable),
@@ -273,7 +273,7 @@ module controller (
     // Flash Save / Load FSM
     // ----------------------------------------------------------------
 
-    controller_fsm fsm_inst (
+    controller_fsm CONTROLLER_FSM (
         .clk    (clk),
         .rst_n  (reset_n),
         .save_en(sav_p),
