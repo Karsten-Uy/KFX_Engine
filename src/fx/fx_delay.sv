@@ -37,15 +37,7 @@ module fx_delay #(
     import lab_pkg::*;
     
     // ---------------- CONSTANTS ----------------
-    localparam MAX_SAMPLES = 24000;
     localparam ADDR_W = $clog2(MAX_SAMPLES);
-
-    localparam MIN_DELAY_MS = 50;
-    localparam MAX_DELAY_MS = 500;
-    
-    localparam MIN_DELAY_SAMPLES = (MIN_DELAY_MS * SAMPLE_RATE) / 1000;
-    localparam MAX_DELAY_SAMPLES_PARAM = (MAX_DELAY_MS * SAMPLE_RATE) / 1000;
-    localparam DELAY_RANGE = MAX_DELAY_SAMPLES_PARAM - MIN_DELAY_SAMPLES;  // 21600 
 
     // ---------------- INTERNAL SIGNALS ----------------
 
