@@ -1,12 +1,14 @@
-module tap_mute_unit #(
-    parameter LONG_PRESS_CNT = 50_000_000 
-)(
+module tap_mute_unit (
     input  logic clk, rst_n,
     input  logic stable,       // From debounce unit
     output logic is_mute,      // Latched mute state
     output logic delay_pulse   // Single cycle pulse on short press
 );
-    logic [$clog2(LONG_PRESS_CNT)-1:0] timer;
+
+    // ---------------- PACKAGE IMPORTS ----------------
+    import lab_pkg::*;
+
+    logic [$clog2(MUTE_START_CNT)-1:0] timer;
     logic long_press_triggered;
     logic prev_stable;
 
@@ -28,7 +30,7 @@ module tap_mute_unit #(
                     long_press_triggered <= 1'b1;
                 end else if (!long_press_triggered) begin
                     // Not yet triggered: count toward long press
-                    if (timer < LONG_PRESS_CNT - 1) begin
+                    if (timer < MUTE_START_CNT - 1) begin
                         timer <= timer + 1;
                     end else begin
                         // Long press threshold reached: engage mute

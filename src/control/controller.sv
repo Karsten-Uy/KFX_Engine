@@ -1,29 +1,25 @@
-module controller #(
-    parameter FX_COUNT         = 16,
-    parameter PARAM_COUNT      = 8,
-    parameter PARAM_W          = 8,
-    parameter DEBOUNCE_CNT_MAX = 1_000_000,
-    parameter REPEAT_START_CNT = 15_000_000,
-    parameter REPEAT_RATE_CNT  = 2_000_000,
-    parameter MUTE_START_CNT   = 50_000_000,   // added for tap_mute_unit
-    parameter FLASH_BASE       = 24'h6B0000
-)(
-    input  logic clk, reset_n,
+module controller (
+
+    input  logic clk,
+    input  logic reset_n,
+
+    // Input Buttons
     input  logic [$clog2(FX_COUNT)-1:0]    sw_fx_sel,
     input  logic [$clog2(PARAM_COUNT)-1:0] sw_param_sel,
     input  logic key_inc, key_dec, save_button, load_button,
-    input  logic mute_button,                  // added: physical mute/tap button
+    input  logic mute_button,
 
+    // Control Signals
     output logic [PARAM_W-1:0]             params [0:FX_COUNT-1][0:PARAM_COUNT-1],
     output logic [$clog2(FX_COUNT)-1:0]    fx_sel,
     output logic [$clog2(PARAM_COUNT)-1:0] param_sel,
     output logic [PARAM_W-1:0]             current_value,
     output logic                           is_mute,
     output logic                           delay_pulse,
+    output logic fsm_busy,
 
     // Debug signals
     output logic [9:0] LEDR,
-    output logic fsm_busy,
 
     // Flash avl_mem
     output logic [21:0] flash_mem_address,
@@ -44,8 +40,11 @@ module controller #(
     input  logic        flash_csr_waitrequest,
     input  logic        flash_csr_readdatavalid
 );
+
+    // ---------------- PACKAGE IMPORTS ----------------
     import lab_pkg::*;
 
+    // ---------------- INTERNAL SIGNALS ----------------    
     localparam logic [7:0] SENTINEL = 8'hA5;
 
     logic inc_p, dec_p, sav_p, ld_p;
@@ -172,21 +171,21 @@ module controller #(
     // ----------------------------------------------------------------
     // Button debounce + repeat
     // ----------------------------------------------------------------
-    debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_i (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s),    .pulse(inc_p));
-    debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_d (.clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s),    .pulse(dec_p));
-    debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_s (.clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s),    .pulse(sav_p));
-    debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_l (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),     .pulse(ld_p));
-    debounce_unit #(.CNT_MAX(DEBOUNCE_CNT_MAX))
-        db_m (.clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable), .pulse());
+    debounce_unit db_i (
+        .clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s),    .pulse(inc_p));
+    debounce_unit db_d (
+        .clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s),    .pulse(dec_p));
+    debounce_unit db_s (
+        .clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s),    .pulse(sav_p));
+    debounce_unit db_l (
+        .clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),     .pulse(ld_p));
+    debounce_unit db_m (
+        .clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable), .pulse());
 
-    repeat_unit #(.START_CNT(REPEAT_START_CNT), .RATE_CNT(REPEAT_RATE_CNT))
-        rp_i (.clk(clk), .rst_n(reset_n), .stable(inc_s), .pulse(inc_r));
-    repeat_unit #(.START_CNT(REPEAT_START_CNT), .RATE_CNT(REPEAT_RATE_CNT))
-        rp_d (.clk(clk), .rst_n(reset_n), .stable(dec_s), .pulse(dec_r));
+    repeat_unit rp_i (
+        .clk(clk), .rst_n(reset_n), .stable(inc_s), .pulse(inc_r));
+    repeat_unit rp_d (
+        .clk(clk), .rst_n(reset_n), .stable(dec_s), .pulse(dec_r));
 
     // ----------------------------------------------------------------
     // Tap / mute unit
@@ -194,23 +193,18 @@ module controller #(
     //   - long press   -> assert is_mute
     //   - press while muted -> clear is_mute immediately
     // ----------------------------------------------------------------
-    tap_mute_unit #(.LONG_PRESS_CNT(MUTE_START_CNT))
-        tm_u (
-            .clk        (clk),
-            .rst_n      (reset_n),
-            .stable     (mute_stable),
-            .is_mute    (is_mute),
-            .delay_pulse(delay_pulse)
-        );
+    tap_mute_unit tm_u (
+        .clk        (clk),
+        .rst_n      (reset_n),
+        .stable     (mute_stable),
+        .is_mute    (is_mute),
+        .delay_pulse(delay_pulse)
+    );
 
     // ----------------------------------------------------------------
     // FSM
     // ----------------------------------------------------------------
-    controller_fsm #(
-        .FX_COUNT   (FX_COUNT),
-        .PARAM_COUNT(PARAM_COUNT),
-        .FLASH_BASE (FLASH_BASE)
-    ) fsm_inst (
+    controller_fsm fsm_inst (
         .clk    (clk),
         .rst_n  (reset_n),
         .save_en(sav_p),

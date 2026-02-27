@@ -108,6 +108,28 @@ module AudioFX(
 	logic [11:0] tuner_best_lag;
 	logic        tuner_valid;
 
+	// Tap tempo
+	logic [$clog2(24000)-1:0] tap_delay_samples;
+	logic                     tap_tempo_active;
+
+	// Avalon-MM signals between controller and FlashMemInterface
+	logic [5:0]	 flash_csr_address;
+	logic        flash_csr_read;
+	logic [31:0] flash_csr_readdata;
+	logic        flash_csr_write;
+	logic [31:0] flash_csr_writedata;
+	logic        flash_csr_waitrequest;
+	logic        flash_csr_readdatavalid;
+	logic        flash_mem_write;
+	logic [6:0]	 flash_mem_burstcount;
+	logic        flash_mem_waitrequest;
+	logic        flash_mem_read;
+	logic [21:0] flash_mem_address;
+	logic [31:0] flash_mem_writedata;
+	logic [31:0] flash_mem_readdata;
+	logic        flash_mem_readdatavalid;
+	logic [3:0]	 flash_mem_byteenable;
+
     // ---------------- AUDIO I/O INSTANTIATIONS ----------------
 
 	`ifndef NO_DSP
@@ -162,26 +184,6 @@ module AudioFX(
 
 	`endif
 	
-    // ---------------- CONTROLLER + DISPLAY ----------------
-
-	// Avalon-MM signals between controller and FlashMemInterface
-	logic [5:0]	 flash_csr_address;
-	logic        flash_csr_read;
-	logic [31:0] flash_csr_readdata;
-	logic        flash_csr_write;
-	logic [31:0] flash_csr_writedata;
-	logic        flash_csr_waitrequest;
-	logic        flash_csr_readdatavalid;
-	logic        flash_mem_write;
-	logic [6:0]	 flash_mem_burstcount;
-	logic        flash_mem_waitrequest;
-	logic        flash_mem_read;
-	logic [21:0] flash_mem_address;
-	logic [31:0] flash_mem_writedata;
-	logic [31:0] flash_mem_readdata;
-	logic        flash_mem_readdatavalid;
-	logic [3:0]	 flash_mem_byteenable;
-
 	// ---------------- FLASH MEMORY INTERFACE ----------------
 	//
 	// NOTE: No top-level FLASH_DCLK / FLASH_NCSO / FLASH_DATA pins here.
@@ -215,17 +217,10 @@ module AudioFX(
         .flash_mem_byteenable    (flash_mem_byteenable)
     );
 
+	// ---------------- CONTROLLERS ----------------
+
 	// FX Param Controller
-	controller #(
-        .FX_COUNT(FX_COUNT),
-        .PARAM_COUNT(PARAM_COUNT),
-        .PARAM_W(PARAM_W),
-        .DEBOUNCE_CNT_MAX(DEBOUNCE_CNT_MAX),
-		.REPEAT_START_CNT(REPEAT_START_CNT),
-		.REPEAT_RATE_CNT(REPEAT_RATE_CNT),
-		.MUTE_START_CNT(MUTE_START_CNT),
-		.FLASH_BASE(FLASH_BASE)
-    ) CONTROL (
+	controller CONTROL (
         .clk(CLOCK_50),
         .reset_n(KEY[0]),
         .sw_fx_sel(SW[9:6]),
@@ -262,12 +257,17 @@ module AudioFX(
 		.flash_csr_readdatavalid (flash_csr_readdatavalid)
     );
 
-	// LEDR and HEX Display Controller
-	display #(
-		.FX_COUNT(FX_COUNT),
-        .PARAM_COUNT(PARAM_COUNT),
-        .PARAM_W(PARAM_W)
-	) DISPLAY (
+	tap_tempo_unit TAP_TEMPO (
+		.clk          (CLOCK_50),
+		.rst_n        (KEY[0]),
+		.tap_pulse    (delay_pulse),
+		.delay_samples(tap_delay_samples),
+		.tap_active   (tap_tempo_active)
+	);
+
+	// ---------------- DISPLAYS ----------------
+
+	display DISPLAY (
 		.clk(CLOCK_50),
         .reset_n(KEY[0]),
 		.fx_sel         (fx_sel),
@@ -298,11 +298,7 @@ module AudioFX(
 		// ---------------- TUNER ENGINE ----------------
 		// We feed it the raw ADC_Data[0] (the guitar input)
 		// tuner_amdf_engine #(
-		tuner_yin_engine #(
-			.DATA_W(DATA_W),
-			.MAX_LAG(MAX_LAG),     
-			.WINDOW_SIZE(WINDOW_SIZE)  
-		) TUNER (
+		tuner_yin_engine TUNER (
 			.clk(CLOCK_50),
 			.reset_n(KEY[0]),
 			.audio_in(ADC_Data[0]),
@@ -421,23 +417,6 @@ module AudioFX(
 			.audio_out(gain_spectral_out),
 			.fx_gain(params[7][0]), 
 			.sample_en(sample_en_pipe[7])
-		);
-
-		// Tap tempo
-		logic [$clog2(24000)-1:0] tap_delay_samples;
-		logic                     tap_tempo_active;
-
-		tap_tempo_unit #(
-			.TIMEOUT_CYCLES    (100_000_000),
-			.MIN_DELAY_SAMPLES (2_400),
-			.MAX_DELAY_SAMPLES (24_000),
-			.MAX_SAMPLES       (24_000)
-		) TAP_TEMPO (
-			.clk          (CLOCK_50),
-			.rst_n        (KEY[0]),
-			.tap_pulse    (delay_pulse),      // from controller → tap_mute_unit
-			.delay_samples(tap_delay_samples),
-			.tap_active   (tap_tempo_active)
 		);
 
 		// Delay (FX 8)

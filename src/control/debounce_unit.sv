@@ -1,10 +1,14 @@
 
-module debounce_unit #(parameter CNT_MAX = 1_000_000) (
+module debounce_unit (
     input  logic clk, rst_n, in,
     output logic stable, pulse
 );
+
+    // ---------------- PACKAGE IMPORTS ----------------
+    import lab_pkg::*;
+
     logic sync0, sync1, prev;
-    logic [$clog2(CNT_MAX)-1:0] count;
+    logic [$clog2(DEBOUNCE_CNT_MAX)-1:0] count;
 
     // pulse is combinational — fires the same cycle stable rises
     assign pulse = stable && !prev;
@@ -22,7 +26,7 @@ module debounce_unit #(parameter CNT_MAX = 1_000_000) (
 
             if (sync1 == stable)
                 count <= 0;
-            else if (count == CNT_MAX-1) begin
+            else if (count == DEBOUNCE_CNT_MAX-1) begin
                 stable <= sync1;
                 count  <= 0;
             end else

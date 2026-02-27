@@ -1,9 +1,4 @@
-module controller_fsm #(
-    parameter FX_COUNT    = 16,
-    parameter PARAM_COUNT = 8,
-    parameter FLASH_BASE  = 24'h6B0000   // byte address — must be 64 KB aligned
-                                         // and past end of bitstream in flash
-) (
+module controller_fsm (
     input  logic clk,
     input  logic rst_n,
     input  logic save_en,
@@ -37,6 +32,9 @@ module controller_fsm #(
     output logic        load_valid,
     output logic        write_sentinel   // 1 = writing 0xA5 sentinel (not a param)
 );
+
+    // ---------------- PACKAGE IMPORTS ----------------
+    import lab_pkg::*;
 
     // ----------------------------------------------------------------
     // CSR register map

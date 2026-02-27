@@ -32,12 +32,7 @@
       tap_active    — high while tap tempo is overriding the knob
 */
 
-module tap_tempo_unit #(
-    parameter int TIMEOUT_CYCLES    = 100_000_000,  // 2 s @ 50 MHz
-    parameter int MIN_DELAY_SAMPLES = 2_400,        // 50 ms  @ 48 kHz
-    parameter int MAX_DELAY_SAMPLES = 24_000,       // 500 ms @ 48 kHz
-    parameter int MAX_SAMPLES       = 24_000        // delay-line depth
-)(
+module tap_tempo_unit (
     input  logic clk,
     input  logic rst_n,
     input  logic tap_pulse,
@@ -45,6 +40,9 @@ module tap_tempo_unit #(
     output logic [$clog2(MAX_SAMPLES)-1:0] delay_samples,
     output logic                           tap_active
 );
+
+    // ---------------- PACKAGE IMPORTS ----------------
+    import lab_pkg::*;
 
     localparam int ADDR_W    = $clog2(MAX_SAMPLES);
     localparam int CNT_W     = $clog2(TIMEOUT_CYCLES + 1);

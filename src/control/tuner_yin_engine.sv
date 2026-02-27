@@ -1,16 +1,13 @@
-module tuner_yin_engine #(
-    parameter int DATA_W      = 16,
-    parameter int MAX_LAG     = 1600,
-    parameter int MIN_LAG     = 120,
-    parameter int WINDOW_SIZE = 8192,
-    parameter int AMP_THRESHOLD = 100 
-)(
+module tuner_yin_engine (
     input  logic clk, reset_n,
     input  logic signed [DATA_W-1:0] audio_in,
     input  logic sample_en,
     output logic [11:0] best_lag_out,
     output logic         data_valid
 );
+
+    // ---------------- PACKAGE IMPORTS ----------------
+    import lab_pkg::*;
 
     localparam int COMP_WINDOW = 2048;
     localparam int BUF_BITS    = $clog2(WINDOW_SIZE);

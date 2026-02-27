@@ -6,8 +6,6 @@
 
 package lab_pkg;
 
-    // ------------------- DSP Functions ---------------
-
     // Top Level
 	parameter DATA_W = 16;
     parameter SAMPLE_RATE = 48000;
@@ -16,7 +14,7 @@ package lab_pkg;
     parameter FX_COUNT    = 16;
     parameter PARAM_COUNT = 8;
     parameter PARAM_W     = 8;
-    parameter PARAM_MAX   = 255; // 2^7 - 1
+    parameter PARAM_MAX   = 255; // 2^8 - 1
     parameter PARAM_MIN   = 0;   // 2^0 - 1
     parameter DEBOUNCE_CNT_MAX = 1_000_000;
     parameter REPEAT_START_CNT = 15_000_000;  // ~300 ms
@@ -28,8 +26,10 @@ package lab_pkg;
     // Tuner
     parameter MAX_LAG       = 1600;    
     parameter WINDOW_SIZE   = 8192; // ~20 ms @ 50 MHz
+    parameter int MIN_LAG     = 120;
+    parameter int AMP_THRESHOLD = 100;
 
-    // ------------------- Default Parameters ---------------
+    // ------------------- Default FX Parameters ---------------
 
     // Default parameter lookup function
     function automatic logic [PARAM_W-1:0]
@@ -178,10 +178,15 @@ package lab_pkg;
     parameter logic [15:0] UNITY_Q15 = 16'h7FFF;  // SAFE unity
     parameter logic [15:0] MIN_GAIN  = 16'd100;
 
+    // Delay
+    parameter TIMEOUT_CYCLES    = 100_000_000;
+    parameter MIN_DELAY_SAMPLES = 2_400;
+    parameter MAX_DELAY_SAMPLES = 24_000;
+    parameter MAX_SAMPLES       = 24_000;
+
     // ------------------- Common DSP Functions ---------------
     
     // Saturate to 16-bit signed range
-    // NOTE: value needs to be shifted correctly in x to be in the first 16 bits of x
     function automatic signed [15:0] sat16(input signed [31:0] x);
         if (x > 32'sd32767)
             sat16 = 16'sh7FFF;

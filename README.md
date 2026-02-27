@@ -1,5 +1,10 @@
 # Helix at Home (HaH) Processor 🎸
 
+## TODO
+- updated documentation
+- Scripting documentation
+  - build.tcl and program_sof.tcl work but not program_jic.tcl
+
 ## Overview
 
 **Helix at Home (HaH)** is a **synthesizable multi-effects guitar processor** implemented in **SystemVerilog** on the **DE1-SoC FPGA**. It uses the on-board **audio codec ADC and DAC** to process live audio input from an electric guitar through a configurable chain of digital audio effects.

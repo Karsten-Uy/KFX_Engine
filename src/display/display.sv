@@ -1,8 +1,4 @@
-module display #(
-    parameter FX_COUNT    = 16,
-    parameter PARAM_COUNT = 8,
-    parameter PARAM_W     = 8
-)(
+module display (
     input logic                           clk,
     input logic                           reset_n,
     input logic [$clog2(FX_COUNT)-1:0]    fx_sel,
@@ -97,7 +93,7 @@ end
         val_HEX2 = {1'd0, param_sel};
 
         if (fsm_busy)
-            val_HEX1 = SEVSEG_SEG_B;
+            val_HEX1 = 5'hB;
 
         if (is_mute) begin
             val_HEX5 = tuner_HEX[5];
