@@ -1,19 +1,40 @@
 /*
-
-    Delay module that uses delay lines to make a signal delay and connects it back on
-    itself to implement feedback.
-
-    Parameters:
-        fx_time     - Time it takes until signal is heard again. Larger value => more time
-        fx_feedback - How much the delayed signal is fed back into itself to create an 
-                      echo effect. Is capped at 0.875 to prevent a runaway signal
-        fx_mix      - Mix control determining how much of the wet signal is in
-                      the output of this FX. (fx_mix == 0) => all dry, 
-                      (fx_mix == 255) => all wet
-
-    Latency = 2 Samples
-
-*/
+ * fx_delay.sv
+ *
+ * Stereo echo delay with feedback and tap-tempo override.
+ *
+ * The delay time is derived from fx_time (knob) or tap_samples (footswitch),
+ * selected by the tap_active flag from tap_tempo_unit.  Both paths produce
+ * the same ADDR_W-bit sample count fed to the delay lines.
+ *
+ * Knob delay mapping
+ * ------------------
+ *   scaled_delay = fx_time * DELAY_RANGE / 256
+ *   target       = MIN_DELAY_SAMPLES + scaled_delay
+ * Clamped to MAX_SAMPLES.
+ *
+ * Feedback
+ * --------
+ * The delayed output is mixed back into the input before writing to the
+ * delay line.  Feedback is capped at 224/256 ≈ 0.875 to guarantee the
+ * signal eventually decays rather than running away.
+ *
+ * Latency: 2 samples (1 delay-line RAM pipeline + 1 output register).
+ *
+ * Parameter mapping  (all 8-bit, 0–255)
+ * --------------------------------------
+ *   fx_time     — delay time  (longer with higher value)
+ *   fx_feedback — echo repeats  (0 = single echo, ~230 = near-infinite)
+ *   fx_mix      — dry/wet blend (0 = dry, 255 = full wet)
+ *
+ * Ports
+ * -----
+ *   audio_in    — stereo signed 16-bit input
+ *   audio_out   — stereo signed 16-bit output
+ *   tap_samples — delay length in samples from tap_tempo_unit
+ *   tap_active  — 1 = use tap_samples instead of the fx_time knob
+ *   sample_en   — single-cycle sample strobe
+ */
 
 module fx_delay #(
     parameter DATA_W  = 16,
@@ -23,106 +44,117 @@ module fx_delay #(
     input  logic                          reset_n,
     input  logic signed [1:0][DATA_W-1:0] audio_in,
     output logic signed [1:0][DATA_W-1:0] audio_out,
-    input  logic [PARAM_W-1:0]            fx_time,    
-    input  logic [PARAM_W-1:0]            fx_feedback, 
-    input  logic [PARAM_W-1:0]            fx_mix,      
+    input  logic [PARAM_W-1:0]            fx_time,
+    input  logic [PARAM_W-1:0]            fx_feedback,
+    input  logic [PARAM_W-1:0]            fx_mix,
     input  logic                          sample_en,
 
-    // ---- Tap-tempo override (from tap_tempo_unit) ----
-    input  logic [$clog2(MAX_SAMPLES)-1:0] tap_samples,  // raw sample count
-    input  logic                           tap_active     // 1 = use tap_samples
+    input  logic [$clog2(MAX_SAMPLES)-1:0] tap_samples,
+    input  logic                           tap_active
 );
-    
-    // ---------------- PACKAGE IMPORTS ----------------
+
     import lab_pkg::*;
-    
-    // ---------------- CONSTANTS ----------------
+
+    // ----------------------------------------------------------------
+    // Local Constants
+    // ----------------------------------------------------------------
+
     localparam ADDR_W = $clog2(MAX_SAMPLES);
 
-    // ---------------- INTERNAL SIGNALS ----------------
+    // ----------------------------------------------------------------
+    // Internal Signals
+    // ----------------------------------------------------------------
 
-    logic [ADDR_W-1:0] target_delay;
-    logic signed [DATA_W-1:0] delayed[1:0];
-    logic signed [DATA_W-1:0] fb_in[1:0];
-    logic signed [31:0] fb_scaled[1:0];
-    
-    logic [31:0] delay_range;
-    logic [23:0] scaled_delay;
+    logic [ADDR_W-1:0]        target_delay;
+    logic signed [DATA_W-1:0] delayed   [1:0];
+    logic signed [DATA_W-1:0] fb_in     [1:0];
+    logic signed [31:0]       fb_scaled [1:0];
+    logic [23:0]              scaled_delay;
+    logic [ADDR_W-1:0]        knob_delay;
+    logic signed [31:0]       wet_signal [1:0];
+    logic signed [31:0]       dry_signal [1:0];
+    logic signed [31:0]       mixed      [1:0];
 
-    logic signed [31:0] wet_signal[1:0];
-    logic signed [31:0] dry_signal[1:0];
-    logic signed [31:0] mixed[1:0];
-    logic signed [8:0] dry_gain;
-
-    // ---------------- DELAY LINE INSTANTIATION ----------------
+    // ----------------------------------------------------------------
+    // Delay Line Instantiation  (left and right channels independent)
+    // ----------------------------------------------------------------
 
     delay_line #(
-        .DATA_W(DATA_W), 
-        .MAX_DELAY_SAMPLES(MAX_SAMPLES),
-        .ADDR_W(ADDR_W)
-    ) unit_L (
-        .clk(clk),
-        .reset_n(reset_n),
-        .sample_en(sample_en),
-        .data_in(fb_in[0]),
-        .data_out(delayed[0]),
+        .DATA_W             (DATA_W),
+        .MAX_DELAY_SAMPLES  (MAX_SAMPLES),
+        .ADDR_W             (ADDR_W)
+    ) DELAY_L (
+        .clk          (clk),
+        .reset_n      (reset_n),
+        .sample_en    (sample_en),
+        .data_in      (fb_in[0]),
+        .data_out     (delayed[0]),
         .delay_samples(target_delay)
     );
 
     delay_line #(
-        .DATA_W(DATA_W), 
-        .MAX_DELAY_SAMPLES(MAX_SAMPLES),
-        .ADDR_W(ADDR_W)
-    ) unit_R (
-        .clk(clk),
-        .reset_n(reset_n),
-        .sample_en(sample_en),
-        .data_in(fb_in[1]),
-        .data_out(delayed[1]),
+        .DATA_W             (DATA_W),
+        .MAX_DELAY_SAMPLES  (MAX_SAMPLES),
+        .ADDR_W             (ADDR_W)
+    ) DELAY_R (
+        .clk          (clk),
+        .reset_n      (reset_n),
+        .sample_en    (sample_en),
+        .data_in      (fb_in[1]),
+        .data_out     (delayed[1]),
         .delay_samples(target_delay)
     );
 
-    // ---------------- DELAY CALCULATION ----------------
-
-    logic [ADDR_W-1:0] knob_delay;
+    // ----------------------------------------------------------------
+    // Delay Time Calculation
+    //
+    // Knob path: fx_time is scaled across [MIN_DELAY_SAMPLES, MAX_SAMPLES].
+    // Tap path: tap_samples is used directly when tap_active is asserted.
+    // Both channels share a single target_delay for mono delay positioning.
+    // ----------------------------------------------------------------
 
     always_comb begin
-        // Knob path (unchanged)
         scaled_delay = fx_time * DELAY_RANGE[14:0];
         knob_delay   = MIN_DELAY_SAMPLES[ADDR_W-1:0] + scaled_delay[23:8];
         if (knob_delay > MAX_SAMPLES[ADDR_W-1:0])
             knob_delay = MAX_SAMPLES[ADDR_W-1:0];
 
-        // Mux: tap overrides the knob when tap_active is asserted
         target_delay = tap_active ? tap_samples : knob_delay;
     end
 
-    // Feedback and Mix Calculations
+    // ----------------------------------------------------------------
+    // Feedback and Mix Calculation  (combinational)
+    //
+    // Feedback is capped at 224/256 ≈ 0.875 to prevent a runaway signal.
+    // Mix uses: out = dry + (wet - dry) * fx_mix / 256
+    // ----------------------------------------------------------------
+
     always_comb begin
-        dry_gain = 9'sd255 - $signed({1'b0, fx_mix});
-        
         for (int i = 0; i < 2; i++) begin
-            // Feedback calculation, to a max of 0.875 to prevent runaway (224/256)
-            fb_scaled[i] = ($signed(delayed[i]) * $signed({1'b0, fx_feedback}) * 224) >>> 16;
-            fb_in[i] = sat16($signed(audio_in[i]) + fb_scaled[i]);
-            
-            // Mix dry and wet: dry + (wet - dry) * mix
+            // Cap feedback at 0.875 and add to input before writing to delay line
+            fb_scaled[i] = ($signed(delayed[i]) * $signed({1'b0, fx_feedback}) * 9'sd224) >>> 16;
+            fb_in[i]     = sat16($signed(audio_in[i]) + fb_scaled[i]);
+
+            // Wet/dry mix: dry + (wet - dry) * mix / 256
+            // mix=0 → full dry, mix=255 → 99.6% wet
             wet_signal[i] = $signed(delayed[i]);
             dry_signal[i] = $signed(audio_in[i]);
-            mixed[i] = dry_signal[i] + 
-                      (((wet_signal[i] - dry_signal[i]) * 
-                      $signed({1'b0, fx_mix})) >>> 8);
+            mixed[i]      = dry_signal[i] +
+                            (((wet_signal[i] - dry_signal[i]) *
+                              $signed({1'b0, fx_mix})) >>> 8);
         end
     end
 
-    // -------------------- OUTPUT -------------------------
+    // ----------------------------------------------------------------
+    // Output Register
+    // ----------------------------------------------------------------
+
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
-            for (int i = 0; i < 2; i++) begin
+            for (int i = 0; i < 2; i++)
                 audio_out[i] <= sat16(mixed[i]);
-            end
         end
     end
 
