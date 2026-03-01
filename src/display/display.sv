@@ -46,6 +46,7 @@ module display #(
     input logic [PARAM_W-1:0]             current_value,
     input logic                           fsm_busy,
     input logic                           is_mute,
+    input logic [$clog2(BANK_COUNT)-1:0]  bank_sel,
     input logic [11:0]                    tuner_best_lag,
     input logic                           tuner_valid,
     input logic [9:0]                     SW,
@@ -128,7 +129,7 @@ module display #(
         val_HEX3 = SEVSEG_P_INDEX;   // 'P' for param
         val_HEX2 = {1'b0, param_sel};
         val_HEX1 = fsm_busy ? 5'hB : SEVSEG_BLANK_INDEX;  // 'b' while busy
-        val_HEX0 = SEVSEG_BLANK_INDEX;
+        val_HEX0 = bank_sel;
 
         // Mute mode: hand all digits to the tuner display
         if (is_mute) begin

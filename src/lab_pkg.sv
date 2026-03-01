@@ -27,6 +27,7 @@ package lab_pkg;
     parameter SAMPLE_RATE = 48000;
 
     // Controller dimensions
+    parameter BANK_COUNT  = 4;    // number of independent parameter banks
     parameter FX_COUNT    = 16;
     parameter PARAM_COUNT = 8;
     parameter PARAM_W     = 8;
@@ -40,6 +41,9 @@ package lab_pkg;
     parameter MUTE_START_CNT   = 50_000_000;   // ~1 s hold to engage mute
 
     // Flash memory
+    // Each bank occupies FX_COUNT * PARAM_COUNT bytes.
+    // Layout: sentinel (1 word) | bank0 | bank1 | bank2 | bank3
+    // Total parameter bytes = BANK_COUNT * FX_COUNT * PARAM_COUNT = 4*16*8 = 512
     parameter FLASH_BASE    = 24'h6B0000;      // byte address of parameter save slot
     parameter INCDEC_AMOUNT = 2;
 

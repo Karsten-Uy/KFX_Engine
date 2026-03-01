@@ -3,44 +3,29 @@
  *
  * FX parameter controller for the AudioFX pedalboard.
  *
- * Owns the params[][] array and handles all user interactions that modify it:
- * button-driven increment/decrement with auto-repeat, save to flash, load from
- * flash, and mute/tap-tempo via the footswitch.  The current FX and parameter
- * selection comes directly from the slide switches (sw_fx_sel, sw_param_sel);
- * no state is held for selection here.
+ * Four independent parameter banks are stored internally as
+ *   all_params[BANK_COUNT][FX_COUNT][PARAM_COUNT].
+ * The active bank is selected by toggling sw_bank_toggle (SW[5]): each
+ * rising edge advances the bank selector 0 → 1 → 2 → 3 → 0.
  *
- * Submodule relationships
- * -----------------------
- *   debounce_unit  — cleans every raw button input before use
- *   repeat_unit    — generates auto-repeat pulses for inc / dec
- *   tap_mute_unit  — classifies footswitch as tap tempo or mute
- *   tap_tempo_unit — (instantiated in AudioFX) receives delay_pulse
- *   controller_fsm — runs the flash save / load state machine
+ * The existing 2-D `params` output always reflects the currently active
+ * bank, so the FX chain and display module require no changes.
  *
  * Save / load (flash)
  * -------------------
- *   Pressing save_button erases one 64 KB sector and writes every parameter
- *   byte followed by a 0xA5 sentinel.  Pressing load_button reads the sentinel
- *   first; if valid it overwrites params[][] from flash.  fsm_busy is asserted
- *   for the full duration so AudioFX can mute the DAC during the operation.
+ *   Save writes ALL four banks to flash followed by the 0xA5 sentinel.
+ *   Load reads ALL four banks back; load_valid is asserted only if the
+ *   sentinel was found.  The DAC is muted for the full duration via
+ *   fsm_busy.
  *
- * Ports
- * -----
- *   sw_fx_sel    — slide-switch FX index (combinational select, not registered)
- *   sw_param_sel — slide-switch parameter index
- *   key_inc      — increment button (active-high, raw)
- *   key_dec      — decrement button (active-high, raw)
- *   save_button  — save-to-flash button (active-high, raw)
- *   load_button  — load-from-flash button (active-high, raw)
- *   mute_button  — footswitch: short = tap tempo, long = mute (active-high, raw)
- *   params       — full parameter array exposed to the FX chain
- *   fx_sel       — registered copy of sw_fx_sel for display / value readback
- *   param_sel    — registered copy of sw_param_sel
- *   current_value — params[fx_sel][param_sel], for the display module
- *   is_mute      — high while audio is muted
- *   delay_pulse  — single-cycle tap-tempo pulse to tap_tempo_unit
- *   LEDR         — diagnostic LED output
- *   fsm_busy     — high while save or load is in progress
+ * New ports vs original
+ * ---------------------
+ *   sw_bank_toggle  — raw SW input: rising edge advances the bank selector
+ *   bank_sel        — 2-bit registered bank index (0–3), exposed for display
+ *
+ * Unchanged ports
+ * ---------------
+ *   All original ports keep their names, widths, and semantics.
  */
 
 module controller (
@@ -49,6 +34,7 @@ module controller (
     input  logic [$clog2(PARAM_COUNT)-1:0] sw_param_sel,
     input  logic key_inc, key_dec, save_button, load_button,
     input  logic mute_button,
+    input  logic sw_bank_toggle,
 
     output logic [PARAM_W-1:0]             params [0:FX_COUNT-1][0:PARAM_COUNT-1],
     output logic [$clog2(FX_COUNT)-1:0]    fx_sel,
@@ -56,6 +42,7 @@ module controller (
     output logic [PARAM_W-1:0]             current_value,
     output logic                           is_mute,
     output logic                           delay_pulse,
+    output logic [$clog2(BANK_COUNT)-1:0]  bank_sel,
 
     // Diagnostic
     output logic [9:0] LEDR,
@@ -87,28 +74,41 @@ module controller (
     // Local Constants
     // ----------------------------------------------------------------
 
-    localparam logic [7:0] SENTINEL = 8'hA5;  // must match controller_fsm
+    localparam logic [7:0] SENTINEL = 8'hA5;
 
     // ----------------------------------------------------------------
     // Internal Signals
     // ----------------------------------------------------------------
 
-    // Debounced stable levels and rising-edge pulses
-    logic inc_p, dec_p, sav_p, ld_p;   // single-cycle press pulses
-    logic inc_s, dec_s, sav_s, ld_s;   // stable (held) levels
-    logic mute_stable;                  // debounced footswitch level
-
-    // Auto-repeat pulses (fires at REPEAT_RATE_CNT while button is held)
+    logic inc_p, dec_p, sav_p, ld_p;
+    logic inc_s, dec_s, sav_s, ld_s;
+    logic mute_stable;
     logic inc_r, dec_r;
 
     // FSM control signals
     logic ld_mem, inc_idx, rst_idx;
-    logic [$clog2(FX_COUNT)-1:0]    f_fx;  // flash loop index — FX axis
-    logic [$clog2(PARAM_COUNT)-1:0] f_p;   // flash loop index — param axis
+    logic [$clog2(BANK_COUNT)-1:0]  f_bank; // flash loop index — bank axis  NEW
+    logic [$clog2(FX_COUNT)-1:0]    f_fx;
+    logic [$clog2(PARAM_COUNT)-1:0] f_p;
     logic [3:0]  fsm_state_debug;
     logic [31:0] latched_readdata;
     logic        load_valid;
     logic        write_sentinel;
+
+    // ----------------------------------------------------------------
+    // Three-Dimensional Parameter Storage
+    // ----------------------------------------------------------------
+    // all_params holds every bank.  `params` (the 2-D output) is wired
+    // combinationally to the currently active bank via always_comb below.
+
+    logic [PARAM_W-1:0] all_params [0:BANK_COUNT-1][0:FX_COUNT-1][0:PARAM_COUNT-1];
+
+    // Expose active bank as the output array expected by the FX chain
+    always_comb begin
+        for (int fi = 0; fi < FX_COUNT; fi++)
+            for (int pi = 0; pi < PARAM_COUNT; pi++)
+                params[fi][pi] = all_params[bank_sel][fi][pi];
+    end
 
     // ----------------------------------------------------------------
     // Selection Pass-Through
@@ -116,30 +116,45 @@ module controller (
 
     assign fx_sel        = sw_fx_sel;
     assign param_sel     = sw_param_sel;
-    assign current_value = params[fx_sel][param_sel];
+    assign current_value = all_params[bank_sel][fx_sel][param_sel];
+
+    // ----------------------------------------------------------------
+    // Bank Toggle  (rising-edge detect on sw_bank_toggle)
+    //
+    // Each rising edge of SW[5] advances bank_sel:  0 → 1 → 2 → 3 → 0.
+    // The toggle is ignored while the FSM is busy to prevent a bank
+    // switch mid-save/load from corrupting the index arithmetic.
+    // ----------------------------------------------------------------
+
+    logic sw_bank_prev;
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            bank_sel     <= '0;
+            sw_bank_prev <= 1'b0;
+        end else begin
+            sw_bank_prev <= sw_bank_toggle;
+            if (sw_bank_toggle && !sw_bank_prev && !fsm_busy) begin
+                // Wrapping increment: 0→1→2→3→0
+                if (bank_sel == BANK_COUNT - 1)
+                    bank_sel <= '0;
+                else
+                    bank_sel <= bank_sel + 1'b1;
+            end
+        end
+    end
 
     // ----------------------------------------------------------------
     // Flash Write Data
-    //
-    // During normal saves, write the current param byte.
-    // During the sentinel write, write 0xA5 to slot 0.
-    // Only byte 0 of the 32-bit word is used; byteenable is fixed to 0001.
     // ----------------------------------------------------------------
 
     assign flash_mem_writedata  = write_sentinel
                                     ? {24'b0, SENTINEL}
-                                    : {24'b0, params[f_fx][f_p]};
+                                    : {24'b0, all_params[f_bank][f_fx][f_p]};
     assign flash_mem_byteenable = 4'b0001;
 
     // ----------------------------------------------------------------
     // Diagnostic LEDs
-    //
-    // LEDR[7:0] shows:
-    //   - the last byte written (during/after save)
-    //   - the last byte read    (during/after load)
-    //   - current_value         (idle)
-    // LEDR[8] = load_valid (1 = flash contained a valid save)
-    // LEDR[9] = fsm_busy
     // ----------------------------------------------------------------
 
     logic [7:0] save_latch, load_latch;
@@ -156,19 +171,16 @@ module controller (
         end else begin
             fsm_busy_prev <= fsm_busy;
 
-            // Track bytes as they move through the bus
             if (flash_mem_write && !flash_mem_waitrequest)
                 save_latch <= flash_mem_writedata[7:0];
             if (flash_mem_readdatavalid)
                 load_latch <= flash_mem_readdata[7:0];
 
-            // Clear done flags on any new user action
             if (sav_p || ld_p || inc_p || inc_r || dec_p || dec_r) begin
                 save_op_done <= 1'b0;
                 load_op_done <= 1'b0;
             end
 
-            // Set done flags on FSM completion
             if (fsm_busy_prev && !fsm_busy) begin
                 save_op_done <= !load_valid;
                 load_op_done <=  load_valid;
@@ -191,18 +203,24 @@ module controller (
     // ----------------------------------------------------------------
     // Flash Index Counters
     //
-    // (f_fx, f_p) step through the params[][] address space in row-major
-    // order.  The FSM drives inc_idx to advance and rst_idx to reset.
+    // (f_bank, f_fx, f_p) step through all_params in row-major order.
+    // Innermost axis: p.  Middle: fx.  Outermost: bank.
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
         if (!reset_n || rst_idx) begin
-            f_fx <= '0;
-            f_p  <= '0;
+            f_bank <= '0;
+            f_fx   <= '0;
+            f_p    <= '0;
         end else if (inc_idx) begin
             if (f_p == PARAM_COUNT - 1) begin
-                f_p  <= '0;
-                f_fx <= f_fx + 1'b1;
+                f_p <= '0;
+                if (f_fx == FX_COUNT - 1) begin
+                    f_fx   <= '0;
+                    f_bank <= f_bank + 1'b1;  // saturates naturally at BANK_COUNT-1
+                end else begin
+                    f_fx <= f_fx + 1'b1;
+                end
             end else begin
                 f_p <= f_p + 1'b1;
             end
@@ -212,31 +230,35 @@ module controller (
     // ----------------------------------------------------------------
     // Parameter Storage
     //
-    // On reset: load all defaults from param_default().
-    // During load: write one byte per ld_mem pulse (from FSM).
-    // During idle: apply inc/dec from buttons (clamped to [0, 255]).
+    // On reset:  load defaults for every bank (all banks share the same
+    //            param_default table; bank 0 is the "factory" preset).
+    // On load:   write one byte per ld_mem pulse, addressed by (f_bank, f_fx, f_p).
+    // On idle:   apply inc/dec to the active bank only.
     // ----------------------------------------------------------------
 
-    int i, j;
+    int i, j, k;
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            for (i = 0; i < FX_COUNT; i++)
-                for (j = 0; j < PARAM_COUNT; j++)
-                    params[i][j] <= param_default(i, j);
+            for (k = 0; k < BANK_COUNT; k++)
+                for (i = 0; i < FX_COUNT; i++)
+                    for (j = 0; j < PARAM_COUNT; j++)
+                        all_params[k][i][j] <= param_default(i, j);
 
         end else if (ld_mem && load_valid) begin
-            params[f_fx][f_p] <= latched_readdata[7:0];
+            all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
 
         end else if (!fsm_busy) begin
             if (inc_p || inc_r)
-                params[fx_sel][param_sel] <= (params[fx_sel][param_sel] < 8'd255)
-                                              ? params[fx_sel][param_sel] + 1'b1
-                                              : 8'd255;
+                all_params[bank_sel][fx_sel][param_sel] <=
+                    (all_params[bank_sel][fx_sel][param_sel] < 8'd255)
+                        ? all_params[bank_sel][fx_sel][param_sel] + 1'b1
+                        : 8'd255;
             if (dec_p || dec_r)
-                params[fx_sel][param_sel] <= (params[fx_sel][param_sel] > 8'd0)
-                                              ? params[fx_sel][param_sel] - 1'b1
-                                              : 8'd0;
+                all_params[bank_sel][fx_sel][param_sel] <=
+                    (all_params[bank_sel][fx_sel][param_sel] > 8'd0)
+                        ? all_params[bank_sel][fx_sel][param_sel] - 1'b1
+                        : 8'd0;
         end
     end
 
@@ -244,21 +266,21 @@ module controller (
     // Button Debounce
     // ----------------------------------------------------------------
 
-    debounce_unit DEBOUNCE_INC  (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s),    .pulse(inc_p));
-    debounce_unit DEBOUNCE_DEC  (.clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s),    .pulse(dec_p));
-    debounce_unit DEBOUNCE_SAVE (.clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s),    .pulse(sav_p));
-    debounce_unit DEBOUNCE_LOAD (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),     .pulse(ld_p));
-    debounce_unit DEBOUNCE_MUTE (.clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable), .pulse());
+    debounce_unit DEBOUNCE_INC  (.clk(clk), .rst_n(reset_n), .in(key_inc),     .stable(inc_s),      .pulse(inc_p));
+    debounce_unit DEBOUNCE_DEC  (.clk(clk), .rst_n(reset_n), .in(key_dec),     .stable(dec_s),      .pulse(dec_p));
+    debounce_unit DEBOUNCE_SAVE (.clk(clk), .rst_n(reset_n), .in(save_button), .stable(sav_s),      .pulse(sav_p));
+    debounce_unit DEBOUNCE_LOAD (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),       .pulse(ld_p));
+    debounce_unit DEBOUNCE_MUTE (.clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable),.pulse());
 
     // ----------------------------------------------------------------
-    // Auto-Repeat  (increment and decrement only)
+    // Auto-Repeat
     // ----------------------------------------------------------------
 
     repeat_unit REPEAT_INC (.clk(clk), .rst_n(reset_n), .stable(inc_s), .pulse(inc_r));
     repeat_unit REPEAT_DEC (.clk(clk), .rst_n(reset_n), .stable(dec_s), .pulse(dec_r));
 
     // ----------------------------------------------------------------
-    // Tap / Mute  (footswitch: short = tap, long = mute)
+    // Tap / Mute
     // ----------------------------------------------------------------
 
     tap_mute_unit TAP_MUTE_UNIT (
@@ -274,12 +296,13 @@ module controller (
     // ----------------------------------------------------------------
 
     controller_fsm CONTROLLER_FSM (
-        .clk    (clk),
-        .rst_n  (reset_n),
-        .save_en(sav_p),
-        .load_en(ld_p),
-        .curr_fx(f_fx),
-        .curr_p (f_p),
+        .clk      (clk),
+        .rst_n    (reset_n),
+        .save_en  (sav_p),
+        .load_en  (ld_p),
+        .curr_bank(f_bank),          // NEW: bank axis
+        .curr_fx  (f_fx),
+        .curr_p   (f_p),
 
         .flash_waitrequest   (flash_mem_waitrequest),
         .flash_readdatavalid (flash_mem_readdatavalid),
