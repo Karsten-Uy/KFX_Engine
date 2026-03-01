@@ -90,7 +90,7 @@ Software
 ### How to install and run on the board
 
 1. Clone this repo into the machine with Quartus Prime
-2. Open quartus prime and use the `Programmer` tool the program the board with the `./AudioFX.sof` that is in the root directory of this repo, should not need any changes to project file or repo to do this
+2. Open quartus prime and run the `scripts/program_sof.tcl` script
 3. Click `KEY[0]` to reset the board
 4. Connect one of the AUX cables to the green "LINE IN" port at the top left of the board and then connect the 1/4 inch to AUX adapter to the other end then plug that into you guitar
 5. Connect the other AUX cable to the blue "LINE OUT" port at the top left of the board and then connect it to the output device

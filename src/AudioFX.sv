@@ -3,26 +3,50 @@
  *
  * Top-level module for the multi-effects guitar pedalboard on DE1-SoC.
  *
- * Bank selection (NEW)
- * --------------------
- *   SW[5] is a dedicated bank-toggle switch.  Each rising edge cycles the
- *   active parameter bank:  0 → 1 → 2 → 3 → 0.  The four banks are
- *   independent; all are saved/loaded in a single flash operation.
- *   The current bank number is shown on the rightmost HEX digit by the
- *   display module while the normal FX / param value is on HEX1–HEX5.
+ * Instantiates and connects four subsystems:
  *
- * SW assignments
- * --------------
- *   SW[9:6]  fx_sel      (4 bits, 0–15)
- *   SW[5]    bank_toggle (rising edge = next bank)
- *   SW[4:2]  param_sel   (3 bits, 0–7)
- *   SW[1]    load_button
- *   SW[0]    save_button
+ *   Audio I/O     — PLL (AUD_XCK), I2C codec config (AVConfig), and the
+ *                   streaming codec interface (AudioCodec).  Gated by the
+ *                   `ifndef NO_DSP macro for simulation without hardware IPs.
  *
- * Everything else is unchanged from the original design.
+ *   Flash memory  — FlashMemInterface Qsys/Platform Designer IP, providing
+ *                   two Avalon-MM buses (avl_mem + avl_csr) to the controller.
+ *                   Note: the EPCQ256 AS interface is internal to the IP;
+ *                   no user-logic flash pins appear here.
+ *
+ *   Controller    — Manages params[][], button inputs, save/load, and mute.
+ *
+ *   Display       — Drives LEDR and HEX0–HEX5 from controller state and
+ *                   the tuner engine output.
+ *
+ * FX chain  (left to right, all stereo, all pipelined on sample_en_pipe[])
+ * -------------------------------------------------------------------------
+ *   FX 0  Input Gain  →  FX 1  Gate       →  FX 2  EQ 1
+ *   FX 3  Compressor  →  FX 4  Distortion →  FX 5  EQ 2
+ *   FX 6  Chorus      →  FX 7  EXPRESSION Gain
+ *   FX 8  Delay  (tap-tempo capable)
+ *   FX 9  Reverb      →  FX 10 Output Gain  →  DAC
+ *
+ * DAC muting
+ * ----------
+ *   The DAC output is forced to zero when is_mute is asserted (footswitch
+ *   long-press) or fsm_busy is high (flash save / load in progress).
+ *   Muting during fsm_busy prevents audible glitches from mid-stream param
+ *   updates while the load FSM writes bytes one at a time into the FX chain.
+ *
+ * Tuner
+ * -----
+ *   tuner_yin_engine runs continuously on the raw ADC input and produces a
+ *   best_lag estimate roughly every 170 ms.  The display module converts this
+ *   to a note name and tuning indicator on HEX0–HEX5 while mute is active.
+ *
+ * Macro
+ * -----
+ *   `define NO_DSP  — omit all audio hardware IPs and FX chain; useful for
+ *                     controller / display simulation without codec files.
  */
 
-`define NO_DSP
+// `define NO_DSP
 
 module AudioFX (
     // Inputs
@@ -237,7 +261,7 @@ module AudioFX (
         .reset_n        (KEY[0]),
         .sw_fx_sel      (SW[9:6]),
         .sw_param_sel   (SW[5:3]),
-        .sw_bank_toggle (SW[2]),
+        .bank_toggle (SW[2]),
         .key_inc        (~KEY[2]),
         .key_dec        (~KEY[3]),
         .save_button    (SW[0]),
