@@ -23,7 +23,7 @@
  * -------------------------------------------------------------------------
  *   FX 0  Input Gain  →  FX 1  Gate       →  FX 2  EQ 1
  *   FX 3  Compressor  →  FX 4  Distortion →  FX 5  EQ 2
- *   FX 6  Chorus      →  FX 7  Spectral Gain
+ *   FX 6  Chorus      →  FX 7  EXPRESSION Gain
  *   FX 8  Delay  (tap-tempo capable)
  *   FX 9  Reverb      →  FX 10 Output Gain  →  DAC
  *
@@ -127,7 +127,7 @@ module AudioFX (
     logic [1:0][DATA_W-1:0] dist_out;
     logic [1:0][DATA_W-1:0] eq_out_2;
     logic [1:0][DATA_W-1:0] chorus_out;
-    logic [1:0][DATA_W-1:0] gain_spectral_out;
+    logic [1:0][DATA_W-1:0] gain_expression_out;
     logic [1:0][DATA_W-1:0] delay_out;
     logic [1:0][DATA_W-1:0] reverb_out;
     logic [1:0][DATA_W-1:0] gain_out_out;
@@ -394,7 +394,7 @@ module AudioFX (
             .fx_release    (params[3][3]),
             .fx_input_gain (params[3][4]),
             .fx_makeup_gain(params[3][5]),
-            .fx_mix        (params[3][6]),
+            .fx_mix        (params[3][7]),
             .sample_en     (sample_en_pipe[3])
         );
 
@@ -406,7 +406,7 @@ module AudioFX (
             .audio_out     (dist_out),
             .fx_drive      (params[4][0]),
             .fx_makeup_gain(params[4][1]),
-            .fx_mix        (params[4][2]),
+            .fx_mix        (params[4][7]),
             .sample_en     (sample_en_pipe[4])
         );
 
@@ -431,16 +431,16 @@ module AudioFX (
             .audio_out(chorus_out),
             .fx_rate  (params[6][0]),
             .fx_depth (params[6][1]),
-            .fx_mix   (params[6][2]),
+            .fx_mix   (params[6][7]),
             .sample_en(sample_en_pipe[6])
         );
 
-        // ---- FX 7: Spectral Gain  (expression pedal target) ----------
-        fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_SPECTRAL_GAIN (
+        // ---- FX 7: EXPRESSION Gain  (expression pedal target) ----------
+        fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EXPRESSION_GAIN (
             .clk      (CLOCK_50),
             .reset_n  (KEY[0]),
             .audio_in (chorus_out),
-            .audio_out(gain_spectral_out),
+            .audio_out(gain_expression_out),
             .fx_gain  (params[7][0]),
             .sample_en(sample_en_pipe[7])
         );
@@ -459,11 +459,11 @@ module AudioFX (
         fx_delay #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DELAY (
             .clk        (CLOCK_50),
             .reset_n    (KEY[0]),
-            .audio_in   (gain_spectral_out),
+            .audio_in   (gain_expression_out),
             .audio_out  (delay_out),
             .fx_time    (params[8][0]),
             .fx_feedback(params[8][1]),
-            .fx_mix     (params[8][2]),
+            .fx_mix     (params[8][7]),
             .sample_en  (sample_en_pipe[8]),
             .tap_samples(tap_delay_samples),
             .tap_active (tap_tempo_active)
@@ -477,7 +477,7 @@ module AudioFX (
             .audio_out (reverb_out),
             .fx_size   (params[9][0]),
             .fx_damping(params[9][1]),
-            .fx_mix    (params[9][2]),
+            .fx_mix    (params[9][7]),
             .sample_en (sample_en_pipe[9])
         );
 

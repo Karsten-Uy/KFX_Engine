@@ -34,7 +34,7 @@
  * --------------------------------------
  *   fx_rate  — LFO rate    (0 = very slow, 255 = fastest)
  *   fx_depth — modulation depth  (0 = no modulation, 255 = maximum)
- *   fx_mix   — dry/wet blend     (0 = dry, 255 = wet)
+ *   fx_mix   — dry/wet blend     (0 = dry, 255 = ~99.6% wet)
  *
  * Ports
  * -----
@@ -97,7 +97,7 @@ module fx_chorus #(
     logic signed [1:0][DATA_W-1:0] dry_pipe [3:0];  // aligned with delay_line_li latency
 
     logic signed [32:0] avg_wet_L, avg_wet_R;
-    logic signed [31:0] mix_L, mix_R;
+    logic signed [33:0] mix_L, mix_R;
 
     // ----------------------------------------------------------------
     // Delay Line Instantiation
@@ -151,10 +151,12 @@ module fx_chorus #(
         avg_wet_L = ($signed(wet_v1_L) + $signed(wet_v2_L)) >>> 1;
         avg_wet_R = ($signed(wet_v1_R) + $signed(wet_v2_R)) >>> 1;
 
-        mix_L = (avg_wet_L * $signed({1'b0, fx_mix})) +
-                ($signed(dry_pipe[3][0]) * $signed({1'b0, 8'd255 - fx_mix}));
-        mix_R = (avg_wet_R * $signed({1'b0, fx_mix})) +
-                ($signed(dry_pipe[3][1]) * $signed({1'b0, 8'd255 - fx_mix}));
+        // Wet/dry mix: dry + (wet - dry) * mix / 256
+        // mix=0 → full dry (exact unity), mix=255 → ~99.6% wet
+        mix_L = $signed(dry_pipe[3][0]) +
+                (((avg_wet_L - $signed(dry_pipe[3][0])) * $signed({1'b0, fx_mix})) >>> 8);
+        mix_R = $signed(dry_pipe[3][1]) +
+                (((avg_wet_R - $signed(dry_pipe[3][1])) * $signed({1'b0, fx_mix})) >>> 8);
     end
 
     // ----------------------------------------------------------------
@@ -190,8 +192,8 @@ module fx_chorus #(
             dry_pipe[2] <= dry_pipe[1];
             dry_pipe[3] <= dry_pipe[2];
 
-            audio_out[0] <= sat16(mix_L >>> 8);
-            audio_out[1] <= sat16(mix_R >>> 8);
+            audio_out[0] <= sat16(mix_L);
+            audio_out[1] <= sat16(mix_R);
         end
     end
 

@@ -21,10 +21,8 @@ The design was initially forked from the *audio-loopback-only* example in
 Audio is processed sequentially through the following effect chain:
 
 ```
-Gain → Gate → EQ → Compressor → Distortion → EQ → Chorus → Delay → Reverb → Gain
+Gain → Gate → EQ → Compressor → Distortion → EQ → Chorus → Gain → Delay → Reverb → Gain
 ```
-
-This structure mimics a traditional digital pedalboard signal flow.
 
 ---
 
@@ -62,7 +60,7 @@ This structure mimics a traditional digital pedalboard signal flow.
 | Internal Clock    | 50 MHz                                          |
 | Max FX Slots      | 16                                              |
 | Parameters per FX | Up to 8                                         |
-| Latency           | 34 Samples (under 1ms)                          |
+| Latency           | under 1ms                                       |
 
 ---
 ## Block Diagram
@@ -111,46 +109,54 @@ Software
   - This takes a few minutes to compile
 
 ### How to control FX
-`HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[4:2]` choose the parameter within that FX, and `SW[0]` mutes the output signal with `HEX0` being a line if it is muted. To save a set of paramters, press KEY[1] and a `b` should appear on `HEX1` briefly. Once the `b` is gone, that means that the parameters have been saved and to load it, flip `SW1` up and down.
 
-### FX Mapping  Table
+`HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[4:2]` choose the parameter within that FX, and `SW[0]` mutes the output signal with `HEX0` being a line if it is muted. To save a set of parameters, press `KEY[1]` and a `b` should appear on `HEX1` briefly. Once the `b` is gone, the parameters have been saved. To load saved parameters, flip `SW[1]` up and down.
 
-| FX          | Parameter            | FX Number | Parameter Number  
-| ----------- | -------------------- | ----------| ----------------
-| Gain1       | fx_gain              | F0        | P0 
-| Gate        | fx_threshold         | F1        | P0
-| Gate        | fx_attack            | F1        | P1
-| Gate        | fx_release           | F1        | P2
-| EQ1         | fx_sub_gain          | F2        | P0
-| EQ1         | fx_low_gain          | F2        | P1
-| EQ1         | fx_mid_gain          | F2        | P2
-| EQ1         | fx_high_gain         | F2        | P3
-| Compressor  | fx_threshold         | F3        | P0
-| Compressor  | fx_ratio             | F3        | P1
-| Compressor  | fx_attack            | F3        | P2
-| Compressor  | fx_release           | F3        | P4
-| Distortion  | fx_drive             | F4        | P0
-| Distortion  | fx_makeup_gain       | F4        | P1
-| Distortion  | fx_mix               | F4        | P2
-| EQ2         | fx_sub_gain          | F5        | P0
-| EQ2         | fx_low_gain          | F5        | P1
-| EQ2         | fx_mid_gain          | F5        | P2
-| EQ2         | fx_high_gain         | F5        | P3
-| Chorus      | fx_rate              | F6        | P0
-| Chorus      | fx_depth             | F6        | P1
-| Chorus      | fx_mix               | F6        | P2
-| Delay       | fx_time              | F7        | P0
-| Delay       | fx_feedback          | F7        | P1
-| Delay       | fx_mix               | F7        | P2
-| Reverb      | fx_size              | F8        | P0
-| Reverb      | fx_damping           | F8        | P1
-| Reverb      | fx_mix               | F8        | P2
-| Gain2       | fx_gain              | F9        | P0 
+### FX Mapping Table
+
+| FX          | Parameter       | FX Number | Parameter Number |
+| ----------- | --------------- | --------- | ---------------- |
+| Gain1       | fx_gain         | F0        | P0               |
+| Gate        | fx_threshold    | F1        | P0               |
+| Gate        | fx_attack       | F1        | P1               |
+| Gate        | fx_release      | F1        | P2               |
+| Gate        | fx_knee         | F1        | P3               |
+| Gate        | fx_depth        | F1        | P4               |
+| EQ1         | fx_sub_gain     | F2        | P0               |
+| EQ1         | fx_low_gain     | F2        | P1               |
+| EQ1         | fx_mid_gain     | F2        | P2               |
+| EQ1         | fx_high_gain    | F2        | P3               |
+| Compressor  | fx_threshold    | F3        | P0               |
+| Compressor  | fx_ratio        | F3        | P1               |
+| Compressor  | fx_attack       | F3        | P2               |
+| Compressor  | fx_release      | F3        | P3               |
+| Compressor  | fx_input_gain   | F3        | P4               |
+| Compressor  | fx_makeup_gain  | F3        | P5               |
+| Compressor  | fx_mix          | F3        | P7               |
+| Distortion  | fx_drive        | F4        | P0               |
+| Distortion  | fx_makeup_gain  | F4        | P1               |
+| Distortion  | fx_mix          | F4        | P7               |
+| EQ2         | fx_sub_gain     | F5        | P0               |
+| EQ2         | fx_low_gain     | F5        | P1               |
+| EQ2         | fx_mid_gain     | F5        | P2               |
+| EQ2         | fx_high_gain    | F5        | P3               |
+| Chorus      | fx_rate         | F6        | P0               |
+| Chorus      | fx_depth        | F6        | P1               |
+| Chorus      | fx_mix          | F6        | P7               |
+| Gain2       | fx_gain         | F7*       | P0*              |
+| Delay       | fx_time         | F8        | P0               |
+| Delay       | fx_feedback     | F8        | P1               |
+| Delay       | fx_mix          | F8        | P7               |
+| Reverb      | fx_size         | F9        | P0               |
+| Reverb      | fx_damping      | F9        | P1               |
+| Reverb      | fx_mix          | F9        | P7               |
+| Gain2       | fx_gain         | F10       | P0               |
 
 NOTES:
 - You should see the FX Number values on HEX5-HEX4, with HEX5 always being F
 - You should see the Parameter Number values on HEX3-HEX2, with HEX3 always being P
-- The order of FX number represented how the order the FX are connect in series, with the output of F0 being connected to the input of F1 so on and so forth
+- The order of FX numbers represents the order the FX are connected in series, with the output of F0 being connected to the input of F1, and so on
+- Gain2 should be modulated by the expression pedal
 - Descriptions for what the parameters do are in the next section
 
 ## Implemented Effects & Parameters
@@ -161,25 +167,27 @@ Applies a gain multiplier to the signal.
 
 **Parameters**
 
-* `fx_gain`: Gain multiplier (0–255), where `128 = unity`
+* `fx_gain`: Gain multiplier (0–255), where `32 = unity`. Values above 32 amplify; values below 32 attenuate.
 
 ---
 
 ### Gate
 
-Noise gate using **peak envelope smoothing**. Signals above the threshold pass through, while signals below are muted.
+Noise gate with a soft-knee and adjustable floor gain. Signals above the threshold pass through at unity; signals below are attenuated toward the depth floor. The knee region smoothly transitions between open and closed rather than switching abruptly.
 
 **Parameters**
 
-* `fx_threshold`: Threshold (scaled 0–24480 relative to `audio_in`)
-* `fx_attack`: Time for gate to open after exceeding threshold
-* `fx_release`: Time for gate to close after falling below threshold
+* `fx_threshold`: Gate open level (scaled to the full 16-bit signal range)
+* `fx_attack`: Speed at which the gate opens after the signal exceeds the threshold (`0` = instant, `255` = slowest)
+* `fx_release`: Speed at which the gate closes after the signal falls below the threshold (`0` = instant, `255` = slowest)
+* `fx_knee`: Soft-knee half-width — widens the transition region around the threshold (`0` = hard switch, `255` = widest knee)
+* `fx_depth`: Gain floor when the gate is fully closed (`0` = full mute, `255` = unity — effectively bypasses gating)
 
 ---
 
 ### EQ
 
-3-band EQ that splits the signal into **low, mid, and high** frequency bands.
+4-band EQ that splits the signal into **sub, low, mid, and high** frequency bands and applies independent gain to each.
 
 **Parameters**
 
@@ -192,48 +200,65 @@ Noise gate using **peak envelope smoothing**. Signals above the threshold pass t
 
 ### Compressor
 
-Peak-envelope-based compressor that reduces signal levels above a threshold while leaving lower levels unchanged.
+Peak-envelope-based compressor with lookahead that reduces signal levels above a threshold while leaving lower levels unchanged. Includes independent input and output gain stages and a parallel dry/wet blend for New York-style parallel compression.
 
 **Parameters**
 
-* `fx_threshold`: Threshold (0–24480 scaled to input)
-* `fx_ratio`: Compression ratio from 1:1 (`0`) to 20:1 (`255`)
-* `fx_attack`: Time before gain reduction begins
-* `fx_release`: Time before gain reduction is released
+* `fx_threshold`: Compression onset level (0–255, scaled to full 16-bit range)
+* `fx_ratio`: Compression ratio — `0` = 1:1 (no compression), `255` = maximum ratio
+* `fx_attack`: Time before gain reduction begins after exceeding the threshold (upper nibble controls slew rate)
+* `fx_release`: Time before gain reduction is released after falling below the threshold (upper nibble controls slew rate)
+* `fx_input_gain`: Pre-compression input gain (`64 = unity`)
+* `fx_makeup_gain`: Post-compression output gain (`64 = unity`)
+* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
 
 ---
 
 ### Distortion
 
-Non-linear distortion using a **3rd-order polynomial approximation of `tanh(x)`**:
+Amp-style distortion that models the full signal chain of an overdriven guitar amplifier through seven processing stages:
 
-```
-        {  2/3           , x ≥ 1
-f(x) =  {  x − x³/3      , −1 < x < 1
-        {  2/3           , x ≤ −1
-```
+1. **Pre-emphasis** — A first-difference high-shelf filter (`emph = x + (x − x_prev) >> 2`) boosts the presence band (~3 kHz) before the signal hits the clipping stage, adding bite and pick attack to the distorted tone.
+
+2. **Drive** — Multiplies the pre-emphasized signal by a gain in the range 1× to 32.875× (`drive_gain = 256 + fx_drive × 32`). Higher drive pushes more of the signal into the clipping region.
+
+3. **Asymmetric bias** — A fixed +5% full-scale DC offset is added before clamping. This shifts the clipping threshold so positive and negative half-cycles clip at different levels, introducing even-order harmonics that give the distortion a warmer, more tube-like character.
+
+4. **Soft clip (tanh approximation)** — The biased signal is passed through a 3rd-order polynomial approximation of `tanh(x)`, which smoothly compresses peaks rather than hard-squaring them:
+
+   ```
+           {  +2/3              , x ≥ +1
+   f(x) =  {  x − x³/3          , −1 < x < 1
+           {  −2/3              , x ≤ −1
+   ```
+
+   Division by 3 is approximated as `(x + x>>2 + x>>4 + x>>6) >> 2` (error ≤ 0.39%, inaudible).
+
+5. **Wet/dry mix** — Blends the clipped signal with the original dry input (`0` = fully dry, `255` = ~99.6% wet), enabling parallel or blended distortion tones.
+
+6. **Makeup gain** — Compensates for the level reduction caused by clipping (`128 = unity`).
+
+7. **Cabinet simulation** — Two cascaded one-pole IIR low-pass filters (fc ≈ 4.4 kHz @ 48 kHz) roll off the harsh ultrasonic content produced by hard clipping, approximating the frequency response of a guitar speaker cabinet.
+
+**Latency:** 6 samples.
 
 **Parameters**
 
-* `fx_drive`: Input gain into non-linearity
-
-  * `0 = unity`, `255 ≈ 32.875×`
-* `fx_makeup_gain`: Output gain (`128 = unity`)
-* `fx_mix`: Dry/wet mix
-
-  * `0 = all dry`, `255 = all wet`
+* `fx_drive`: Amount of gain into the clipping stage (`0` = 1× / unity, `255` ≈ 32.875×)
+* `fx_makeup_gain`: Output level after clipping and cabinet simulation (`128 = unity`)
+* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
 
 ---
 
 ### Chorus
 
-Creates a thicker sound by duplicating and delaying the input signal, then modulating it with a **triangle-wave LFO** before mixing it back with the original.
+Creates a thicker sound by duplicating and delaying the input signal, then modulating the delay time with a **triangle-wave LFO** before mixing it back with the original. Two quadrature voices (0° and 90°) produce a lush stereo spread.
 
 **Parameters**
 
-* `fx_rate`: LFO frequency
-* `fx_depth`: LFO modulation depth
-* `fx_mix`: Dry/wet mix
+* `fx_rate`: LFO frequency (`0` = very slow, `255` = fastest)
+* `fx_depth`: LFO modulation depth (`0` = no modulation, `255` = maximum)
+* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
 
 ---
 
@@ -243,21 +268,21 @@ Implements an echo effect using delay lines with feedback.
 
 **Parameters**
 
-* `fx_time`: Delay time (larger value = longer delay)
-* `fx_feedback`: Feedback amount (capped at 0.875 to prevent runaway)
-* `fx_mix`: Dry/wet mix
+* `fx_time`: Delay time (larger value = longer delay, scaled across the full delay buffer range)
+* `fx_feedback`: Number of echo repeats (`0` = single echo, higher values = more repeats; internally capped to prevent runaway feedback)
+* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
 
 ---
 
 ### Reverb
 
-Implements a **Schroeder Reverberator** using parallel feedback comb filters followed by series all-pass filters to simulate room reverberation.
+Implements a **Schroeder Reverberator** using parallel damped feedback comb filters followed by series all-pass filters to simulate room reverberation.
 
 **Parameters**
 
-* `fx_size`: Controls room size (delay lengths)
-* `fx_damping`: Controls reverberation damping
-* `fx_mix`: Dry/wet mix
+* `fx_size`: Room size / decay time — scales all comb filter delays (`0` = smallest room / shortest tail, `255` = largest room / longest tail)
+* `fx_damping`: High-frequency damping of the reverb tail (`0` = bright / full HF content, `255` = dark / heavily damped)
+* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
 
 ---
 

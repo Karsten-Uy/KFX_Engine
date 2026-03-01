@@ -25,7 +25,7 @@
  *   fx_release    — envelope release speed   (upper nibble → shift amount)
  *   fx_input_gain — pre-compression gain     (64 = unity)
  *   fx_makeup_gain — post-compression gain   (64 = unity)
- *   fx_mix        — dry/wet blend            (0 = dry, 255 = wet)
+ *   fx_mix        — dry/wet blend            (0 = dry, 255 = ~99.6% wet)
  *
  * Ports
  * -----
@@ -240,7 +240,7 @@ module fx_compressor #(
     //
     // dry = lookahead-delayed audio (pre-compression, post-input-gain)
     // wet = dry × gain_smooth (Q0.15) then scaled by makeup gain
-    // out = (dry × (255-mix) + wet × mix) >> 8
+    // out = dry + (wet - dry) * mix / 256  (mix=0 → exact unity dry)
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk or negedge reset_n) begin : apply_gain_ff
@@ -258,12 +258,13 @@ module fx_compressor #(
             wet_l = (m_l >>> 6 > 32767)  ? 16'h7FFF : (m_l >>> 6 < -32768) ? 16'h8000 : m_l[15+6:6];
             wet_r = (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
 
-            // Blend
-            mixed_l = (dry_l * $signed({1'b0, (8'hFF - fx_mix)})) + (wet_l * $signed({1'b0, fx_mix}));
-            mixed_r = (dry_r * $signed({1'b0, (8'hFF - fx_mix)})) + (wet_r * $signed({1'b0, fx_mix}));
+            // Blend: dry + (wet - dry) * mix / 256
+            // mix=0 → exact unity dry, mix=255 → ~99.6% wet
+            mixed_l = $signed(dry_l) + ((($signed(wet_l) - $signed(dry_l)) * $signed({1'b0, fx_mix})) >>> 8);
+            mixed_r = $signed(dry_r) + ((($signed(wet_r) - $signed(dry_r)) * $signed({1'b0, fx_mix})) >>> 8);
 
-            audio_out[0] <= DATA_W'(mixed_l >>> 8);
-            audio_out[1] <= DATA_W'(mixed_r >>> 8);
+            audio_out[0] <= sat16(mixed_l);
+            audio_out[1] <= sat16(mixed_r);
         end
     end
 
