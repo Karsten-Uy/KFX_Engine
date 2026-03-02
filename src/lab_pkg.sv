@@ -146,35 +146,38 @@ package lab_pkg;
         case (fx)
             0:  if (param==0) bank1_default = 8'd140;
             1:  case (param)
-                    0: bank1_default = 8'd3;
+                    0: bank1_default = 8'd1;
                     1: bank1_default = 8'd40;
                     2: bank1_default = 8'd100;
                 endcase
             2:  case (param)
                     0: bank1_default = 8'd0;
                     1: bank1_default = 8'd40;
-                    2: bank1_default = 8'd160;                   // mid push
+                    2: bank1_default = 8'd160;   
                     3: bank1_default = 8'd140;
                 endcase
             3:  case (param)
                     0: bank1_default = 8'd60;
-                    1: bank1_default = 8'128d;
+                    1: bank1_default = 8'd128;
                     2: bank1_default = 8'd50;
                     3: bank1_default = 8'd110;
-                    4: bank1_default = 8'd255;
-                    5: bank1_default = 8'd255;
+                    4: bank1_default = 8'd64;
+                    5: bank1_default = 8'd64;
                     7: bank1_default = 8'd200;
                 endcase
             4:  case (param)
-                    0: bank1_default = 8'd160;                   // moderate drive
-                    1: bank1_default = 8'd80;
+                    0: bank1_default = 8'd160;       
+                    1: bank1_default = 8'd255;
+                    2: bank1_default = 8'd102;
+                    3: bank1_default = 8'd180;
+                    4: bank1_default = 8'd160;
                     7: bank1_default = 8'd200;
                 endcase
             5:  case (param)
                     0: bank1_default = 8'd0;
                     1: bank1_default = 8'd90;
                     2: bank1_default = 8'd140;
-                    3: bank1_default = 8'd170;                   // presence boost
+                    3: bank1_default = 8'd170;     
                 endcase
             6:  case (param)
                     0: bank1_default = 8'd128;
@@ -183,16 +186,16 @@ package lab_pkg;
                 endcase
             7:  if (param==0) bank1_default = 8'd128;
             8:  case (param)
-                    0: bank1_default = 8'd100;                   // short slapback
+                    0: bank1_default = 8'd100;     
                     1: bank1_default = 8'd60;
                     7: bank1_default = 8'd60;
                 endcase
             9:  case (param)
                     0: bank1_default = 8'd80;
                     1: bank1_default = 8'd150;
-                    7: bank1_default = 8'd50;
+                    7: bank1_default = 8'd0;
                 endcase
-            10: if (param==0) bank1_default = 8'd128;
+            10: if (param==0) bank1_default = 8'd1;
         endcase
     endfunction
 
@@ -205,7 +208,7 @@ package lab_pkg;
         case (fx)
             0:  if (param==0) bank2_default = 8'd150;
             1:  case (param)
-                    0: bank2_default = 8'd3;
+                    0: bank2_default = 8'd1;
                     1: bank2_default = 8'd30;
                     2: bank2_default = 8'd80;
                 endcase
@@ -251,7 +254,7 @@ package lab_pkg;
                     1: bank2_default = 8'd100;
                     7: bank2_default = 8'd90;
                 endcase
-            10: if (param==0) bank2_default = 8'd110;
+            10: if (param==0) bank2_default = 8'd64;
         endcase
     endfunction
 
@@ -264,7 +267,7 @@ package lab_pkg;
         case (fx)
             0:  if (param==0) bank3_default = 8'd128;
             1:  case (param)
-                    0: bank3_default = 8'd1;                     // gate off
+                    0: bank3_default = 8'd1; 
                     1: bank3_default = 8'd40;
                     2: bank3_default = 8'd200;
                 endcase
