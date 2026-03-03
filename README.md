@@ -110,7 +110,29 @@ Software
 
 ### How to control FX
 
-`HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[4:2]` choose the parameter within that FX, and `SW[0]` mutes the output signal with `HEX0` being a line if it is muted. To save a set of parameters, press `KEY[1]` and a `b` should appear on `HEX1` briefly. Once the `b` is gone, the parameters have been saved. To load saved parameters, flip `SW[1]` up and down.
+`HEX5-HEX2` display the currently selected FX number and parameter, with the exact mappings shown in the table below; values not listed correspond to no parameter. The current parameter value (ranging from 0 to 255) is visualized on `LEDR[9:0]` as a bar graph, where only `LEDR[9]` lit represents a value of 0 and `LEDR[8:0]` illuminate as the value increases. `KEY[2]` and `KEY[3]` are used to decrease and increase the selected parameter value, respectively. The active FX module is selected using `SW[9:6]`, while `SW[4:2]` choose the parameter within that FX. To save a set of parameters, flip up `SW[0]` and a `b` should appear on `HEX1` briefly. Once the `b` is gone, the parameters have been saved. To load saved parameters, flip `SW[1]` up and down.
+
+### SW Map Table
+| SW Number | Usage                              |
+| --------- | ---------------------------------- |
+| SW9       | FX[3] and Freq/Note Tuner Toggle   | 
+| SW8       | FX[2]                              | 
+| SW7       | FX[1]                              | 
+| SW6       | FX[0]                              | 
+| SW5       | Param[2]                           | 
+| SW4       | Param[1]                           | 
+| SW3       | Param[0]                           | 
+| SW2       | Switch Bank on rising edge         | 
+| SW1       | Load Saved Params on rising edge   | 
+| SW0       | Save Current Params on rising edge | 
+
+### KEY Map Table
+| KEY Number | Usage                     |
+| ---------- | ------------------------- |
+| KEY[3]     | Decrease Parameter Values | 
+| KEY[2]     | Increase Parameter Values | 
+| KEY[1]     | Mute / Tap Delay          | 
+| KEY[0]     | Design Reset              | 
 
 ### FX Mapping Table
 

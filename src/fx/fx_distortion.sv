@@ -131,7 +131,7 @@ module fx_distortion #(
     always_comb begin
         for (int i = 0; i < 2; i++)
             emph[i] = $signed(audio_in[i]) +
-                      ($signed($signed(audio_in[i]) - $signed(audio_prev[i])) >>> 1);
+                      ($signed($signed(audio_in[i]) - $signed(audio_prev[i])) >>> 2);
     end
 
     // ----------------------------------------------------------------

@@ -1085,5 +1085,5 @@ set_global_assignment -name QSYS_FILE ip/FlashMemInterface.qsys
 set_global_assignment -name QSYS_FILE ip/AVConfig.qsys
 set_global_assignment -name QSYS_FILE ip/AudioPLL.qsys
 set_global_assignment -name QSYS_FILE ip/AudioCodec.qsys
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
