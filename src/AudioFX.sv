@@ -410,9 +410,9 @@ module AudioFX (
             .audio_out     (dist_out),
             .fx_drive      (params[4][0]),
             .fx_makeup_gain(params[4][1]),
-            // .fx_bias       (params[4][2]),
-            // .fx_tone       (params[4][3]),
-            // .fx_presence   (params[4][4]),
+            .fx_bias       (params[4][2]),
+            .fx_sag        (params[4][3]),
+            .fx_tone       (params[4][4]),
             .fx_mix        (params[4][7]),
             .sample_en     (sample_en_pipe[4])
         );
