@@ -413,6 +413,8 @@ module AudioFX (
             .fx_bias       (params[4][2]),
             .fx_sag        (params[4][3]),
             .fx_tone       (params[4][4]),
+            .fx_tightness  (params[4][5]),
+            .fx_smooth     (params[4][6]),
             .fx_mix        (params[4][7]),
             .sample_en     (sample_en_pipe[4])
         );

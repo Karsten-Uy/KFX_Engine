@@ -161,17 +161,19 @@ package lab_pkg;
                     1: bank1_default = 8'd128;
                     2: bank1_default = 8'd50;
                     3: bank1_default = 8'd110;
-                    4: bank1_default = 8'd64;
-                    5: bank1_default = 8'd64;
-                    7: bank1_default = 8'd200;
+                    4: bank1_default = 8'd255;
+                    5: bank1_default = 8'd255;
+                    7: bank1_default = 8'd255;
                 endcase
             4:  case (param)
-                    0: bank1_default = 8'd160;       
-                    1: bank1_default = 8'd255;
-                    2: bank1_default = 8'd102;
-                    3: bank1_default = 8'd180;
-                    4: bank1_default = 8'd160;
-                    7: bank1_default = 8'd200;
+                    0: bank1_default = 8'd255;       
+                    1: bank1_default = 8'd50;
+                    2: bank1_default = 8'd50;
+                    3: bank1_default = 8'd0;
+                    4: bank1_default = 8'd230;
+                    5: bank1_default = 8'd30;
+                    6: bank1_default = 8'd230;
+                    7: bank1_default = 8'd255;
                 endcase
             5:  case (param)
                     0: bank1_default = 8'd0;

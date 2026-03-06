@@ -1,6 +1,7 @@
 /*
     Distortion with Amp Dynamics (Sag, Variable Bias, Tone, and DC Blocking)
     (Bit-width stable and phase-aligned)
+    NEW: Anti-aliasing Amp Sandwich with safe transient handling.
 */
 
 module fx_distortion #(
@@ -17,10 +18,14 @@ module fx_distortion #(
     input  logic [PARAM_W-1:0]                  fx_makeup_gain,
     input  logic [PARAM_W-1:0]                  fx_mix,
     
-    // New Amp Parameters
-    input  logic [PARAM_W-1:0]                  fx_bias, // 0 = symmetric, 255 = heavily asymmetric
-    input  logic [PARAM_W-1:0]                  fx_sag,  // 0 = tight/solid-state, 255 = vintage tube sag
-    input  logic [PARAM_W-1:0]                  fx_tone, // Cabinet low-pass cutoff
+    // Amp Parameters
+    input  logic [PARAM_W-1:0]                  fx_bias, 
+    input  logic [PARAM_W-1:0]                  fx_sag,  
+    input  logic [PARAM_W-1:0]                  fx_tone, 
+    
+    // Amp Realism Parameters
+    input  logic [PARAM_W-1:0]                  fx_tightness, 
+    input  logic [PARAM_W-1:0]                  fx_smooth,    
     
     input  logic                                sample_en
 );
@@ -49,7 +54,6 @@ module fx_distortion #(
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
-            // Guard against taking absolute value of -32768
             if (audio_in[i] == NEG_ONE) abs_in[i] = ONE;
             else                        abs_in[i] = (audio_in[i][15]) ? -$signed(audio_in[i]) : audio_in[i];
             
@@ -62,19 +66,41 @@ module fx_distortion #(
     end
 
     // -----------------------------------------------------------------------
-    // PRE-EMPHASIS & DRY DELAY PIPELINE
+    // PRE-EMPHASIS & PRE-CLIP TIGHTNESS (High-Pass)
     // -----------------------------------------------------------------------
     logic signed [15:0] audio_prev[1:0];
     logic signed [16:0] emph[1:0];
-    logic signed [15:0] dry_dly[1:0][3:0]; // 4-stage delay to align dry with wet mix
-
+    logic signed [15:0] dry_dly[1:0][3:0]; 
     logic signed [15:0] dynamic_bias;
+    
+    // Tightness (HPF) State - WIDENED TO PREVENT TRANSIENT WRAP
+    logic signed [16:0] pre_lp_state[1:0];
+    logic signed [17:0] pre_lp_diff[1:0];
+    logic signed [27:0] pre_lp_mult[1:0];
+    logic signed [31:0] pre_lp_next_full[1:0];
+    logic signed [16:0] pre_lp_next_safe[1:0];
+    
+    logic signed [17:0] pre_hp_out_full[1:0];
+    logic signed [15:0] pre_hp_out_safe[1:0];
+
     assign dynamic_bias = {1'b0, fx_bias} << 4; 
 
     always_comb begin
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 2; i++) begin
             emph[i] = $signed(audio_in[i]) + 
                       ($signed($signed(audio_in[i]) - $signed(audio_prev[i])) >>> 2);
+                      
+            // Expanded width math to catch explosive transients
+            pre_lp_diff[i]      = $signed(emph[i]) - $signed(pre_lp_state[i]);
+            pre_lp_mult[i]      = $signed(pre_lp_diff[i]) * $signed({1'b0, fx_tightness});
+            pre_lp_next_full[i] = $signed(pre_lp_state[i]) + ($signed(pre_lp_mult[i]) >>> 10);
+            
+            // Safe clamp before truncating to register width
+            pre_lp_next_safe[i] = 17'(sat16(pre_lp_next_full[i])); 
+            
+            pre_hp_out_full[i]  = $signed(emph[i]) - $signed(pre_lp_state[i]);
+            pre_hp_out_safe[i]  = sat16(32'(pre_hp_out_full[i])); // Feed this to the drive
+        end
     end
 
     // -----------------------------------------------------------------------
@@ -87,7 +113,7 @@ module fx_distortion #(
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
-            product[i] = $signed(sat16(emph[i])) * $signed({1'b0, drive_dynamic[i]});
+            product[i] = $signed(pre_hp_out_safe[i]) * $signed({1'b0, drive_dynamic[i]});
             x_raw[i]   = product_reg[i] >>> 8;
 
             if      ($signed(x_raw[i]) + $signed(32'(dynamic_bias)) >  $signed(32'(ONE)))    x[i] =  ONE;
@@ -97,36 +123,37 @@ module fx_distortion #(
     end
 
     // -----------------------------------------------------------------------
-    // STAGE 2 & 3 — POLYNOMIAL PIPELINE
+    // STAGE 2 & 3 — POLYNOMIAL PIPELINE & POST-CLIP SMOOTHING
     // -----------------------------------------------------------------------
     (* multstyle = "logic" *) logic signed [31:0] x_sq[1:0];
     (* multstyle = "logic" *) logic signed [47:0] x_cb[1:0];
     
-    // Phase alignment registers for x
-    logic signed [15:0] x_reg_1[1:0];
-    logic signed [15:0] x_reg_2[1:0];
+    logic signed [15:0] x_reg_1[1:0], x_reg_2[1:0];
     logic signed [31:0] x_sq_reg[1:0];
     logic signed [47:0] x_cb_reg[1:0];
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
             x_sq[i] = $signed(x[i])        * $signed(x[i]);
-            // Multiply x^2[n] by x[n] to get true x^3
             x_cb[i] = $signed(x_sq_reg[i]) * $signed(x_reg_1[i]);
         end
     end
 
-    logic signed [15:0] cubic_term[1:0];
+    logic signed [15:0] cubic_term[1:0], cubic_div3[1:0], distorted_raw[1:0];
     logic signed [17:0] cubic_sum[1:0];
-    logic signed [15:0] cubic_div3[1:0];
-    logic signed [15:0] distorted_raw[1:0];
-    
-    // DC Blocking state
-    logic signed [15:0] dc_state[1:0];
-    logic signed [15:0] dc_next[1:0];
-    logic signed [16:0] dc_diff[1:0];     // Explicit 17-bit for subtraction
-    logic signed [15:0] distorted_clean[1:0];
+    logic signed [15:0] dc_state[1:0], dc_next[1:0], distorted_clean[1:0];
+    logic signed [16:0] dc_diff[1:0]; 
     logic signed [15:0] distorted_reg[1:0];
+    
+    // Smooth (LPF) State - WIDENED TO PREVENT TRANSIENT WRAP
+    logic signed [15:0] post_lp_state[1:0];
+    logic signed [16:0] post_lp_diff[1:0];
+    logic signed [26:0] post_lp_mult[1:0];
+    logic signed [31:0] fizz_tamed_full[1:0];
+    logic signed [15:0] fizz_tamed_safe[1:0];
+    
+    logic [8:0] coeff_smooth;
+    assign coeff_smooth = 9'd256 - {1'b0, fx_smooth}; 
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
@@ -137,15 +164,21 @@ module fx_distortion #(
                             ($signed(cubic_term[i]) >>> 6);
             cubic_div3[i] = $signed(cubic_sum[i]) >>> 2;
 
-            // Subtract cubic from the properly delayed x
-            if      (x_reg_2[i] >=  ONE)   distorted_raw[i] =  TWO_THRD;
+            if      (x_reg_2[i] >=  ONE)  distorted_raw[i] =  TWO_THRD;
             else if (x_reg_2[i] <= NEG_ONE) distorted_raw[i] = -TWO_THRD;
             else                           distorted_raw[i] = $signed(x_reg_2[i]) - cubic_div3[i];
             
-            // 17-bit explicit DC tracking subtraction
             dc_diff[i] = $signed(17'(distorted_raw[i])) - $signed(17'(dc_state[i]));
             dc_next[i] = $signed(dc_state[i]) + 16'(dc_diff[i] >>> 12);
             distorted_clean[i] = sat16(dc_diff[i]);
+            
+            // Expanded width math to catch explosive transients
+            post_lp_diff[i]    = $signed(distorted_clean[i]) - $signed(post_lp_state[i]);
+            post_lp_mult[i]    = $signed(post_lp_diff[i]) * $signed({1'b0, coeff_smooth});
+            fizz_tamed_full[i] = $signed(post_lp_state[i]) + ($signed(post_lp_mult[i]) >>> 8);
+            
+            // Safe clamp before truncating
+            fizz_tamed_safe[i] = sat16(fizz_tamed_full[i]);
         end
     end
 
@@ -154,13 +187,10 @@ module fx_distortion #(
     // -----------------------------------------------------------------------
     (* multstyle = "logic" *) logic signed [24:0] mix_product[1:0];
     (* multstyle = "logic" *) logic signed [23:0] makeup_product[1:0];
-    logic signed [15:0] mix_res[1:0];
-    logic signed [15:0] mix_reg[1:0];
-    logic signed [15:0] makeup[1:0];
+    logic signed [15:0] mix_res[1:0], mix_reg[1:0], makeup[1:0];
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
-            // Mix against the properly delayed dry signal
             mix_product[i] = ($signed(distorted_reg[i]) - $signed(dry_dly[i][3])) * $signed({1'b0, fx_mix});
             mix_res[i]     = sat16($signed(dry_dly[i][3]) + ($signed(mix_product[i]) >>> 8));
             
@@ -170,13 +200,11 @@ module fx_distortion #(
     end
 
     // -----------------------------------------------------------------------
-    // SPEAKER CABINET (Fixed 27-bit Multiplications)
+    // SPEAKER CABINET 
     // -----------------------------------------------------------------------
-    logic signed [15:0] cab1[1:0], cab2[1:0];
+    logic signed [15:0] cab1[1:0], cab2[1:0], cab1_n[1:0], cab2_n[1:0];
     logic signed [16:0] d1[1:0],   d2[1:0];
-    logic signed [26:0] cab1_mult[1:0], cab2_mult[1:0]; // Explict width to prevent overflow
-    logic signed [15:0] cab1_n[1:0], cab2_n[1:0];
-    
+    logic signed [26:0] cab1_mult[1:0], cab2_mult[1:0]; 
     logic [8:0] safe_tone;
     assign safe_tone = {1'b0, fx_tone} + 9'd10; 
 
@@ -200,12 +228,14 @@ module fx_distortion #(
             for (int i = 0; i < 2; i++) begin
                 audio_prev[i]    <= '0;
                 env_state[i]     <= '0;
+                pre_lp_state[i]  <= '0;
                 product_reg[i]   <= '0;
                 x_reg_1[i]       <= '0;
                 x_reg_2[i]       <= '0;
                 x_sq_reg[i]      <= '0;
                 x_cb_reg[i]      <= '0;
                 dc_state[i]      <= '0;
+                post_lp_state[i] <= '0;
                 distorted_reg[i] <= '0;
                 mix_reg[i]       <= '0;
                 cab1[i]          <= '0;
@@ -217,22 +247,24 @@ module fx_distortion #(
                 audio_prev[i]    <= audio_in[i];
                 env_state[i]     <= env_next[i];
                 
-                // Shift dry signal to match processing latency
+                pre_lp_state[i]  <= pre_lp_next_safe[i];
+                
                 dry_dly[i][0] <= audio_in[i];
                 dry_dly[i][1] <= dry_dly[i][0];
                 dry_dly[i][2] <= dry_dly[i][1];
                 dry_dly[i][3] <= dry_dly[i][2];
                 
                 product_reg[i]   <= product[i];
-                
-                // Keep the polynomials phase-aligned
                 x_sq_reg[i]      <= x_sq[i];
                 x_reg_1[i]       <= x[i];
                 x_cb_reg[i]      <= x_cb[i];
                 x_reg_2[i]       <= x_reg_1[i];
                 
                 dc_state[i]      <= dc_next[i];
-                distorted_reg[i] <= distorted_clean[i];
+                
+                post_lp_state[i] <= fizz_tamed_safe[i];
+                distorted_reg[i] <= fizz_tamed_safe[i];
+                
                 mix_reg[i]       <= mix_res[i];
                 cab1[i]          <= cab1_n[i];
                 cab2[i]          <= cab2_n[i];
