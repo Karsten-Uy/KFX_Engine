@@ -16,21 +16,22 @@
  *
  * tap_active behaviour
  * --------------------
- *   Asserted only when a measured interval maps to a sample count inside
+ *   Asserted once a measured interval maps to a sample count inside
  *   [MIN_DELAY_SAMPLES, MAX_DELAY_SAMPLES].  Out-of-range taps are silently
  *   ignored; tap_active and delay_samples are unchanged, but the interval
  *   counter resets so the next tap re-measures from the ignored one.
  *
- *   Once asserted, tap_active remains high until either TIMEOUT_CYCLES
- *   elapse with no tap, or rst_n is de-asserted.  This prevents the delay
- *   from snapping back to the knob value mid-performance.
+ *   Once asserted, tap_active remains high until rst_n is de-asserted.
+ *   There is no idle timeout — tap tempo holds indefinitely so the delay
+ *   never snaps back to the knob value mid-performance.
  *
  * Ports
  * -----
  *   tap_pulse     — single-cycle pulse from tap_mute_unit (short press)
  *   delay_samples — tap interval expressed in audio samples; held on
  *                   out-of-range taps; updated only on a valid in-range tap
- *   tap_active    — high while tap tempo is overriding the fx_time knob
+ *   tap_active    — high while tap tempo is overriding the fx_time knob;
+ *                   clears only on reset
  */
 
 module tap_tempo_unit (
@@ -49,8 +50,11 @@ module tap_tempo_unit (
     // ----------------------------------------------------------------
 
     localparam int ADDR_W    = $clog2(MAX_SAMPLES);
-    localparam int CNT_W     = $clog2(TIMEOUT_CYCLES + 1);
+    // Size the interval counter to hold the largest useful tap interval:
+    // MAX_DELAY_SAMPLES samples × 2^CPS_SHIFT cycles/sample, plus one
+    // guard bit so the counter can saturate without wrapping.
     localparam int CPS_SHIFT = 10;  // 2^10 = 1024 ≈ cycles-per-sample
+    localparam int CNT_W     = ADDR_W + CPS_SHIFT + 1;
 
     // ----------------------------------------------------------------
     // Internal Signals
@@ -82,7 +86,8 @@ module tap_tempo_unit (
         end else if (tap_pulse) begin
             // ---- Tap received ----------------------------------------
             if (has_first_tap && tap_in_range) begin
-                // Valid interval within delay bounds: latch and activate
+                // Valid interval within delay bounds: latch and activate.
+                // tap_active is never cleared here — it stays high until reset.
                 delay_samples <= raw_samples[ADDR_W-1:0];
                 tap_active    <= 1'b1;
             end
@@ -94,16 +99,9 @@ module tap_tempo_unit (
             has_first_tap <= 1'b1;
 
         end else begin
-            // ---- Between taps: count up ------------------------------
-            if (interval_cnt < CNT_W'(TIMEOUT_CYCLES)) begin
+            // ---- Between taps: count up, saturate at max ---------------
+            if (interval_cnt < CNT_W'(2**CNT_W - 1)) begin
                 interval_cnt <= interval_cnt + 1'b1;
-            end else begin
-                // Timeout: hand control back to the fx_time knob.
-                // delay_samples is held so there is no audible jump when
-                // tap_active falls; fx_delay muxes back to the knob value.
-                tap_active    <= 1'b0;
-                has_first_tap <= 1'b0;
-                interval_cnt  <= '0;
             end
         end
     end
