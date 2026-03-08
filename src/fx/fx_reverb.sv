@@ -4,9 +4,9 @@
  * Stereo Schroeder reverberator: parallel damped comb filters into series
  * all-pass filters.
  *
- * (Original description unchanged)
- *
- * Refactored using generate blocks with unique genvar names.
+ * Refactored with generate blocks and DC pop fixes:
+ *   - Rounding in all multiplies + shifts
+ *   - DC blocking filter at output
  */
 
 module fx_reverb #(
@@ -46,6 +46,9 @@ module fx_reverb #(
     localparam FIXED_FB_GAIN = 9'sd236;
     localparam LP_FRAC_BITS = 16;
 
+    // DC blocker coefficient for ~1 Hz cutoff at 48 kHz (Q16)
+    localparam DC_ALPHA = 16'd65504;   // (1 - 2π*1/48000) << 16 ≈ 0.99987
+
     localparam int COMB_BASE[4] = '{COMB1_BASE, COMB2_BASE, COMB3_BASE, COMB4_BASE};
     localparam int ALLPASS_BASE[3] = '{ALLPASS1_DELAY, ALLPASS2_DELAY, ALLPASS3_DELAY};
 
@@ -68,7 +71,15 @@ module fx_reverb #(
     logic [COMB_ADDR_W-1:0]   comb_delay [3:0];
     logic [8:0]               lp_coef;
 
+    // Wet signals before DC blocker
     logic signed [DATA_W-1:0] wet_L, wet_R;
+
+    // DC blocker state
+    logic signed [DATA_W-1:0] wet_L_prev, wet_R_prev;
+    logic signed [31:0]       dc_state_L, dc_state_R;
+    logic signed [DATA_W-1:0] wet_L_filt, wet_R_filt;
+
+    // Mixing intermediates
     logic signed [31:0]       wet_scaled_L, wet_scaled_R;
     logic signed [31:0]       mixed_L, mixed_R;
 
@@ -108,18 +119,20 @@ module fx_reverb #(
                     .delay_samples (comb_delay[i_comb])
                 );
 
+                // One‑pole LP state update with rounding (Q16)
                 always_ff @(posedge clk) begin
                     if (!reset_n)
                         comb_lp[ch_comb][i_comb] <= '0;
                     else if (sample_en) begin
                         comb_lp[ch_comb][i_comb] <= comb_lp[ch_comb][i_comb] +
-                            32'(48'($signed(($signed(comb_delayed[ch_comb][i_comb]) <<< LP_FRAC_BITS) - comb_lp[ch_comb][i_comb]))
-                            * 48'($signed({1'b0, lp_coef})) >>> 8);
+                            32'( (48'($signed(($signed(comb_delayed[ch_comb][i_comb]) <<< LP_FRAC_BITS) - comb_lp[ch_comb][i_comb])
+                                  * 48'($signed({1'b0, lp_coef})) + 48'(1 << 7)) >>> 8 ));
                     end
                 end
 
+                // Feedback path with rounding (>>8)
                 always_comb begin
-                    comb_fb[ch_comb][i_comb] = ((comb_lp[ch_comb][i_comb] >>> LP_FRAC_BITS) * $signed(FIXED_FB_GAIN)) >>> 8;
+                    comb_fb[ch_comb][i_comb] = ((comb_lp[ch_comb][i_comb] >>> LP_FRAC_BITS) * $signed(FIXED_FB_GAIN) + 32'(1 << 7)) >>> 8;
                     comb_in[ch_comb][i_comb] = sat16($signed(audio_in[ch_comb]) + comb_fb[ch_comb][i_comb]);
                 end
             end
@@ -167,8 +180,9 @@ module fx_reverb #(
                     else
                         allpass_in[ch_ap][j_ap] = allpass_out[ch_ap][j_ap-1];
 
-                    ap_feed[ch_ap][j_ap] = ($signed(allpass_in[ch_ap][j_ap]) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
-                    ap_back[ch_ap][j_ap] = ($signed(allpass_delayed[ch_ap][j_ap]) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
+                    // All‑pass feed/back terms with rounding (>>8)
+                    ap_feed[ch_ap][j_ap] = ($signed(allpass_in[ch_ap][j_ap]) * $signed({1'b0, ALLPASS_COEF}) + 32'(1 << 7)) >>> 8;
+                    ap_back[ch_ap][j_ap] = ($signed(allpass_delayed[ch_ap][j_ap]) * $signed({1'b0, ALLPASS_COEF}) + 32'(1 << 7)) >>> 8;
                     allpass_out[ch_ap][j_ap] = sat16(-ap_feed[ch_ap][j_ap] + $signed(allpass_delayed[ch_ap][j_ap]) + ap_back[ch_ap][j_ap]);
                 end
             end
@@ -176,21 +190,53 @@ module fx_reverb #(
     endgenerate
 
     // ----------------------------------------------------------------
-    // Wet Signals
+    // Wet Signals (before DC blocker)
     // ----------------------------------------------------------------
 
     assign wet_L = allpass_out[0][2];
     assign wet_R = allpass_out[1][2];
 
     // ----------------------------------------------------------------
-    // Mix (wet/dry blend)
+    // DC Blocker (first‑order high‑pass, cutoff ≈1 Hz)
+    // State is kept in Q16 to preserve precision.
+    // ----------------------------------------------------------------
+
+    logic signed [31:0] dc_state_L, dc_state_R;
+    logic signed [DATA_W-1:0] wet_L_prev, wet_R_prev;
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            wet_L_prev  <= '0;
+            wet_R_prev  <= '0;
+            dc_state_L  <= '0;
+            dc_state_R  <= '0;
+        end else if (sample_en) begin
+            // Compute difference (Q0) and convert to Q16 by shifting left
+            // The difference is up to 17 bits, so after shift it becomes up to 33 bits.
+            // We'll use a 48-bit intermediate to avoid overflow.
+            dc_state_L <= 32'( (48'($signed(wet_L) - $signed(wet_L_prev)) <<< 16) +
+                            (48'($signed(dc_state_L) * DC_ALPHA) + 48'(1 << 15)) >>> 16 );
+            dc_state_R <= 32'( (48'($signed(wet_R) - $signed(wet_R_prev)) <<< 16) +
+                            (48'($signed(dc_state_R) * DC_ALPHA) + 48'(1 << 15)) >>> 16 );
+
+            wet_L_prev <= wet_L;
+            wet_R_prev <= wet_R;
+        end
+    end
+
+    // Convert Q16 state back to Q0 for output (with saturation)
+    logic signed [DATA_W-1:0] wet_L_filt, wet_R_filt;
+    assign wet_L_filt = sat16(dc_state_L >>> 16);
+    assign wet_R_filt = sat16(dc_state_R >>> 16);
+    // ----------------------------------------------------------------
+    // Mix (wet/dry blend) with rounding
     // ----------------------------------------------------------------
 
     always_comb begin
-        wet_scaled_L = $signed(wet_L) - $signed(audio_in[0]);
-        wet_scaled_R = $signed(wet_R) - $signed(audio_in[1]);
-        mixed_L      = $signed(audio_in[0]) + ((wet_scaled_L * $signed({1'b0, fx_mix})) >>> 8);
-        mixed_R      = $signed(audio_in[1]) + ((wet_scaled_R * $signed({1'b0, fx_mix})) >>> 8);
+        wet_scaled_L = $signed(wet_L_filt) - $signed(audio_in[0]);
+        wet_scaled_R = $signed(wet_R_filt) - $signed(audio_in[1]);
+        mixed_L      = $signed(audio_in[0]) + ((wet_scaled_L * $signed({1'b0, fx_mix}) + 32'(1 << 7)) >>> 8);
+        mixed_R      = $signed(audio_in[1]) + ((wet_scaled_R * $signed({1'b0, fx_mix}) + 32'(1 << 7)) >>> 8);
     end
 
     // ----------------------------------------------------------------
