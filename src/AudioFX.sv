@@ -486,8 +486,6 @@ module AudioFX (
             .audio_out (reverb_out),
             .fx_size   (params[9][0]),
             .fx_damping(params[9][1]),
-            .fx_decay  (params[9][2]),
-            .fx_width  (params[9][3]),
             .fx_mix    (params[9][7]),
             .sample_en (sample_en_pipe[9])
         );
