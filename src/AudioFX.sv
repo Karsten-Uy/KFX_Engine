@@ -173,7 +173,7 @@ module AudioFX (
     logic        flash_csr_readdatavalid;
 
     // Tap Tempo
-    logic [$clog2(24000)-1:0] tap_delay_samples;
+    logic [$clog2(MAX_SAMPLES)-1:0] tap_delay_samples;
     logic                     tap_tempo_active;
     logic                     beat_pulse;
 
@@ -281,7 +281,7 @@ module AudioFX (
         .board_rev ("Autodetect")
     ) POT_ADC (
         .CLOCK    (CLOCK_50),
-        .RESET    (~KEY[0]),        // active-HIGH reset
+        .RESET    (~KEY[0]),
         .ADC_CS_N (ADC_CS_N),
         .ADC_SCLK (ADC_SCLK),
         .ADC_DIN  (ADC_DIN),
@@ -296,28 +296,32 @@ module AudioFX (
     // ----------------------------------------------------------------
 
     controller CONTROL (
-        .clk            (CLOCK_50),
-        .reset_n        (KEY[0]),
-        .sw_fx_sel      (SW[9:6]),
-        .sw_param_sel   (SW[5:3]),
-        .bank_btn       (GPIO_1[3:0]),
-        .bank_toggle    (SW[2]),
-        .key_inc        (~KEY[2]),
-        .key_dec        (~KEY[3]),
-        .save_button    (SW[0]),
-        .load_button    (SW[1]),
-        .mute_button    (~KEY[1] | ~GPIO_1[4]),
-        .params         (params),
-        .fx_sel         (fx_sel),
-        .param_sel      (param_sel),
-        .current_value  (current_value),
-        .is_mute        (is_mute),
-        .delay_pulse    (delay_pulse),
-        .bank_sel       (bank_sel),
-        .pot_value      (pot_value),
-        .pot_valid      (1'b1),
-        .LEDR           (),
-        .fsm_busy       (fsm_busy),
+        .clk               (CLOCK_50),
+        .reset_n           (KEY[0]),
+        .sw_fx_sel         (SW[9:6]),
+        .sw_param_sel      (SW[5:3]),
+        .bank_btn          (GPIO_1[3:0]),
+        .bank_toggle       (SW[2]),
+        .pot_value         (pot_value),
+        .pot_valid         (1'b1),
+        .key_inc           (~KEY[2]),
+        .key_dec           (~KEY[3]),
+        .save_button       (SW[0]),
+        .load_button       (SW[1]),
+        .mute_button       (~KEY[1] | ~GPIO_1[4]),
+        .params            (params),
+        .fx_sel            (fx_sel),
+        .param_sel         (param_sel),
+        .current_value     (current_value),
+        .is_mute           (is_mute),
+        .delay_pulse       (delay_pulse),
+        .bank_sel          (bank_sel),
+        .tap_delay_samples (tap_delay_samples),
+        .tap_active        (tap_tempo_active),
+        .beat_pulse        (beat_pulse),
+
+        .LEDR              (),
+        .fsm_busy          (fsm_busy),
 
         .flash_mem_address       (flash_mem_address),
         .flash_mem_read          (flash_mem_read),
@@ -496,17 +500,6 @@ module AudioFX (
             .audio_out(gain_expression_out),
             .fx_gain  (params[7][0]),
             .sample_en(sample_en_pipe[7])
-        );
-
-        // ---- Tap Tempo -----------------------------------------------
-        // Converts footswitch tap intervals into a delay sample count
-        tap_tempo_unit TAP_TEMPO (
-            .clk          (CLOCK_50),
-            .rst_n        (KEY[0]),
-            .tap_pulse    (delay_pulse),
-            .delay_samples(tap_delay_samples),
-            .tap_active   (tap_tempo_active),
-            .beat_pulse   (beat_pulse)
         );
 
         // ---- FX 8: Delay  (tap-tempo capable) -----------------------

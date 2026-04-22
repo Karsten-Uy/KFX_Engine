@@ -1061,7 +1061,6 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_1_LED
 set_global_assignment -name VERILOG_FILE src/ip/adc/altera_up_avalon_adv_adc.v
 set_global_assignment -name VERILOG_FILE src/ip/adc/altera_up_avalon_adc_mega.v
 set_global_assignment -name VERILOG_FILE src/ip/adc/altera_up_avalon_adc.v
-set_global_assignment -name QSYS_FILE ip/expressionPedalADC.qsys
 set_global_assignment -name SYSTEMVERILOG_FILE src/display/tuner_display.sv
 set_global_assignment -name TCL_SCRIPT_FILE scripts/program_sof.tcl
 set_global_assignment -name TCL_SCRIPT_FILE scripts/program_jic.tcl

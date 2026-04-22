@@ -6,7 +6,7 @@
    version="1.0"
    description=""
    tags="INTERNAL_COMPONENT=true"
-   categories="" />
+   categories="System" />
  <parameter name="bonusData"><![CDATA[bonusData 
 {
    element adc_mega_0
@@ -79,7 +79,7 @@
   <parameter name="board" value="DE1-SoC" />
   <parameter name="board_rev" value="Autodetect" />
   <parameter name="numch_" value="1" />
-  <parameter name="sclk_freq" value="12.5" />
+  <parameter name="sclk_freq" value="8.33" />
   <parameter name="sys_clk_freq" value="50" />
  </module>
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />

@@ -81,7 +81,7 @@ module tap_tempo_unit (
         if (!rst_n) begin
             interval_cnt  <= '0;
             has_first_tap <= 1'b0;
-            tap_active    <= 1'b1;
+            tap_active    <= 1'b0;
             delay_samples <= ADDR_W'(MIN_DELAY_SAMPLES);
         end else if (tap_pulse) begin
             if (has_first_tap) begin

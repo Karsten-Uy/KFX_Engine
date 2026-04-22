@@ -113,6 +113,10 @@ module controller (
     output logic                           delay_pulse,
     output logic [$clog2(BANK_COUNT)-1:0]  bank_sel,
 
+    output logic [$clog2(MAX_SAMPLES)-1:0] tap_delay_samples,
+    output logic tap_active,
+    output logic beat_pulse,
+
     output logic [9:0] LEDR,
     output logic       fsm_busy,
 
@@ -377,6 +381,15 @@ module controller (
         .stable     (mute_stable),
         .is_mute    (is_mute),
         .delay_pulse(delay_pulse)
+    );
+
+    tap_tempo_unit TAP_TEMPO (
+        .clk          (clk),
+        .rst_n        (reset_n),
+        .tap_pulse    (delay_pulse),
+        .delay_samples(tap_delay_samples),
+        .tap_active   (tap_tempo_active),
+        .beat_pulse   (beat_pulse)
     );
 
     // ----------------------------------------------------------------
