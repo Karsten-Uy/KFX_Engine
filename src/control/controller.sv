@@ -388,7 +388,7 @@ module controller (
         .rst_n        (reset_n),
         .tap_pulse    (delay_pulse),
         .delay_samples(tap_delay_samples),
-        .tap_active   (tap_tempo_active),
+        .tap_active   (tap_active),
         .beat_pulse   (beat_pulse)
     );
 
