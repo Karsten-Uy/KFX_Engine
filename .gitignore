@@ -35,6 +35,7 @@ AVConfig/
 AudioCodec/
 AudioPLL/
 FlashMemInterface/
+expressionPedalADC/
 pcie_reconfig_test/
 *.sopcinfo
 *.map

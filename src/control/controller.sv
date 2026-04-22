@@ -100,7 +100,10 @@ module controller (
     input  logic [$clog2(PARAM_COUNT)-1:0] sw_param_sel,
     input  logic key_inc, key_dec, save_button, load_button,
     input  logic mute_button,
+    input  logic [3:0] bank_btn,
     input  logic bank_toggle,
+    input  logic [11:0] pot_value,
+    input  logic        pot_valid,
 
     output logic [PARAM_W-1:0]             params [0:FX_COUNT-1][0:PARAM_COUNT-1],
     output logic [$clog2(FX_COUNT)-1:0]    fx_sel,
@@ -144,6 +147,8 @@ module controller (
     logic mute_stable;
     logic inc_r, dec_r;
     logic bank_stable, bank_pulse;
+    logic [3:0] bank_btn_stable;
+    logic [3:0] bank_btn_pulse;
 
     logic ld_mem, inc_idx, rst_idx;
     logic [$clog2(BANK_COUNT)-1:0]  f_bank;
@@ -199,11 +204,19 @@ module controller (
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             bank_sel <= '0;
-        end else if (bank_pulse && !fsm_busy) begin
-            if (bank_sel == BANK_COUNT - 1)
-                bank_sel <= '0;
-            else
-                bank_sel <= bank_sel + 1'b1;
+        end else if (!fsm_busy) begin
+            // GPIO buttons — direct bank select (higher priority)
+            if      (bank_btn_pulse[0]) bank_sel <= 2'd0;
+            else if (bank_btn_pulse[1]) bank_sel <= 2'd1;
+            else if (bank_btn_pulse[2]) bank_sel <= 2'd2;
+            else if (bank_btn_pulse[3]) bank_sel <= 2'd3;
+            // SW2 toggle — cycles through banks (lower priority)
+            else if (bank_pulse) begin
+                if (bank_sel == BANK_COUNT - 1)
+                    bank_sel <= '0;
+                else
+                    bank_sel <= bank_sel + 1'b1;
+            end
         end
     end
 
@@ -318,6 +331,8 @@ module controller (
                     (all_params[bank_sel][fx_sel][param_sel] > 8'd0)
                         ? all_params[bank_sel][fx_sel][param_sel] - 1'b1
                         : 8'd0;
+            if (pot_valid)
+                all_params[bank_sel][7][0] <= pot_value[11:12-PARAM_W];
         end
     end
 
@@ -331,6 +346,19 @@ module controller (
     debounce_unit DEBOUNCE_LOAD (.clk(clk), .rst_n(reset_n), .in(load_button), .stable(ld_s),       .pulse(ld_p));
     debounce_unit DEBOUNCE_MUTE (.clk(clk), .rst_n(reset_n), .in(mute_button), .stable(mute_stable),.pulse());
     debounce_unit DEBOUNCE_BANK (.clk(clk), .rst_n(reset_n), .in(bank_toggle), .stable(bank_stable),.pulse(bank_pulse));
+
+    genvar b;
+    generate
+        for (b = 0; b < 4; b++) begin : DEBOUNCE_BANK_BTN
+            debounce_unit DBNC_BANK_BTN (
+                .clk    (clk),
+                .rst_n  (reset_n),
+                .in     (~bank_btn[b]),
+                .stable (bank_btn_stable[b]),
+                .pulse  (bank_btn_pulse[b])
+            );
+        end
+    endgenerate
 
     // ----------------------------------------------------------------
     // Auto-Repeat

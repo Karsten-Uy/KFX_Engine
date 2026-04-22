@@ -49,9 +49,11 @@ module display #(
     input logic [$clog2(BANK_COUNT)-1:0]  bank_sel,
     input logic [11:0]                    tuner_best_lag,
     input logic                           tuner_valid,
+    input  logic                          delay_pulse,
     input logic [9:0]                     SW,
 
     output logic [9:0] LEDR,
+    output logic                          tap_mute_led,
     output logic [6:0] HEX0,
     output logic [6:0] HEX1,
     output logic [6:0] HEX2,
@@ -115,6 +117,32 @@ module display #(
         .mode_sel  (SW[9]),
         .tuner_vals(tuner_HEX)
     );
+
+    // ----------------------------------------------------------------
+    // Tap/Mute LED
+    // Solid ON when muted, pulses at tap tempo rate when unmuted
+    // ----------------------------------------------------------------
+    logic [22:0] tap_led_counter;
+    logic        tap_led_on;
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            tap_led_counter <= '0;
+            tap_led_on      <= 1'b0;
+        end else if (is_mute) begin
+            tap_led_counter <= '0;
+            tap_led_on      <= 1'b1;
+        end else if (delay_pulse) begin
+            tap_led_counter <= 23'd5_000_000;  // 100ms at 50MHz
+            tap_led_on      <= 1'b1;
+        end else if (tap_led_counter != '0) begin
+            tap_led_counter <= tap_led_counter - 1'b1;
+        end else begin
+            tap_led_on <= 1'b0;
+        end
+    end
+
+    assign tap_mute_led = tap_led_on;
 
     // ----------------------------------------------------------------
     // HEX Display Logic

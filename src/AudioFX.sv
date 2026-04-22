@@ -54,6 +54,8 @@ module AudioFX (
     KEY,
     CLOCK_50,
     AUD_ADCDAT,
+    GPIO_1,
+    ADC_DOUT,
 
     // Bidirectionals
     AUD_BCLK,
@@ -67,7 +69,11 @@ module AudioFX (
     LEDR,
     FPGA_I2C_SCLK,
     GPIO_0,
-    HEX0, HEX1, HEX2, HEX3, HEX4, HEX5
+    HEX0, HEX1, HEX2, HEX3, HEX4, HEX5,
+    ADC_CS_N,
+    ADC_SCLK,
+    ADC_DIN,
+    GPIO_1_LED
 );
 
     import lab_pkg::*;
@@ -92,6 +98,13 @@ module AudioFX (
     output logic [9:0]  LEDR;
     output logic [DATA_W-1:0] GPIO_0;
     output logic [6:0]  HEX0, HEX1, HEX2, HEX3, HEX4, HEX5;
+
+    input  logic [4:0] GPIO_1;
+    output logic       GPIO_1_LED;
+    output logic ADC_CS_N;
+    output logic ADC_SCLK;
+    output logic ADC_DIN;
+    input  logic ADC_DOUT;
 
     // ----------------------------------------------------------------
     // Internal Signals
@@ -162,6 +175,10 @@ module AudioFX (
     // Tap Tempo
     logic [$clog2(24000)-1:0] tap_delay_samples;
     logic                     tap_tempo_active;
+
+    // Potentiometer ADC
+    logic [11:0] pot_value;
+    logic pot_valid_raw;
 
     // ----------------------------------------------------------------
     // Audio Hardware IPs
@@ -253,6 +270,27 @@ module AudioFX (
     );
 
     // ----------------------------------------------------------------
+    // Expression Pedal Potentiometer ADC  (always active)
+    // ----------------------------------------------------------------
+
+    altera_up_avalon_adc_mega #(
+        .tsclk     (8'd6),
+        .numch     (4'd1),
+        .board     ("DE1-SoC"),
+        .board_rev ("Autodetect")
+    ) POT_ADC (
+        .CLOCK    (CLOCK_50),
+        .RESET    (~KEY[0]),        // active-HIGH reset
+        .ADC_CS_N (ADC_CS_N),
+        .ADC_SCLK (ADC_SCLK),
+        .ADC_DIN  (ADC_DIN),
+        .ADC_DOUT (ADC_DOUT),
+        .CH0      (pot_value),
+        .CH1      (), .CH2(), .CH3(),
+        .CH4      (), .CH5(), .CH6(), .CH7()
+    );
+
+    // ----------------------------------------------------------------
     // FX Parameter Controller
     // ----------------------------------------------------------------
 
@@ -261,12 +299,13 @@ module AudioFX (
         .reset_n        (KEY[0]),
         .sw_fx_sel      (SW[9:6]),
         .sw_param_sel   (SW[5:3]),
-        .bank_toggle (SW[2]),
+        .bank_btn       (GPIO_1[3:0]),
+        .bank_toggle    (SW[2]),
         .key_inc        (~KEY[2]),
         .key_dec        (~KEY[3]),
         .save_button    (SW[0]),
         .load_button    (SW[1]),
-        .mute_button    (~KEY[1]),
+        .mute_button    (~KEY[1] | ~GPIO_1[4]),
         .params         (params),
         .fx_sel         (fx_sel),
         .param_sel      (param_sel),
@@ -274,6 +313,8 @@ module AudioFX (
         .is_mute        (is_mute),
         .delay_pulse    (delay_pulse),
         .bank_sel       (bank_sel),
+        .pot_value      (pot_value),
+        .pot_valid      (1'b1),
         .LEDR           (),
         .fsm_busy       (fsm_busy),
 
@@ -307,10 +348,12 @@ module AudioFX (
         .fsm_busy      (fsm_busy),
         .is_mute       (is_mute),
         .bank_sel      (bank_sel),
+        .delay_pulse   (delay_pulse),
         .tuner_best_lag(tuner_best_lag),
         .tuner_valid   (tuner_valid),
         .SW            (SW),
         .LEDR          (LEDR),
+        .tap_mute_led  (GPIO_1_LED),
         .HEX0(HEX0), .HEX1(HEX1), .HEX2(HEX2),
         .HEX3(HEX3), .HEX4(HEX4), .HEX5(HEX5)
     );
