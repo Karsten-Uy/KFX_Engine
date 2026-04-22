@@ -40,7 +40,8 @@ module tap_tempo_unit (
     input  logic tap_pulse,
 
     output logic [$clog2(MAX_SAMPLES)-1:0] delay_samples,
-    output logic                           tap_active
+    output logic                           tap_active,
+    output logic                           beat_pulse
 );
 
     import lab_pkg::*;
@@ -80,28 +81,52 @@ module tap_tempo_unit (
         if (!rst_n) begin
             interval_cnt  <= '0;
             has_first_tap <= 1'b0;
-            tap_active    <= 1'b0;
+            tap_active    <= 1'b1;
             delay_samples <= ADDR_W'(MIN_DELAY_SAMPLES);
-
         end else if (tap_pulse) begin
-            // ---- Tap received ----------------------------------------
-            if (has_first_tap && tap_in_range) begin
-                // Valid interval within delay bounds: latch and activate.
-                // tap_active is never cleared here — it stays high until reset.
-                delay_samples <= raw_samples[ADDR_W-1:0];
-                tap_active    <= 1'b1;
+            if (has_first_tap) begin
+                // Saturate the count: If too slow, use MAX. If too fast, use MIN.
+                if (raw_samples > CNT_W'(MAX_DELAY_SAMPLES)) begin
+                    delay_samples <= ADDR_W'(MAX_DELAY_SAMPLES);
+                end else if (raw_samples < CNT_W'(MIN_DELAY_SAMPLES)) begin
+                    delay_samples <= ADDR_W'(MIN_DELAY_SAMPLES);
+                end else begin
+                    delay_samples <= raw_samples[ADDR_W-1:0];
+                end
+                tap_active <= 1'b1;
             end
-            // Out-of-range tap: interval_cnt still resets so the NEXT tap
-            // measures from this one, giving the player a chance to re-tap
-            // at the correct tempo without restarting from scratch.
-
             interval_cnt  <= '0;
             has_first_tap <= 1'b1;
-
         end else begin
-            // ---- Between taps: count up, saturate at max ---------------
             if (interval_cnt < CNT_W'(2**CNT_W - 1)) begin
                 interval_cnt <= interval_cnt + 1'b1;
+            end
+        end
+    end
+    // ------------------------------------------------------------------
+    // Beat Pulse - fires once per delay_samples clock cycles when active
+    // ------------------------------------------------------------------
+    logic [CNT_W-1:0] beat_cnt;
+
+    always_ff @(posedge clk) begin
+        if (!rst_n) begin
+            beat_cnt   <= '0;
+            beat_pulse <= 1'b0;
+        end else begin
+            beat_pulse <= 1'b0;
+
+            // Reset phase on EVERY tap attempt to provide visual feedback
+            if (tap_pulse && has_first_tap) begin
+                beat_cnt <= '0; 
+                // Optional: pulse immediately on tap for instant feedback
+                // beat_pulse <= 1'b1; 
+            end else if (tap_active) begin
+                if (beat_cnt >= (CNT_W'(delay_samples) << CPS_SHIFT) - 1) begin
+                    beat_cnt   <= '0;
+                    beat_pulse <= 1'b1;
+                end else begin
+                    beat_cnt <= beat_cnt + 1'b1;
+                end
             end
         end
     end

@@ -175,6 +175,7 @@ module AudioFX (
     // Tap Tempo
     logic [$clog2(24000)-1:0] tap_delay_samples;
     logic                     tap_tempo_active;
+    logic                     beat_pulse;
 
     // Potentiometer ADC
     logic [11:0] pot_value;
@@ -348,7 +349,7 @@ module AudioFX (
         .fsm_busy      (fsm_busy),
         .is_mute       (is_mute),
         .bank_sel      (bank_sel),
-        .delay_pulse   (delay_pulse),
+        .beat_pulse    (beat_pulse),
         .tuner_best_lag(tuner_best_lag),
         .tuner_valid   (tuner_valid),
         .SW            (SW),
@@ -504,7 +505,8 @@ module AudioFX (
             .rst_n        (KEY[0]),
             .tap_pulse    (delay_pulse),
             .delay_samples(tap_delay_samples),
-            .tap_active   (tap_tempo_active)
+            .tap_active   (tap_tempo_active),
+            .beat_pulse   (beat_pulse)
         );
 
         // ---- FX 8: Delay  (tap-tempo capable) -----------------------
