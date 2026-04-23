@@ -11,29 +11,34 @@
  *   (the classic Schroeder/Moorer structure): high frequencies decay faster
  *   than lows, mimicking natural room acoustics.
  *
- *   Per-filter equations (run every sample_en):
- *     lp[n] = lp[n-1] + (lp_coef * ((delayed[n] << LP_FRAC_BITS) - lp[n-1])) >> 8
- *     fb[n] = (lp[n] >> LP_FRAC_BITS) * FIXED_FB_GAIN / 256
- *     x_in  = audio_in + fb[n]            (fed into the delay line)
+ *   A first-order DC blocker follows the LP state output in the feedback
+ *   path.  This imposes a true zero at DC inside every comb loop, so DC
+ *   bias in the input cannot charge the delay line indefinitely.  The
+ *   blocker pole sits at fc ≈ 5.5 Hz (R = 32764/32768, τ ≈ 170 ms) —
+ *   well below the audible band, so the reverb tail's tonal character is
+ *   unchanged.
  *
- *   lp is 32-bit Q16 to preserve sub-LSB energy so the tail fades smoothly
- *   through the noise floor rather than snapping to zero at 16-bit boundaries.
+ *   Pipeline stages per comb (each advances on sample_en):
+ *     Cycle N  : LP state update  → comb*_lp   (Q16 register)
+ *     Cycle N+1: lp_out capture   → lp_out_*   (integer, Q16 >> LP_FRAC_BITS)
+ *     Cycle N+1: DC blocker update→ dc*_x, dc*_y
+ *     Cycle N+1: feedback         → dc*_y * FIXED_FB_GAIN >> 8
+ *
+ *   The one-cycle pipeline gap between LP and DC blocker is inaudible
+ *   (20 µs at 48 kHz) and eliminates the combinational loop that would
+ *   otherwise form if the DC blocker read lp[n] in the same cycle it
+ *   was written.
  *
  *   lp_coef = max(16, 256 − fx_damping):
  *     fx_damping = 0   → lp_coef = 256 → LP fully open  (bright)
- *     fx_damping = 240 → lp_coef = 16  → LP narrow      (dark, clamped minimum)
+ *     fx_damping = 240 → lp_coef = 16  → LP narrow      (dark, clamped)
  *
  *   FIXED_FB_GAIN = 236 / 256 ≈ 0.922 → RT60 ≈ 7–8 s at max delay.
- *   The LP cutoff governs tonal character; FIXED_FB_GAIN sets decay length.
- *   No combination of fx_damping can raise the loop gain to unity — the tail
- *   always terminates.
  *
  * Stage 2 — Three series all-pass filters per channel.
- *   Diffuse the comb output without altering the frequency magnitude response.
- *   g = 0.5  (ALLPASS_COEF = 128):
- *     y[n] = −g·x[n] + x[n−d] + g·y[n−d]
+ *   g = 0.5 (ALLPASS_COEF = 128):  y[n] = −g·x[n] + x[n−d] + g·y[n−d]
  *
- * Comb filter delays  (prime numbers avoid modal resonances)
+ * Comb filter delays  (prime numbers, avoid modal resonances)
  * ----------------------------------------------------------
  *   Comb 1: 1557 samples (~32 ms)    Comb 2: 1617 samples (~34 ms)
  *   Comb 3: 1871 samples (~39 ms)    Comb 4: 1997 samples (~42 ms)
@@ -45,8 +50,6 @@
  *   Allpass 1: 556 samples (~12 ms)
  *   Allpass 2: 441 samples (~9 ms)
  *   Allpass 3: 341 samples (~7 ms)
- *
- * Latency: 5 samples.
  *
  * Parameter mapping  (all 8-bit, 0–255)
  * --------------------------------------
@@ -78,70 +81,115 @@ module fx_reverb #(
     import lab_pkg::*;
 
     // ----------------------------------------------------------------
-    // Local Constants  (reverb algorithm — not shared with other modules)
+    // Local Constants
     // ----------------------------------------------------------------
 
-    // Comb filter base delays in samples at 48 kHz (prime to avoid resonances)
-    localparam COMB1_BASE = 1557;  // ~32 ms
-    localparam COMB2_BASE = 1617;  // ~34 ms
-    localparam COMB3_BASE = 1871;  // ~39 ms
-    localparam COMB4_BASE = 1997;  // ~42 ms
+    localparam COMB1_BASE = 1557;
+    localparam COMB2_BASE = 1617;
+    localparam COMB3_BASE = 1871;
+    localparam COMB4_BASE = 1997;
 
-    // All-pass filter delays (fixed — not modulated by fx_size)
-    localparam ALLPASS1_DELAY = 556;   // ~12 ms
-    localparam ALLPASS2_DELAY = 441;   // ~9 ms
-    localparam ALLPASS3_DELAY = 341;   // ~7 ms
+    localparam ALLPASS1_DELAY = 556;
+    localparam ALLPASS2_DELAY = 441;
+    localparam ALLPASS3_DELAY = 341;
 
-    // Buffer sizes: at fx_size=255, comb delay ≈ base × 2
     localparam MAX_COMB_DELAY = 3994;
     localparam COMB_ADDR_W    = $clog2(MAX_COMB_DELAY);
-    localparam ALLPASS_ADDR_W = $clog2(ALLPASS1_DELAY);  // largest all-pass delay
+    localparam ALLPASS_ADDR_W = $clog2(ALLPASS1_DELAY);
 
-    // All-pass coefficient g = 0.5 (128/256); fixed for stability
-    localparam ALLPASS_COEF = 8'd128;
-
-    // Fixed feedback gain: 236/256 ≈ 0.922
-    // Higher than the previous 220/256 for a longer, smoother exponential tail.
+    localparam ALLPASS_COEF  = 8'd128;
     localparam FIXED_FB_GAIN = 9'sd236;
+    localparam LP_FRAC_BITS  = 16;
 
-    // LP state is Q16; this is the fractional shift applied before/after LP update
-    localparam LP_FRAC_BITS = 16;
+    // DC blocker: R = 32764/32768 ≈ 0.99988 → fc ≈ 5.5 Hz @ 48 kHz, τ ≈ 170 ms.
+    // Increase R toward 32767 for slower/gentler DC clearance if needed.
+    localparam DC_BLOCK_SHIFT = 15;
+    localparam DC_BLOCK_R     = 32'd32764;
 
     // ----------------------------------------------------------------
-    // Shared Delay Calculations
+    // Shared Delay & LP Coefficient (combinational)
     // ----------------------------------------------------------------
 
     logic [COMB_ADDR_W-1:0] comb1_delay, comb2_delay, comb3_delay, comb4_delay;
+    logic [8:0]             lp_coef;
 
-    // LP coefficient — controls HF decay rate; clamped to minimum 16 so the
-    // tail always bleeds through rather than hard-gating at maximum fx_damping
-    logic [8:0] lp_coef;
+    always_comb begin
+        comb1_delay = COMB1_BASE + ((COMB1_BASE * fx_size) >> 8);
+        comb2_delay = COMB2_BASE + ((COMB2_BASE * fx_size) >> 8);
+        comb3_delay = COMB3_BASE + ((COMB3_BASE * fx_size) >> 8);
+        comb4_delay = COMB4_BASE + ((COMB4_BASE * fx_size) >> 8);
+    end
+
+    always_comb begin
+        lp_coef = (9'd256 - {1'b0, fx_damping} < 9'd16)
+                  ? 9'd16
+                  : 9'd256 - {1'b0, fx_damping};
+    end
 
     // ----------------------------------------------------------------
-    // Per-Channel Comb Filter Signals
+    // Comb Filter Signals
     // ----------------------------------------------------------------
 
-    // LEFT channel
-    logic signed [DATA_W-1:0]   comb1L_out,     comb2L_out,     comb3L_out,     comb4L_out;
+    // LEFT
     logic signed [DATA_W-1:0]   comb1L_delayed, comb2L_delayed, comb3L_delayed, comb4L_delayed;
     logic signed [DATA_W-1:0]   comb1L_in,      comb2L_in,      comb3L_in,      comb4L_in;
+    logic signed [DATA_W-1:0]   comb1L_out,     comb2L_out,     comb3L_out,     comb4L_out;
     logic signed [31:0]         comb1L_fb,      comb2L_fb,      comb3L_fb,      comb4L_fb;
     logic signed [DATA_W+1:0]   comb_sum_L;
-    logic signed [31:0]         comb1L_lp, comb2L_lp, comb3L_lp, comb4L_lp;  // Q16 LP state
+    logic signed [31:0]         comb1L_lp, comb2L_lp, comb3L_lp, comb4L_lp;  // Q16
 
-    // RIGHT channel
-    logic signed [DATA_W-1:0]   comb1R_out,     comb2R_out,     comb3R_out,     comb4R_out;
+    // RIGHT
     logic signed [DATA_W-1:0]   comb1R_delayed, comb2R_delayed, comb3R_delayed, comb4R_delayed;
     logic signed [DATA_W-1:0]   comb1R_in,      comb2R_in,      comb3R_in,      comb4R_in;
+    logic signed [DATA_W-1:0]   comb1R_out,     comb2R_out,     comb3R_out,     comb4R_out;
     logic signed [31:0]         comb1R_fb,      comb2R_fb,      comb3R_fb,      comb4R_fb;
     logic signed [DATA_W+1:0]   comb_sum_R;
-    logic signed [31:0]         comb1R_lp, comb2R_lp, comb3R_lp, comb4R_lp;  // Q16 LP state
+    logic signed [31:0]         comb1R_lp, comb2R_lp, comb3R_lp, comb4R_lp;  // Q16
 
     // ----------------------------------------------------------------
-    // Per-Channel All-Pass Filter Signals
+    // LP Output Pipeline Register  (Stage B)
+    //
+    // Captures (comb*_lp >>> LP_FRAC_BITS) one cycle after the LP update.
+    // The DC blocker reads these registers — never comb*_lp directly —
+    // which is what breaks the combinational loop.
+    //
+    // Signal flow (each arrow = one sample_en clock edge):
+    //   comb_delayed → [Stage A] → comb*_lp
+    //                                  → [Stage B] → lp_out_*
+    //                                                    → [Stage C] → dc*_y
+    //                                                                      ↓
+    //                              comb_in ← comb_fb ←──────────────────────
+    //                                  ↓
+    //                           delay_line → comb_delayed   (closes loop)
+    //
+    // Every segment crossing an arrow is a registered boundary — no
+    // combinational cycle exists.
     // ----------------------------------------------------------------
 
-    // LEFT channel
+    logic signed [31:0] lp_out_1L, lp_out_2L, lp_out_3L, lp_out_4L;
+    logic signed [31:0] lp_out_1R, lp_out_2R, lp_out_3R, lp_out_4R;
+
+    // ----------------------------------------------------------------
+    // DC Blocker State  (Stage C)
+    //
+    // y[n] = x[n] - x[n-1] + (R * y[n-1]) >>> DC_BLOCK_SHIFT
+    //   x[n]  = lp_out_*  (Stage B — clean registered value)
+    //   dc*_x = previous x
+    //   dc*_y = previous HPF output
+    //
+    // Range: lp_out ≤ ±32767, DC_BLOCK_R = 32764 → product < 2^30, safe in 32-bit signed.
+    // ----------------------------------------------------------------
+
+    logic signed [31:0] dc1L_x, dc2L_x, dc3L_x, dc4L_x;
+    logic signed [31:0] dc1R_x, dc2R_x, dc3R_x, dc4R_x;
+    logic signed [31:0] dc1L_y, dc2L_y, dc3L_y, dc4L_y;
+    logic signed [31:0] dc1R_y, dc2R_y, dc3R_y, dc4R_y;
+
+    // ----------------------------------------------------------------
+    // All-Pass Filter Signals
+    // ----------------------------------------------------------------
+
+    // LEFT
     logic signed [DATA_W-1:0] allpass1L_in,  allpass1L_out,  allpass1L_delayed;
     logic signed [DATA_W-1:0] allpass2L_in,  allpass2L_out,  allpass2L_delayed;
     logic signed [DATA_W-1:0] allpass3L_in,  allpass3L_out,  allpass3L_delayed;
@@ -149,7 +197,7 @@ module fx_reverb #(
     logic signed [31:0]       ap2L_feed, ap2L_back;
     logic signed [31:0]       ap3L_feed, ap3L_back;
 
-    // RIGHT channel
+    // RIGHT
     logic signed [DATA_W-1:0] allpass1R_in,  allpass1R_out,  allpass1R_delayed;
     logic signed [DATA_W-1:0] allpass2R_in,  allpass2R_out,  allpass2R_delayed;
     logic signed [DATA_W-1:0] allpass3R_in,  allpass3R_out,  allpass3R_delayed;
@@ -163,7 +211,7 @@ module fx_reverb #(
 
     logic signed [DATA_W-1:0] wet_L, wet_R;
     logic signed [31:0]       mixed_L,      mixed_R;
-    logic signed [31:0]       wet_scaled_L, wet_scaled_R;  // (wet - dry) before mix multiply
+    logic signed [31:0]       wet_scaled_L, wet_scaled_R;
 
     // ----------------------------------------------------------------
     // Delay Line Instantiation — Comb Filters (8 total: 4L + 4R)
@@ -226,31 +274,11 @@ module fx_reverb #(
                 .delay_samples(ALLPASS3_DELAY[ALLPASS_ADDR_W-1:0]));
 
     // ----------------------------------------------------------------
-    // Comb Delay Calculation  (combinational, shared L+R)
-    // ----------------------------------------------------------------
-
-    always_comb begin
-        comb1_delay = COMB1_BASE + ((COMB1_BASE * fx_size) >> 8);
-        comb2_delay = COMB2_BASE + ((COMB2_BASE * fx_size) >> 8);
-        comb3_delay = COMB3_BASE + ((COMB3_BASE * fx_size) >> 8);
-        comb4_delay = COMB4_BASE + ((COMB4_BASE * fx_size) >> 8);
-    end
-
-    // LP coefficient: 256 − fx_damping, clamped to minimum 16
-    always_comb begin
-        lp_coef = (9'd256 - {1'b0, fx_damping} < 9'd16)
-                  ? 9'd16
-                  : 9'd256 - {1'b0, fx_damping};
-    end
-
-    // ----------------------------------------------------------------
-    // One-Pole LP State Update  (registered, Q16)
+    // Stage A — LP State Update  (registered, Q16)
     //
     // lp[n] = lp[n-1] + ((delta * lp_coef) >>> 8)
-    // where delta = (delayed << LP_FRAC_BITS) - lp
-    //
-    // delta can reach ±0x7FFF_0000 (31-bit); delta * lp_coef (max 256) needs
-    // 41 bits.  Cast to 48-bit before multiplying to prevent silent wrap.
+    // delta = (delayed << LP_FRAC_BITS) - lp  can reach ±0x7FFF_0000 (31-bit)
+    // delta * lp_coef (max 256) needs 41 bits → cast to 48-bit signed first.
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
@@ -280,22 +308,74 @@ module fx_reverb #(
     end
 
     // ----------------------------------------------------------------
-    // Comb Filter Combinational Logic  (feedback from LP state)
+    // Stage B — LP Output Pipeline  (registered, integer range)
+    // ----------------------------------------------------------------
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            lp_out_1L <= '0;  lp_out_2L <= '0;  lp_out_3L <= '0;  lp_out_4L <= '0;
+            lp_out_1R <= '0;  lp_out_2R <= '0;  lp_out_3R <= '0;  lp_out_4R <= '0;
+        end else if (sample_en) begin
+            lp_out_1L <= $signed(comb1L_lp) >>> LP_FRAC_BITS;
+            lp_out_2L <= $signed(comb2L_lp) >>> LP_FRAC_BITS;
+            lp_out_3L <= $signed(comb3L_lp) >>> LP_FRAC_BITS;
+            lp_out_4L <= $signed(comb4L_lp) >>> LP_FRAC_BITS;
+            lp_out_1R <= $signed(comb1R_lp) >>> LP_FRAC_BITS;
+            lp_out_2R <= $signed(comb2R_lp) >>> LP_FRAC_BITS;
+            lp_out_3R <= $signed(comb3R_lp) >>> LP_FRAC_BITS;
+            lp_out_4R <= $signed(comb4R_lp) >>> LP_FRAC_BITS;
+        end
+    end
+
+    // ----------------------------------------------------------------
+    // Stage C — DC Blocker Update  (registered)
+    // ----------------------------------------------------------------
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            dc1L_x <= '0;  dc2L_x <= '0;  dc3L_x <= '0;  dc4L_x <= '0;
+            dc1R_x <= '0;  dc2R_x <= '0;  dc3R_x <= '0;  dc4R_x <= '0;
+            dc1L_y <= '0;  dc2L_y <= '0;  dc3L_y <= '0;  dc4L_y <= '0;
+            dc1R_y <= '0;  dc2R_y <= '0;  dc3R_y <= '0;  dc4R_y <= '0;
+        end else if (sample_en) begin
+            // LEFT
+            dc1L_y <= lp_out_1L - dc1L_x + (($signed(32'(DC_BLOCK_R)) * dc1L_y) >>> DC_BLOCK_SHIFT);
+            dc1L_x <= lp_out_1L;
+            dc2L_y <= lp_out_2L - dc2L_x + (($signed(32'(DC_BLOCK_R)) * dc2L_y) >>> DC_BLOCK_SHIFT);
+            dc2L_x <= lp_out_2L;
+            dc3L_y <= lp_out_3L - dc3L_x + (($signed(32'(DC_BLOCK_R)) * dc3L_y) >>> DC_BLOCK_SHIFT);
+            dc3L_x <= lp_out_3L;
+            dc4L_y <= lp_out_4L - dc4L_x + (($signed(32'(DC_BLOCK_R)) * dc4L_y) >>> DC_BLOCK_SHIFT);
+            dc4L_x <= lp_out_4L;
+            // RIGHT
+            dc1R_y <= lp_out_1R - dc1R_x + (($signed(32'(DC_BLOCK_R)) * dc1R_y) >>> DC_BLOCK_SHIFT);
+            dc1R_x <= lp_out_1R;
+            dc2R_y <= lp_out_2R - dc2R_x + (($signed(32'(DC_BLOCK_R)) * dc2R_y) >>> DC_BLOCK_SHIFT);
+            dc2R_x <= lp_out_2R;
+            dc3R_y <= lp_out_3R - dc3R_x + (($signed(32'(DC_BLOCK_R)) * dc3R_y) >>> DC_BLOCK_SHIFT);
+            dc3R_x <= lp_out_3R;
+            dc4R_y <= lp_out_4R - dc4R_x + (($signed(32'(DC_BLOCK_R)) * dc4R_y) >>> DC_BLOCK_SHIFT);
+            dc4R_x <= lp_out_4R;
+        end
+    end
+
+    // ----------------------------------------------------------------
+    // Comb Filter Combinational Logic  (feedback from dc*_y)
     //
-    // LP state is Q16, so shift right by LP_FRAC_BITS to recover the
-    // 16-bit signal value before applying FIXED_FB_GAIN.
+    // dc*_y is already in the ±32767 integer range (LP_FRAC_BITS stripped
+    // in Stage B), so apply FIXED_FB_GAIN directly.
     // ----------------------------------------------------------------
 
     always_comb begin
         // LEFT
-        comb1L_fb = ((comb1L_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb2L_fb = ((comb2L_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb3L_fb = ((comb3L_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb4L_fb = ((comb4L_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb1L_in = sat16($signed(audio_in[0]) + comb1L_fb);
-        comb2L_in = sat16($signed(audio_in[0]) + comb2L_fb);
-        comb3L_in = sat16($signed(audio_in[0]) + comb3L_fb);
-        comb4L_in = sat16($signed(audio_in[0]) + comb4L_fb);
+        comb1L_fb  = (dc1L_y * FIXED_FB_GAIN) >>> 8;
+        comb2L_fb  = (dc2L_y * FIXED_FB_GAIN) >>> 8;
+        comb3L_fb  = (dc3L_y * FIXED_FB_GAIN) >>> 8;
+        comb4L_fb  = (dc4L_y * FIXED_FB_GAIN) >>> 8;
+        comb1L_in  = sat16($signed(audio_in[0]) + comb1L_fb);
+        comb2L_in  = sat16($signed(audio_in[0]) + comb2L_fb);
+        comb3L_in  = sat16($signed(audio_in[0]) + comb3L_fb);
+        comb4L_in  = sat16($signed(audio_in[0]) + comb4L_fb);
         comb1L_out = comb1L_delayed;
         comb2L_out = comb2L_delayed;
         comb3L_out = comb3L_delayed;
@@ -304,14 +384,14 @@ module fx_reverb #(
                      $signed(comb3L_out) + $signed(comb4L_out);
 
         // RIGHT
-        comb1R_fb = ((comb1R_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb2R_fb = ((comb2R_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb3R_fb = ((comb3R_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb4R_fb = ((comb4R_lp >>> LP_FRAC_BITS) * FIXED_FB_GAIN) >>> 8;
-        comb1R_in = sat16($signed(audio_in[1]) + comb1R_fb);
-        comb2R_in = sat16($signed(audio_in[1]) + comb2R_fb);
-        comb3R_in = sat16($signed(audio_in[1]) + comb3R_fb);
-        comb4R_in = sat16($signed(audio_in[1]) + comb4R_fb);
+        comb1R_fb  = (dc1R_y * FIXED_FB_GAIN) >>> 8;
+        comb2R_fb  = (dc2R_y * FIXED_FB_GAIN) >>> 8;
+        comb3R_fb  = (dc3R_y * FIXED_FB_GAIN) >>> 8;
+        comb4R_fb  = (dc4R_y * FIXED_FB_GAIN) >>> 8;
+        comb1R_in  = sat16($signed(audio_in[1]) + comb1R_fb);
+        comb2R_in  = sat16($signed(audio_in[1]) + comb2R_fb);
+        comb3R_in  = sat16($signed(audio_in[1]) + comb3R_fb);
+        comb4R_in  = sat16($signed(audio_in[1]) + comb4R_fb);
         comb1R_out = comb1R_delayed;
         comb2R_out = comb2R_delayed;
         comb3R_out = comb3R_delayed;
@@ -323,14 +403,11 @@ module fx_reverb #(
     // ----------------------------------------------------------------
     // All-Pass Filters  (series, 3 per channel)
     //
-    // Equation: y[n] = −g·x[n] + x[n−d] + g·y[n−d]
-    // g = ALLPASS_COEF / 256 = 0.5
-    // The comb sum is divided by 4 before entering the all-pass chain
-    // to prevent accumulation of the four parallel comb outputs from
-    // overloading the 16-bit range.
+    // y[n] = −g·x[n] + x[n−d] + g·y[n−d],  g = ALLPASS_COEF/256 = 0.5
+    // Comb sum divided by 4 to prevent overload from 4 parallel outputs.
     // ----------------------------------------------------------------
 
-    // LEFT channel
+    // LEFT
     always_comb begin
         allpass1L_in  = sat16(comb_sum_L >>> 2);
         ap1L_feed     = ($signed(allpass1L_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
@@ -348,7 +425,7 @@ module fx_reverb #(
         allpass3L_out = sat16(-ap3L_feed + $signed(allpass3L_delayed) + ap3L_back);
     end
 
-    // RIGHT channel
+    // RIGHT
     always_comb begin
         allpass1R_in  = sat16(comb_sum_R >>> 2);
         ap1R_feed     = ($signed(allpass1R_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
@@ -369,14 +446,13 @@ module fx_reverb #(
     // ----------------------------------------------------------------
     // Mix  (wet/dry blend)
     //
-    // Wet/dry mix: dry + (wet - dry) * mix / 256
-    // mix=0 → full dry, mix=255 → 99.6% wet
+    // dry + (wet − dry) * fx_mix / 256
+    // fx_mix = 0 → full dry,  fx_mix = 255 → 99.6 % wet
     // ----------------------------------------------------------------
 
     always_comb begin
-        wet_L = allpass3L_out;
-        wet_R = allpass3R_out;
-
+        wet_L        = allpass3L_out;
+        wet_R        = allpass3R_out;
         wet_scaled_L = $signed(wet_L) - $signed(audio_in[0]);
         wet_scaled_R = $signed(wet_R) - $signed(audio_in[1]);
         mixed_L      = $signed(audio_in[0]) + ((wet_scaled_L * $signed({1'b0, fx_mix})) >>> 8);

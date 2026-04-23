@@ -70,22 +70,23 @@ Gain → Gate → EQ → Compressor → Distortion → EQ → Chorus → Gain �
 ---
 
 ## Usage Instructions
-The following sections outline how to use the board
+The following sections outline how to use the board with the base hardware that lacks periferals
 
-### Hardware + Software Needed
+### Software Required
 
-Hardware
-- x1 DE1 SoC Board 
-  - x1 USB Blaster Cable
-  - x1 Power Cable
-- x2 AUX Cable
-  - x1 whatever you connect to output, can be speacker, headphone, audio interface, etc
-- x1 1/4 inch to AUX adapter
-- x1 Guitar or your choice
-
-Software
 - Quartus Prime
   - `Quartus Prime Version 18.1.0 Build 09/12/2018 SJ Lite Edition` was used to develop this project
+
+### Minimum Hardware Needed
+NOTE* This list is just to run the project without periferals, all DSP functionality and control can be done with just this hardware
+
+- [x1 DE1 SoC Board](https://www.terasic.com.tw/cgi-bin/page/archive.pl?Language=English&No=836)
+  - x1 USB Blaster Cable
+  - x1 Power Cable
+- [x2 AUX Cable](https://www.amazon.ca/dp/B09261T14K/ref=twister_B095W3XT2K?_encoding=UTF8)
+  - x1 whatever you connect to output, can be speacker, headphone, audio interface, etc
+- [x1 1/4 inch to AUX adapter](https://www.amazon.ca/Adapter-6-35mm-Female-Headphone-Connector/dp/B084VGXK45/ref=sr_1_3?s=electronics&sr=1-3)
+- x1 Guitar or your choice
 
 ### How to install and run on the board
 
@@ -180,6 +181,23 @@ NOTES:
 - The order of FX numbers represents the order the FX are connected in series, with the output of F0 being connected to the input of F1, and so on
 - Gain2 should be modulated by the expression pedal
 - Descriptions for what the parameters do are in the next section
+
+## Periferal Usage 
+
+### Periferal Hardware
+NOTE* The periferals only add live stage accessable controls and do not change the DSP functionality.
+
+- [5x Momentary Soft Touch Foot Switch](https://www.amazon.ca/dp/B08TBTWDYV)
+- [1x 15" x 5.7" Aluminum Alloy Guitar Effects PedalBoard with Carry Bag](https://www.amazon.ca/dp/B0D5CBVMHY)
+- Masking Tape
+- [Soldering Iron](https://www.amazon.ca/Soldering-Electronics-Adjustable-Temperature-Repairing/dp/B097XX76V4/ref=sr_1_1_sspa?s=hi&sr=1-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY)
+- Glue Gun
+- Electronic Cardboard Boxes
+- [Electronics Kit](https://www.amazon.ca/dp/B01ERP6WL4)
+  - Wires
+  - Resistors
+  - x1 LEDs
+  - [Multimeter](https://www.amazon.ca/dp/B01ISAMUA6)
 
 ## Implemented Effects & Parameters
 

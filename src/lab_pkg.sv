@@ -308,7 +308,7 @@ package lab_pkg;
             8:  case (param)
                     0: bank3_default = 8'd200;
                     1: bank3_default = 8'd140;
-                    7: bank3_default = 8'd0;
+                    7: bank3_default = 8'd100;
                 endcase
             9:  case (param)
                     0: bank3_default = 8'd230;                   // huge room
