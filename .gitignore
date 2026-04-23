@@ -40,3 +40,8 @@ pcie_reconfig_test/
 *.sopcinfo
 *.map
 *.sopc
+
+# -- Irrelevant dev files
+src_*/
+HaH_processor*/
+*.zip

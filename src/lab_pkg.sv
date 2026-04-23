@@ -269,7 +269,7 @@ package lab_pkg;
         case (fx)
             0:  if (param==0) bank3_default = 8'd128;
             1:  case (param)
-                    0: bank3_default = 8'd1; 
+                    0: bank3_default = 8'd0; 
                     1: bank3_default = 8'd40;
                     2: bank3_default = 8'd200;
                 endcase
@@ -286,6 +286,7 @@ package lab_pkg;
                     3: bank3_default = 8'd128;
                     4: bank3_default = 8'd64;
                     5: bank3_default = 8'd64;
+                    7: bank3_default = 8'd0;
                 endcase
             4:  case (param)
                     0: bank3_default = 8'd128;
@@ -301,18 +302,18 @@ package lab_pkg;
             6:  case (param)
                     0: bank3_default = 8'd90;                    // slow rate
                     1: bank3_default = 8'd180;                   // deep
-                    7: bank3_default = 8'd160;                   // mostly wet
+                    7: bank3_default = 8'd0;                   // mostly wet
                 endcase
             7:  if (param==0) bank3_default = 8'd128;
             8:  case (param)
                     0: bank3_default = 8'd200;
                     1: bank3_default = 8'd140;
-                    7: bank3_default = 8'd100;
+                    7: bank3_default = 8'd0;
                 endcase
             9:  case (param)
                     0: bank3_default = 8'd230;                   // huge room
                     1: bank3_default = 8'd80;                    // low damping
-                    7: bank3_default = 8'd150;
+                    7: bank3_default = 8'd0;
                 endcase
             10: if (param==0) bank3_default = 8'd120;
         endcase

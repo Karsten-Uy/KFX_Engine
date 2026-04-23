@@ -71,11 +71,9 @@ module fx_delay #(
     logic signed [31:0]       fb_scaled [1:0];
     logic [23:0]              scaled_delay;
     logic [ADDR_W-1:0]        knob_delay;
-    logic [23:0]              full_knob_delay;
     logic signed [31:0]       wet_signal [1:0];
     logic signed [31:0]       dry_signal [1:0];
     logic signed [31:0]       mixed      [1:0];
-    logic signed [31:0]       raw_fb [1:0];
 
     // ----------------------------------------------------------------
     // Delay Line Instantiation  (left and right channels independent)
@@ -116,16 +114,10 @@ module fx_delay #(
     // ----------------------------------------------------------------
 
     always_comb begin
-        scaled_delay    = fx_time * DELAY_RANGE[14:0];
-        
-        // Evaluate in 24-bits so it cannot wrap around
-        full_knob_delay = MIN_DELAY_SAMPLES + scaled_delay[23:8];
-
-        // Clamp the wide signal safely
-        if (full_knob_delay > MAX_SAMPLES)
+        scaled_delay = fx_time * DELAY_RANGE[14:0];
+        knob_delay   = MIN_DELAY_SAMPLES[ADDR_W-1:0] + scaled_delay[23:8];
+        if (knob_delay > MAX_SAMPLES[ADDR_W-1:0])
             knob_delay = MAX_SAMPLES[ADDR_W-1:0];
-        else
-            knob_delay = full_knob_delay[ADDR_W-1:0];
 
         target_delay = tap_active ? tap_samples : knob_delay;
     end
@@ -139,21 +131,17 @@ module fx_delay #(
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
-            // 1. Calculate the raw 32-bit feedback value
-            raw_fb[i] = $signed(delayed[i]) * $signed({1'b0, fx_feedback}) * 9'sd224;
-
-            // 2. Add 65535 if negative to force rounding towards zero
-            fb_scaled[i] = (raw_fb[i] + (raw_fb[i][31] ? 32'sd65535 : 32'sd0)) >>> 16;
-
-            // 3. Add to input and saturate
+            // Cap feedback at 0.875 and add to input before writing to delay line
+            fb_scaled[i] = ($signed(delayed[i]) * $signed({1'b0, fx_feedback}) * 9'sd224) >>> 16;
             fb_in[i]     = sat16($signed(audio_in[i]) + fb_scaled[i]);
 
-            // Wet/dry mix (unchanged)
+            // Wet/dry mix: dry + (wet - dry) * mix / 256
+            // mix=0 → full dry, mix=255 → 99.6% wet
             wet_signal[i] = $signed(delayed[i]);
             dry_signal[i] = $signed(audio_in[i]);
             mixed[i]      = dry_signal[i] +
                             (((wet_signal[i] - dry_signal[i]) *
-                            $signed({1'b0, fx_mix})) >>> 8);
+                              $signed({1'b0, fx_mix})) >>> 8);
         end
     end
 
