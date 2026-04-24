@@ -119,6 +119,7 @@ module controller (
 
     output logic [9:0] LEDR,
     output logic       fsm_busy,
+    output logic       bank_switching,
 
     output logic [21:0] flash_mem_address,
     output logic        flash_mem_read,
@@ -314,29 +315,76 @@ module controller (
 
     int i, j, k;
 
+    logic [PARAM_W-1:0] pot_prev;
+    logic [PARAM_W-1:0] pot_scaled;
+    logic [8:0]         pot_diff;
+
+    assign pot_scaled = pot_value[11:12-PARAM_W];
+
+    always_comb begin
+        if (pot_scaled >= pot_prev)
+            pot_diff = 9'(pot_scaled) - 9'(pot_prev);
+        else
+            pot_diff = 9'(pot_prev)   - 9'(pot_scaled);
+    end
+
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             for (k = 0; k < BANK_COUNT; k++)
                 for (i = 0; i < FX_COUNT; i++)
                     for (j = 0; j < PARAM_COUNT; j++)
                         all_params[k][i][j] <= param_default(k, i, j);
+            pot_prev <= '0;
 
-        end else if (ld_mem && load_valid) begin
-            all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
+        end else begin
 
-        end else if (!fsm_busy) begin
-            if (inc_p || inc_r)
-                all_params[bank_sel][fx_sel][param_sel] <=
-                    (all_params[bank_sel][fx_sel][param_sel] < 8'd255)
-                        ? all_params[bank_sel][fx_sel][param_sel] + 1'b1
-                        : 8'd255;
-            if (dec_p || dec_r)
-                all_params[bank_sel][fx_sel][param_sel] <=
-                    (all_params[bank_sel][fx_sel][param_sel] > 8'd0)
-                        ? all_params[bank_sel][fx_sel][param_sel] - 1'b1
-                        : 8'd0;
-            if (pot_valid)
-                all_params[bank_sel][7][0] <= pot_value[11:12-PARAM_W];
+            if (ld_mem && load_valid) begin
+                all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
+
+            end else if (!fsm_busy) begin
+                if (inc_p || inc_r)
+                    all_params[bank_sel][fx_sel][param_sel] <=
+                        (all_params[bank_sel][fx_sel][param_sel] < 8'd255)
+                            ? all_params[bank_sel][fx_sel][param_sel] + 1'b1
+                            : 8'd255;
+                if (dec_p || dec_r)
+                    all_params[bank_sel][fx_sel][param_sel] <=
+                        (all_params[bank_sel][fx_sel][param_sel] > 8'd0)
+                            ? all_params[bank_sel][fx_sel][param_sel] - 1'b1
+                            : 8'd0;
+
+                // Pot: only write when change exceeds 1 LSB hysteresis.
+                // pot_prev tracks the LAST WRITTEN value, not the last seen value.
+                // If it tracked every cycle, pot_prev always == pot_scaled and
+                // the condition never fires.
+                if (pot_diff > 9'd1) begin
+                    all_params[bank_sel][7][0] <= pot_scaled;
+                    pot_prev <= pot_scaled;
+                end
+            end
+        end
+    end
+
+    // Bank Switching Param
+    logic [15:0] bank_switch_ctr;     // ~1.3 ms at 50 MHz = 65536 cycles
+    localparam BANK_MUTE_CYCLES = 16'd65535;
+
+    always_ff @(posedge clk) begin
+        if (!reset_n) begin
+            bank_switching  <= 1'b0;
+            bank_switch_ctr <= '0;
+        end else begin
+            // Detect any bank change (pulse from toggle or direct button)
+            if ((bank_pulse || bank_btn_pulse[0] || bank_btn_pulse[1] ||
+                bank_btn_pulse[2] || bank_btn_pulse[3]) && !fsm_busy) begin
+                bank_switching  <= 1'b1;
+                bank_switch_ctr <= '0;
+            end else if (bank_switching) begin
+                if (bank_switch_ctr == BANK_MUTE_CYCLES)
+                    bank_switching <= 1'b0;
+                else
+                    bank_switch_ctr <= bank_switch_ctr + 1'b1;
+            end
         end
     end
 

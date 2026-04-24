@@ -322,6 +322,7 @@ module AudioFX (
 
         .LEDR              (),
         .fsm_busy          (fsm_busy),
+        .bank_switching    (bank_switching),
 
         .flash_mem_address       (flash_mem_address),
         .flash_mem_read          (flash_mem_read),
@@ -385,13 +386,31 @@ module AudioFX (
         );
 
         // ---- Sample-Enable Pipeline ----------------------------------
-        // Each FX stage gets a one-cycle-delayed version of ADC_Valid[0],
-        // so every block gets exactly one enable pulse per audio sample.
+        // Largest delay at max fx_size = MAX_COMB_DELAY (3994 samples) + allpass + echo.
+        // Use a 20-bit counter: 2^20 = ~1M samples = ~22 s worst-case, but we only
+        // need to clear the longest delay.  A 16-bit counter = 1365 ms is ample.
+        localparam WARM_UP_SAMPLES = 16'd65535;
+        logic [15:0] warm_ctr;
+        logic        chain_warm;
+
+        always_ff @(posedge CLOCK_50) begin
+            if (!KEY[0]) begin
+                warm_ctr   <= '0;
+                chain_warm <= 1'b0;
+            end else if (!chain_warm && ADC_Valid[0]) begin
+                if (warm_ctr == WARM_UP_SAMPLES)
+                    chain_warm <= 1'b1;
+                else
+                    warm_ctr <= warm_ctr + 1'b1;
+            end
+        end
+
+        // Gate the pipeline — FX chain only runs once delay lines are flushed
         always_ff @(posedge CLOCK_50) begin : en_PIPELINE
             if (!KEY[0]) begin
                 sample_en_pipe <= '0;
             end else begin
-                sample_en_pipe[0] <= ADC_Valid[0];
+                sample_en_pipe[0] <= ADC_Valid[0] && chain_warm && !bank_switching;
                 for (int i = 1; i <= FX_STAGES - 1; i++)
                     sample_en_pipe[i] <= sample_en_pipe[i-1];
             end
@@ -544,7 +563,7 @@ module AudioFX (
         // glitches (gain, threshold, and EQ jumps).  Gating the DAC to zero
         // for the brief duration of fsm_busy eliminates this completely.
         always_ff @(posedge CLOCK_50) begin
-            if (is_mute || fsm_busy) begin
+            if (is_mute || fsm_busy || bank_switching) begin
                 DAC_Data[0] <= 16'd0;
                 DAC_Data[1] <= 16'd0;
             end else begin
