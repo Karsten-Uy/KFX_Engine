@@ -353,10 +353,6 @@ module AudioFX (
         logic fx_flush;
         assign fx_flush = (fade_state == ST_MUTED);   // was: ST_FADE_OUT || ST_MUTED
 
-        // 2. Add iir_reset_n for flip-flop-only modules:
-        logic iir_reset_n;
-        assign iir_reset_n = KEY[0] && (fade_state != ST_MUTED);
-        
         // ---- Tuner Engine ----------------------------------------
         tuner_yin_engine TUNER (
             .clk        (CLOCK_50),
@@ -492,7 +488,7 @@ module AudioFX (
         // ---- FX 0: Input Gain ----------------------------------------
         fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_INPUT_GAIN (
             .clk      (CLOCK_50),
-            .reset_n  (fx_reset_n),           // <-- FIX 2
+            .reset_n  (KEY[0]),       
             .audio_in (pre_fx),
             .audio_out(gain_in_out),
             .fx_gain  (params[0][0]),
@@ -502,7 +498,7 @@ module AudioFX (
         // ---- FX 1: Noise Gate ----------------------------------------
         fx_gate #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_GATE (
             .clk          (CLOCK_50),
-            .reset_n      (fx_reset_n),       // <-- FIX 2
+            .reset_n      (KEY[0]),   
             .audio_in     (gain_in_out),
             .audio_out    (gate_out),
             .fx_threshold (params[1][0]),
@@ -516,7 +512,7 @@ module AudioFX (
         // ---- FX 2: EQ 1  (pre-distortion) ---------------------------
         fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_1 (
             .clk         (CLOCK_50),
-            .reset_n     (fx_reset_n),        // <-- FIX 2
+            .reset_n     (KEY[0]),    
             .audio_in    (gate_out),
             .audio_out   (eq_out_1),
             .fx_sub_gain (params[2][0]),
@@ -529,7 +525,7 @@ module AudioFX (
         // ---- FX 3: Compressor ----------------------------------------
         fx_compressor #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_COMPRESSOR (
             .clk           (CLOCK_50),
-            .reset_n       (fx_reset_n),      // <-- FIX 2
+            .reset_n       (KEY[0]),  
             .audio_in      (eq_out_1),
             .audio_out     (comp_out),
             .fx_threshold  (params[3][0]),
@@ -545,7 +541,7 @@ module AudioFX (
         // ---- FX 4: Distortion ----------------------------------------
         fx_distortion #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DISTORTION (
             .clk           (CLOCK_50),
-            .reset_n       (fx_reset_n),      // <-- FIX 2
+            .reset_n       (KEY[0]),  
             .audio_in      (comp_out),
             .audio_out     (dist_out),
             .fx_drive      (params[4][0]),
@@ -562,7 +558,7 @@ module AudioFX (
         // ---- FX 5: EQ 2  (post-distortion) --------------------------
         fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_2 (
             .clk         (CLOCK_50),
-            .reset_n     (fx_reset_n),        // <-- FIX 2
+            .reset_n     (KEY[0]),    
             .audio_in    (dist_out),
             .audio_out   (eq_out_2),
             .fx_sub_gain (params[5][0]),
@@ -575,7 +571,7 @@ module AudioFX (
         // ---- FX 6: Chorus --------------------------------------------
         fx_chorus #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_CHORUS (
             .clk      (CLOCK_50),
-            .reset_n  (fx_reset_n),           // <-- FIX 2
+            .reset_n  (KEY[0]),       
             .audio_in (eq_out_2),
             .audio_out(chorus_out),
             .fx_rate  (params[6][0]),
@@ -587,7 +583,7 @@ module AudioFX (
         // ---- FX 7: Expression Gain -----------------------------------
         fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EXPRESSION_GAIN (
             .clk      (CLOCK_50),
-            .reset_n  (fx_reset_n),           // <-- FIX 2
+            .reset_n  (KEY[0]),       
             .audio_in (chorus_out),
             .audio_out(gain_expression_out),
             .fx_gain  (params[7][0]),
@@ -597,7 +593,7 @@ module AudioFX (
         // ---- FX 8: Delay  (tap-tempo capable) -----------------------
         fx_delay #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DELAY (
             .clk        (CLOCK_50),
-            .reset_n    (fx_reset_n),         // <-- FIX 2
+            .reset_n    (fx_reset_n),     
             .audio_in   (gain_expression_out),
             .audio_out  (delay_out),
             .flush      (fx_flush),
@@ -612,7 +608,7 @@ module AudioFX (
         // ---- FX 9: Reverb --------------------------------------------
         fx_reverb #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_REVERB (
             .clk       (CLOCK_50),
-            .reset_n   (fx_reset_n),          // <-- FIX 2
+            .reset_n   (fx_reset_n),      
             .audio_in  (delay_out),
             .audio_out (reverb_out),
             .flush     (fx_flush),
@@ -625,7 +621,7 @@ module AudioFX (
         // ---- FX 10: Output Gain -------------------------------------
         fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_OUTPUT_GAIN (
             .clk      (CLOCK_50),
-            .reset_n  (fx_reset_n),           // <-- FIX 2
+            .reset_n  (KEY[0]),       
             .audio_in (reverb_out),
             .audio_out(gain_out_out),
             .fx_gain  (params[10][0]),

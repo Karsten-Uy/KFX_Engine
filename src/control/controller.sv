@@ -429,6 +429,10 @@ module controller (
                 if (pot_diff > 9'd1) begin
                     all_params[bank_sel][7][0] <= pot_scaled;
                     pot_prev <= pot_scaled;
+
+                // Ensure expression value is kept across bank switches
+                if (bank_switching && (bank_switch_ctr == 27'(BANK_FADE_CYCLES)))
+                    all_params[pending_bank_sel][7][0] <= pot_scaled;
                 end
             end
         end
