@@ -456,10 +456,8 @@ module fx_reverb #(
         wet_R        = allpass3R_out;
         wet_scaled_L = $signed(wet_L) - $signed(audio_in[0]);
         wet_scaled_R = $signed(wet_R) - $signed(audio_in[1]);
-        mixed_L = flush ? $signed(audio_in[0])
-                        : $signed(audio_in[0]) + ((wet_scaled_L * $signed({1'b0, fx_mix})) >>> 8);
-        mixed_R = flush ? $signed(audio_in[1])
-                        : $signed(audio_in[1]) + ((wet_scaled_R * $signed({1'b0, fx_mix})) >>> 8);
+        mixed_L = $signed(audio_in[0]) + ((wet_scaled_L * $signed({1'b0, fx_mix})) >>> 8);
+        mixed_R = $signed(audio_in[1]) + ((wet_scaled_R * $signed({1'b0, fx_mix})) >>> 8);
     end
 
     // ----------------------------------------------------------------

@@ -155,7 +155,7 @@ module controller (
     // ----------------------------------------------------------------
     
     localparam int BANK_FADE_CYCLES = 5_300_000;  // ~106 ms total
-    localparam int BANK_MUTE_CYCLES = 5_500_000;  // +4 ms IIR settling after flip
+    localparam int BANK_MUTE_CYCLES = 6_300_000;  // +4 ms IIR settling after flip
     // 27-bit counter already covers this (2^27 = 134M)
 
     // ----------------------------------------------------------------
@@ -429,9 +429,10 @@ module controller (
                 if (pot_diff > 9'd1) begin
                     all_params[bank_sel][7][0] <= pot_scaled;
                     pot_prev <= pot_scaled;
+                end                
 
                 // Ensure expression value is kept across bank switches
-                if (bank_switching && (bank_switch_ctr == 27'(BANK_FADE_CYCLES)))
+                if (bank_switching && (bank_switch_ctr == 27'(BANK_FADE_CYCLES))) begin
                     all_params[pending_bank_sel][7][0] <= pot_scaled;
                 end
             end
