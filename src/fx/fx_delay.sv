@@ -44,6 +44,7 @@ module fx_delay #(
     input  logic                          reset_n,
     input  logic signed [1:0][DATA_W-1:0] audio_in,
     output logic signed [1:0][DATA_W-1:0] audio_out,
+    input  logic                          flush,
     input  logic [PARAM_W-1:0]            fx_time,
     input  logic [PARAM_W-1:0]            fx_feedback,
     input  logic [PARAM_W-1:0]            fx_mix,
@@ -146,7 +147,7 @@ module fx_delay #(
             fb_scaled[i] = (raw_fb[i] + (raw_fb[i][31] ? 32'sd65535 : 32'sd0)) >>> 16;
 
             // 3. Add to input and saturate
-            fb_in[i]     = sat16($signed(audio_in[i]) + fb_scaled[i]);
+            fb_in[i]     = flush ? '0 : sat16($signed(audio_in[i]) + fb_scaled[i]);
 
             // Wet/dry mix (unchanged)
             wet_signal[i] = $signed(delayed[i]);

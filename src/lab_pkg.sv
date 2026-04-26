@@ -87,7 +87,7 @@ package lab_pkg;
             bank0_default(input int fx, input int param);
         bank0_default = '0;
         case (fx)
-            0:  if (param==0) bank0_default = 8'd128;           // input gain unity
+            0:  if (param==0) bank0_default = 8'd32;           // input gain unity
             1:  case (param)
                     0: bank0_default = 8'd1;                     // gate off
                     1: bank0_default = 8'd40;
@@ -101,11 +101,12 @@ package lab_pkg;
                 endcase
             3:  case (param)
                     0: bank0_default = 8'd32;
-                    1: bank0_default = 8'd0;                     // comp off
+                    1: bank0_default = 8'd0;
                     2: bank0_default = 8'd64;
                     3: bank0_default = 8'd128;
-                    4: bank0_default = 8'd64;
-                    5: bank0_default = 8'd64;
+                    4: bank0_default = 8'd64;                    // Unity Input gain
+                    5: bank0_default = 8'd64; 
+                    7: bank0_default = 8'd0;                     // Compressor Off
                 endcase
             4:  case (param)
                     0: bank0_default = 8'd128;
@@ -134,7 +135,7 @@ package lab_pkg;
                     1: bank0_default = 8'd160;
                     7: bank0_default = 8'd40;                    // light reverb
                 endcase
-            10: if (param==0) bank0_default = 8'd128;
+            10: if (param==0) bank0_default = 8'd32;             // Output Unity Gain
         endcase
     endfunction
 

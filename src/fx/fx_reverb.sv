@@ -72,6 +72,7 @@ module fx_reverb #(
     input  logic                          reset_n,
     input  logic signed [1:0][DATA_W-1:0] audio_in,
     output logic signed [1:0][DATA_W-1:0] audio_out,
+    input  logic                          flush,
     input  logic [PARAM_W-1:0]            fx_size,
     input  logic [PARAM_W-1:0]            fx_damping,
     input  logic [PARAM_W-1:0]            fx_mix,
@@ -282,7 +283,7 @@ module fx_reverb #(
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
-        if (!reset_n) begin
+        if (!reset_n || flush) begin
             comb1L_lp <= '0;  comb2L_lp <= '0;  comb3L_lp <= '0;  comb4L_lp <= '0;
             comb1R_lp <= '0;  comb2R_lp <= '0;  comb3R_lp <= '0;  comb4R_lp <= '0;
         end else if (sample_en) begin
@@ -332,7 +333,7 @@ module fx_reverb #(
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
-        if (!reset_n) begin
+        if (!reset_n || flush) begin
             dc1L_x <= '0;  dc2L_x <= '0;  dc3L_x <= '0;  dc4L_x <= '0;
             dc1R_x <= '0;  dc2R_x <= '0;  dc3R_x <= '0;  dc4R_x <= '0;
             dc1L_y <= '0;  dc2L_y <= '0;  dc3L_y <= '0;  dc4L_y <= '0;
@@ -372,10 +373,10 @@ module fx_reverb #(
         comb2L_fb  = (dc2L_y * FIXED_FB_GAIN) >>> 8;
         comb3L_fb  = (dc3L_y * FIXED_FB_GAIN) >>> 8;
         comb4L_fb  = (dc4L_y * FIXED_FB_GAIN) >>> 8;
-        comb1L_in  = sat16($signed(audio_in[0]) + comb1L_fb);
-        comb2L_in  = sat16($signed(audio_in[0]) + comb2L_fb);
-        comb3L_in  = sat16($signed(audio_in[0]) + comb3L_fb);
-        comb4L_in  = sat16($signed(audio_in[0]) + comb4L_fb);
+        comb1L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb1L_fb);
+        comb2L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb2L_fb);
+        comb3L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb3L_fb);
+        comb4L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb4L_fb);
         comb1L_out = comb1L_delayed;
         comb2L_out = comb2L_delayed;
         comb3L_out = comb3L_delayed;
@@ -388,10 +389,10 @@ module fx_reverb #(
         comb2R_fb  = (dc2R_y * FIXED_FB_GAIN) >>> 8;
         comb3R_fb  = (dc3R_y * FIXED_FB_GAIN) >>> 8;
         comb4R_fb  = (dc4R_y * FIXED_FB_GAIN) >>> 8;
-        comb1R_in  = sat16($signed(audio_in[1]) + comb1R_fb);
-        comb2R_in  = sat16($signed(audio_in[1]) + comb2R_fb);
-        comb3R_in  = sat16($signed(audio_in[1]) + comb3R_fb);
-        comb4R_in  = sat16($signed(audio_in[1]) + comb4R_fb);
+        comb1R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb1R_fb);
+        comb2R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb2R_fb);
+        comb3R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb3R_fb);
+        comb4R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb4R_fb);
         comb1R_out = comb1R_delayed;
         comb2R_out = comb2R_delayed;
         comb3R_out = comb3R_delayed;
@@ -409,17 +410,17 @@ module fx_reverb #(
 
     // LEFT
     always_comb begin
-        allpass1L_in  = sat16(comb_sum_L >>> 2);
+        allpass1L_in  = flush ? '0 : sat16(comb_sum_L >>> 2);
         ap1L_feed     = ($signed(allpass1L_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         ap1L_back     = ($signed(allpass1L_delayed) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         allpass1L_out = sat16(-ap1L_feed + $signed(allpass1L_delayed) + ap1L_back);
 
-        allpass2L_in  = allpass1L_out;
+        allpass2L_in  = flush ? '0 : allpass1L_out;
         ap2L_feed     = ($signed(allpass2L_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         ap2L_back     = ($signed(allpass2L_delayed) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         allpass2L_out = sat16(-ap2L_feed + $signed(allpass2L_delayed) + ap2L_back);
 
-        allpass3L_in  = allpass2L_out;
+        allpass3L_in  = flush ? '0 : allpass2L_out;
         ap3L_feed     = ($signed(allpass3L_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         ap3L_back     = ($signed(allpass3L_delayed) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         allpass3L_out = sat16(-ap3L_feed + $signed(allpass3L_delayed) + ap3L_back);
@@ -427,17 +428,17 @@ module fx_reverb #(
 
     // RIGHT
     always_comb begin
-        allpass1R_in  = sat16(comb_sum_R >>> 2);
+        allpass1R_in  = flush ? '0 : sat16(comb_sum_R >>> 2);
         ap1R_feed     = ($signed(allpass1R_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         ap1R_back     = ($signed(allpass1R_delayed) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         allpass1R_out = sat16(-ap1R_feed + $signed(allpass1R_delayed) + ap1R_back);
 
-        allpass2R_in  = allpass1R_out;
+        allpass2R_in  = flush ? '0 : allpass1R_out;
         ap2R_feed     = ($signed(allpass2R_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         ap2R_back     = ($signed(allpass2R_delayed) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         allpass2R_out = sat16(-ap2R_feed + $signed(allpass2R_delayed) + ap2R_back);
 
-        allpass3R_in  = allpass2R_out;
+        allpass3R_in  = flush ? '0 : allpass2R_out;
         ap3R_feed     = ($signed(allpass3R_in)      * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         ap3R_back     = ($signed(allpass3R_delayed) * $signed({1'b0, ALLPASS_COEF})) >>> 8;
         allpass3R_out = sat16(-ap3R_feed + $signed(allpass3R_delayed) + ap3R_back);
