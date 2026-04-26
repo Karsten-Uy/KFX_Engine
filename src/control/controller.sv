@@ -153,9 +153,9 @@ module controller (
     //
     // Counter must be at least 20 bits (2^20 = 1 048 576 > 1 000 000).
     // ----------------------------------------------------------------
-
-    localparam int BANK_FADE_CYCLES = 26_000_000;  // 24000 samples + margin
-    localparam int BANK_MUTE_CYCLES = 27_000_000;  // +20 ms after BRAM fully zeroed
+    
+    localparam int BANK_FADE_CYCLES = 5_300_000;  // ~106 ms total
+    localparam int BANK_MUTE_CYCLES = 5_500_000;  // +4 ms IIR settling after flip
     // 27-bit counter already covers this (2^27 = 134M)
 
     // ----------------------------------------------------------------

@@ -152,9 +152,9 @@ module fx_delay #(
             // Wet/dry mix (unchanged)
             wet_signal[i] = $signed(delayed[i]);
             dry_signal[i] = $signed(audio_in[i]);
-            mixed[i]      = dry_signal[i] +
-                            (((wet_signal[i] - dry_signal[i]) *
-                            $signed({1'b0, fx_mix})) >>> 8);
+            mixed[i] = flush ? dry_signal[i]
+                             : dry_signal[i] + (((wet_signal[i] - dry_signal[i])
+                             * $signed({1'b0, fx_mix})) >>> 8);
         end
     end
 

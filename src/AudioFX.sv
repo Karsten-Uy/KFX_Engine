@@ -161,10 +161,6 @@ module AudioFX (
     // Potentiometer ADC
     logic [11:0] pot_value;
 
-    // Pop Prevention
-    logic fx_flush;
-    assign fx_flush = (fade_state == ST_FADE_OUT) || (fade_state == ST_MUTED);
-
     // ----------------------------------------------------------------
     // Audio Hardware IPs
     // ----------------------------------------------------------------
@@ -350,12 +346,17 @@ module AudioFX (
     `ifndef NO_DSP
 
         // Guitar is mono: duplicate left ADC channel to both stereo lanes
-        logic [DATA_W-1:0] adc_gated;
-        assign adc_gated = (fade_state == ST_FADE_OUT || fade_state == ST_MUTED)
-                        ? '0 : ADC_Data[0];
-        assign pre_fx[0] = adc_gated;
-        assign pre_fx[1] = adc_gated;
+        assign pre_fx[0] = ADC_Data[0];
+        assign pre_fx[1] = ADC_Data[0];
 
+        // 1. Move fx_flush here (was wrongly outside ifndef), change to ST_MUTED only:
+        logic fx_flush;
+        assign fx_flush = (fade_state == ST_MUTED);   // was: ST_FADE_OUT || ST_MUTED
+
+        // 2. Add iir_reset_n for flip-flop-only modules:
+        logic iir_reset_n;
+        assign iir_reset_n = KEY[0] && (fade_state != ST_MUTED);
+        
         // ---- Tuner Engine ----------------------------------------
         tuner_yin_engine TUNER (
             .clk        (CLOCK_50),
@@ -599,7 +600,7 @@ module AudioFX (
             .reset_n    (fx_reset_n),         // <-- FIX 2
             .audio_in   (gain_expression_out),
             .audio_out  (delay_out),
-            .flush      (flush),
+            .flush      (fx_flush),
             .fx_time    (params[8][0]),
             .fx_feedback(params[8][1]),
             .fx_mix     (params[8][7]),
@@ -614,7 +615,7 @@ module AudioFX (
             .reset_n   (fx_reset_n),          // <-- FIX 2
             .audio_in  (delay_out),
             .audio_out (reverb_out),
-            .flush      (flush),
+            .flush     (fx_flush),
             .fx_size   (params[9][0]),
             .fx_damping(params[9][1]),
             .fx_mix    (params[9][7]),
