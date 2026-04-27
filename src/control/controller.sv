@@ -159,7 +159,7 @@ module controller (
     // Counter is 27 bits (2^27 = 134M > 6_300_000).
     // ----------------------------------------------------------------
 
-    localparam int BANK_FADE_CYCLES = 300_000;    // ~6 ms — flip bank_sel right after fade-out
+    localparam int BANK_FADE_CYCLES = 1_000_000;  // ~20 ms — comfortably past the 5.3 ms ramp
     localparam int BANK_MUTE_CYCLES = 6_300_000;  // ~126 ms total — full mute window
 
     // ----------------------------------------------------------------

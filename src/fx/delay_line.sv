@@ -45,6 +45,7 @@ module delay_line #(
 
     logic [ADDR_W-1:0]        write_ptr;
     logic [ADDR_W-1:0]        read_ptr;
+    logic [ADDR_W-1:0]        clear_addr;
     logic signed [DATA_W-1:0] ram_out;
 
     // ----------------------------------------------------------------
@@ -63,30 +64,50 @@ module delay_line #(
     end
 
     // ----------------------------------------------------------------
-    // Synchronous RAM Access  (one-cycle read latency)
+    // BRAM access + reset-time self-clear
+    //
+    // While reset_n is asserted (low), a counter walks every address
+    // writing 0, completing one full pass in MAX_DELAY_SAMPLES clocks
+    // (≤ ~0.48 ms at 50 MHz for the largest 24k buffer).  This is
+    // necessary because pointer-only resets leave stale audio in BRAM,
+    // which the read pointer hits as soon as reset releases — that
+    // residual is what causes the post-bank-switch buzz in feedback
+    // effects (delay/reverb).  Reset is held throughout ST_MUTED
+    // (~120 ms), so the clear pass always completes well before audio
+    // resumes.
+    //
+    // During normal operation (reset_n high, sample_en pulse), the
+    // module behaves exactly as before: write data_in at write_ptr,
+    // capture buffer[read_ptr] into ram_out, advance write_ptr.
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
-        if (sample_en) begin
+        if (!reset_n) begin
+            buffer[clear_addr] <= '0;
+            ram_out            <= '0;
+        end else if (sample_en) begin
             buffer[write_ptr] <= data_in;
             ram_out           <= buffer[read_ptr];
         end
     end
 
     // ----------------------------------------------------------------
-    // Write Pointer + Output Register
+    // Pointers + Output Register
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            write_ptr <= '0;
-            data_out  <= '0;
+            write_ptr  <= '0;
+            data_out   <= '0;
+            clear_addr <= (clear_addr == ADDR_W'(MAX_DELAY_SAMPLES - 1))
+                          ? '0
+                          : clear_addr + 1'b1;
         end else if (sample_en) begin
             // Zero delay: bypass the RAM and pass through immediately
             data_out <= (delay_samples == '0) ? data_in : ram_out;
 
-            write_ptr <= (write_ptr >= MAX_DELAY_SAMPLES - 1) ? '0
-                                                               : write_ptr + 1'b1;
+            write_ptr <= (write_ptr >= ADDR_W'(MAX_DELAY_SAMPLES - 1)) ? '0
+                                                                       : write_ptr + 1'b1;
         end
     end
 
