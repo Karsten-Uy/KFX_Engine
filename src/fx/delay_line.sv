@@ -48,6 +48,15 @@ module delay_line #(
     logic [ADDR_W-1:0]        clear_addr;
     logic signed [DATA_W-1:0] ram_out;
 
+    // BRAM port muxes — combinational selection of write address/data
+    // between the reset-time clear walk and normal sample_en writes.
+    // Splitting the write-mux out of the always_ff lets Quartus infer
+    // a clean simple-dual-port M10K (one write port + one read port)
+    // with the mux as a few LUTs in front of the write address/data.
+    logic [ADDR_W-1:0]        bram_wr_addr;
+    logic signed [DATA_W-1:0] bram_wr_data;
+    logic                     bram_we;
+
     // ----------------------------------------------------------------
     // Read Address Calculation
     //
@@ -64,31 +73,45 @@ module delay_line #(
     end
 
     // ----------------------------------------------------------------
-    // BRAM access + reset-time self-clear
+    // Write-Port Mux  (combinational)
     //
-    // While reset_n is asserted (low), a counter walks every address
-    // writing 0, completing one full pass in MAX_DELAY_SAMPLES clocks
-    // (≤ ~0.48 ms at 50 MHz for the largest 24k buffer).  This is
-    // necessary because pointer-only resets leave stale audio in BRAM,
-    // which the read pointer hits as soon as reset releases — that
-    // residual is what causes the post-bank-switch buzz in feedback
-    // effects (delay/reverb).  Reset is held throughout ST_MUTED
-    // (~120 ms), so the clear pass always completes well before audio
-    // resumes.
+    // While reset_n is asserted, walk every address writing 0 — one
+    // address per clock, completing a full pass in MAX_DELAY_SAMPLES
+    // clocks (≤ 0.48 ms at 50 MHz).  ST_MUTED is held ~120 ms, so the
+    // walk always finishes before audio resumes.  This clears stale
+    // BRAM that would otherwise be picked up by read_ptr the instant
+    // fade-in begins (the post-bank-switch buzz in feedback effects).
     //
-    // During normal operation (reset_n high, sample_en pulse), the
-    // module behaves exactly as before: write data_in at write_ptr,
-    // capture buffer[read_ptr] into ram_out, advance write_ptr.
+    // Outside reset, the write port behaves exactly as before:
+    // data_in is written at write_ptr on each sample_en pulse.
+    // ----------------------------------------------------------------
+
+    always_comb begin
+        if (!reset_n) begin
+            bram_wr_addr = clear_addr;
+            bram_wr_data = '0;
+            bram_we      = 1'b1;
+        end else begin
+            bram_wr_addr = write_ptr;
+            bram_wr_data = data_in;
+            bram_we      = sample_en;
+        end
+    end
+
+    // ----------------------------------------------------------------
+    // BRAM Write Port  (clean inference target)
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
-        if (!reset_n) begin
-            buffer[clear_addr] <= '0;
-            ram_out            <= '0;
-        end else if (sample_en) begin
-            buffer[write_ptr] <= data_in;
-            ram_out           <= buffer[read_ptr];
-        end
+        if (bram_we) buffer[bram_wr_addr] <= bram_wr_data;
+    end
+
+    // ----------------------------------------------------------------
+    // BRAM Read Port  (registered, one-cycle latency)
+    // ----------------------------------------------------------------
+
+    always_ff @(posedge clk) begin
+        if (sample_en) ram_out <= buffer[read_ptr];
     end
 
     // ----------------------------------------------------------------
