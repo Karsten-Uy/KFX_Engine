@@ -345,13 +345,19 @@ module AudioFX (
 
     `ifndef NO_DSP
 
-        // Guitar is mono: duplicate left ADC channel to both stereo lanes
-        assign pre_fx[0] = ADC_Data[0];
-        assign pre_fx[1] = ADC_Data[0];
+        // Hold chain input at zero throughout ST_MUTED so that delay/reverb
+        // BRAM cells touched by write_ptr (after the post-flip reset releases)
+        // are silent.  See plan: prevents stale-audio recirculation when the
+        // new bank's coefficients reposition the comb read pointers.
+        logic chain_muted;
+        assign chain_muted = (fade_state == ST_MUTED);
 
-        // 1. Move fx_flush here (was wrongly outside ifndef), change to ST_MUTED only:
+        // Guitar is mono: duplicate left ADC channel to both stereo lanes
+        assign pre_fx[0] = chain_muted ? '0 : ADC_Data[0];
+        assign pre_fx[1] = chain_muted ? '0 : ADC_Data[0];
+
         logic fx_flush;
-        assign fx_flush = (fade_state == ST_MUTED);   // was: ST_FADE_OUT || ST_MUTED
+        assign fx_flush = (fade_state == ST_MUTED);
 
         // ---- Tuner Engine ----------------------------------------
         tuner_yin_engine TUNER (
@@ -432,8 +438,7 @@ module AudioFX (
         // Because ramp_vol is already 0 before this asserts, the DAC sees
         // no discontinuity.
         logic fx_reset_n;
-        // assign fx_reset_n = KEY[0] && (fade_state != ST_MUTED);
-        assign fx_reset_n = KEY[0];
+        assign fx_reset_n = KEY[0] && (fade_state != ST_MUTED);
 
         // ---- FIX 1: Soft-mute FSM clocked on ADC_Valid[0] -----------
         // Previously clocked on sample_en_pipe[FX_STAGES-1] which is
@@ -498,7 +503,7 @@ module AudioFX (
         // ---- FX 1: Noise Gate ----------------------------------------
         fx_gate #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_GATE (
             .clk          (CLOCK_50),
-            .reset_n      (KEY[0]),   
+            .reset_n      (fx_reset_n),
             .audio_in     (gain_in_out),
             .audio_out    (gate_out),
             .fx_threshold (params[1][0]),
@@ -512,7 +517,7 @@ module AudioFX (
         // ---- FX 2: EQ 1  (pre-distortion) ---------------------------
         fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_1 (
             .clk         (CLOCK_50),
-            .reset_n     (KEY[0]),    
+            .reset_n     (fx_reset_n),
             .audio_in    (gate_out),
             .audio_out   (eq_out_1),
             .fx_sub_gain (params[2][0]),
@@ -525,7 +530,7 @@ module AudioFX (
         // ---- FX 3: Compressor ----------------------------------------
         fx_compressor #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_COMPRESSOR (
             .clk           (CLOCK_50),
-            .reset_n       (KEY[0]),  
+            .reset_n       (fx_reset_n),
             .audio_in      (eq_out_1),
             .audio_out     (comp_out),
             .fx_threshold  (params[3][0]),
@@ -541,7 +546,7 @@ module AudioFX (
         // ---- FX 4: Distortion ----------------------------------------
         fx_distortion #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DISTORTION (
             .clk           (CLOCK_50),
-            .reset_n       (KEY[0]),  
+            .reset_n       (fx_reset_n),
             .audio_in      (comp_out),
             .audio_out     (dist_out),
             .fx_drive      (params[4][0]),
@@ -558,7 +563,7 @@ module AudioFX (
         // ---- FX 5: EQ 2  (post-distortion) --------------------------
         fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_2 (
             .clk         (CLOCK_50),
-            .reset_n     (KEY[0]),    
+            .reset_n     (fx_reset_n),
             .audio_in    (dist_out),
             .audio_out   (eq_out_2),
             .fx_sub_gain (params[5][0]),
@@ -571,7 +576,7 @@ module AudioFX (
         // ---- FX 6: Chorus --------------------------------------------
         fx_chorus #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_CHORUS (
             .clk      (CLOCK_50),
-            .reset_n  (KEY[0]),       
+            .reset_n  (fx_reset_n),
             .audio_in (eq_out_2),
             .audio_out(chorus_out),
             .fx_rate  (params[6][0]),

@@ -143,20 +143,24 @@ module controller (
     // Bank-Switching Timing
     //
     //   BANK_FADE_CYCLES — end of Phase 1 / start of Phase 2.
-    //     Must be > (256 ramp steps × 50 MHz / 48 kHz) ≈ 266 752 cycles.
-    //     300 000 gives ~12 % headroom.
+    //     Must be > (256 ramp steps × 50 MHz / 48 kHz) ≈ 266 752 cycles
+    //     so that ramp_vol has reached 0 (and fade_state == ST_MUTED) by
+    //     the time bank_sel flips.  300 000 gives ~12 % headroom = ~6 ms.
     //
     //   BANK_MUTE_CYCLES — end of Phase 2 / release of bank_switching.
-    //     700 000 cycle hold = ~14 ms.  Long enough for any biquad IIR
-    //     (even high-Q) to ring down to inaudible levels.
-    //     Total window = 1 000 000 cycles ≈ 20 ms.
+    //     Hold ST_MUTED long enough that:
+    //       (a) delay/reverb BRAM regions a write_ptr touches under reset
+    //           are filled with the silenced chain input, and
+    //       (b) any IIR state in the rest of the chain (now also reset)
+    //           settles before fade-in.
+    //     ~120 ms hold is overkill for biquads but covers the longest
+    //     comb-delay loops in the reverb.
     //
-    // Counter must be at least 20 bits (2^20 = 1 048 576 > 1 000 000).
+    // Counter is 27 bits (2^27 = 134M > 6_300_000).
     // ----------------------------------------------------------------
-    
-    localparam int BANK_FADE_CYCLES = 5_300_000;  // ~106 ms total
-    localparam int BANK_MUTE_CYCLES = 6_300_000;  // +4 ms IIR settling after flip
-    // 27-bit counter already covers this (2^27 = 134M)
+
+    localparam int BANK_FADE_CYCLES = 300_000;    // ~6 ms — flip bank_sel right after fade-out
+    localparam int BANK_MUTE_CYCLES = 6_300_000;  // ~126 ms total — full mute window
 
     // ----------------------------------------------------------------
     // Internal Signals
