@@ -125,8 +125,9 @@ module AudioFX (
     // Sample-enable shift register
     logic [FX_STAGES-1:0] sample_en_pipe;
 
-    // Tuner
-    logic [11:0] tuner_best_lag;
+    // Tuner — Q12.4 lag (12 integer samples + 4 fractional bits from
+    // parabolic interpolation around the YIN minimum)
+    logic [15:0] tuner_best_lag;
     logic        tuner_valid;
 
     // Flash Avalon-MM buses (avl_mem)
@@ -383,8 +384,8 @@ module AudioFX (
             .reset_n    (KEY[0]),
             .audio_in   (ADC_Data[0]),
             .sample_en  (ADC_Valid[0]),
-            .best_lag_out(tuner_best_lag),
-            .data_valid (tuner_valid)
+            .best_lag_q4_out(tuner_best_lag),
+            .data_valid     (tuner_valid)
         );
 
         // ---- Sample-Enable Pipeline ----------------------------------
