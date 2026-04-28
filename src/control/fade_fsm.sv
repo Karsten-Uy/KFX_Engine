@@ -1,5 +1,5 @@
 /*
- * fade_ctrl.sv
+ * fade_fsm.sv
  *
  * Soft-mute / fade-in / fade-out FSM that drives the chain-input
  * scale and the DAC output scale during bank switches and footswitch
@@ -159,10 +159,10 @@ module fade_fsm #(
                     end
                 end
 
-                default: begin
-                    fade_in_div <= '0;
-                    ramp_vol    <= 9'd256;
-                end
+                // ST_UNMUTED + ST_MUTED: ramp_vol holds its current value
+                // (256 in UNMUTED, 0 in MUTED).  No assignment = flop-with-enable
+                // inferred; this is NOT a latch because we are inside always_ff.
+                default: fade_in_div <= '0;
             endcase
         end
     end
