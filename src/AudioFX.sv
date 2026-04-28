@@ -345,16 +345,21 @@ module AudioFX (
 
     `ifndef NO_DSP
 
-        // Hold chain input at zero throughout ST_MUTED so that delay/reverb
-        // BRAM cells touched by write_ptr (after the post-flip reset releases)
-        // are silent.  See plan: prevents stale-audio recirculation when the
-        // new bank's coefficients reposition the comb read pointers.
-        logic chain_muted;
-        assign chain_muted = (fade_state == ST_MUTED);
+        // Apply the same ramp_vol curve at the CHAIN INPUT, not just the
+        // DAC output.  Without this, ST_MUTED→ST_FADE_IN flipped pre_fx
+        // from 0 to full audio in one cycle: that step propagated into the
+        // reverb combs and surfaced ~30 ms later as a crackle when the
+        // first echo recirculated through the now-warm feedback path.
+        // Scaling at both ends gives a smooth (slightly "S"-shaped)
+        // fade and guarantees the chain never sees a discontinuity.
+        // Concatenating 1'b0 prevents the multiplier from misinterpreting
+        // ramp_vol = 256 (9'h100) as a negative signed number.
+        logic signed [DATA_W+8:0] pre_fx_scaled;
+        assign pre_fx_scaled = $signed(ADC_Data[0]) * $signed({1'b0, ramp_vol});
 
         // Guitar is mono: duplicate left ADC channel to both stereo lanes
-        assign pre_fx[0] = chain_muted ? '0 : ADC_Data[0];
-        assign pre_fx[1] = chain_muted ? '0 : ADC_Data[0];
+        assign pre_fx[0] = pre_fx_scaled[DATA_W+7:8];
+        assign pre_fx[1] = pre_fx_scaled[DATA_W+7:8];
 
         logic fx_flush;
         assign fx_flush = (fade_state == ST_MUTED);
