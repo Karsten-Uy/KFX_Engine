@@ -345,21 +345,27 @@ module AudioFX (
 
     `ifndef NO_DSP
 
-        // Apply the same ramp_vol curve at the CHAIN INPUT, not just the
-        // DAC output.  Without this, ST_MUTED→ST_FADE_IN flipped pre_fx
-        // from 0 to full audio in one cycle: that step propagated into the
-        // reverb combs and surfaced ~30 ms later as a crackle when the
-        // first echo recirculated through the now-warm feedback path.
-        // Scaling at both ends gives a smooth (slightly "S"-shaped)
-        // fade and guarantees the chain never sees a discontinuity.
+        // Apply ramp_vol smoothing at the CHAIN INPUT only during the
+        // fade transitions; in ST_UNMUTED, pass ADC_Data through
+        // directly so the multiplier is fully bypassed in the steady-
+        // state audio path.  This avoids any DSP-block routing noise
+        // that would otherwise be amplified by high-gain banks (the
+        // multiplier was injecting low-level hiss visible at the
+        // amplified output even though the math is bit-exact at
+        // ramp_vol = 256).
         // Concatenating 1'b0 prevents the multiplier from misinterpreting
         // ramp_vol = 256 (9'h100) as a negative signed number.
         logic signed [DATA_W+8:0] pre_fx_scaled;
         assign pre_fx_scaled = $signed(ADC_Data[0]) * $signed({1'b0, ramp_vol});
 
-        // Guitar is mono: duplicate left ADC channel to both stereo lanes
-        assign pre_fx[0] = pre_fx_scaled[DATA_W+7:8];
-        assign pre_fx[1] = pre_fx_scaled[DATA_W+7:8];
+        // Guitar is mono: duplicate left ADC channel to both stereo lanes.
+        // Direct passthrough in steady state, scaled during fade in/out.
+        assign pre_fx[0] = (fade_state == ST_UNMUTED)
+                           ? ADC_Data[0]
+                           : pre_fx_scaled[DATA_W+7:8];
+        assign pre_fx[1] = (fade_state == ST_UNMUTED)
+                           ? ADC_Data[0]
+                           : pre_fx_scaled[DATA_W+7:8];
 
         logic fx_flush;
         assign fx_flush = (fade_state == ST_MUTED);
