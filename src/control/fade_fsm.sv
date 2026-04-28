@@ -50,7 +50,7 @@
  *   controller_fsm.sv organisation.
  */
 
-module fade_ctrl #(
+module fade_fsm #(
     parameter int FADE_IN_DIV = 4
 )(
     input  logic       clk,
