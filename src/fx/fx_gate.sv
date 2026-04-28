@@ -201,17 +201,34 @@ module fx_gate #(
 
     // ----------------------------------------------------------------
     // 8. Apply Gain to Both Channels  (Q0.16 multiply)
+    //
+    // True bypass when fx_threshold == 0 && fx_knee == 0: in that case
+    // gate_open is true for all input (since abs_in >= 0), gain_target
+    // stays at 0xFFFF, and the multiplier just truncates 1 LSB off every
+    // positive sample for no benefit — that floor-rounding bias is the
+    // signal-correlated quantization noise we hear in the chain.
+    //
+    // For non-bypass cases, round-to-nearest the multiplier output (add
+    // bit 15, the half-LSB, before discarding the bottom 16 bits) so the
+    // attenuated samples don't carry a one-sided rounding bias.
     // ----------------------------------------------------------------
+
+    logic gate_bypass;
+    assign gate_bypass = (fx_threshold == '0) && (fx_knee == '0);
 
     generate
         genvar ch;
         for (ch = 0; ch < 2; ch++) begin : APPLY_GAIN
-            logic signed [DATA_W-1:0]  ch_in;
-            logic signed [DATA_W+16:0] ch_product;
+            logic signed [DATA_W-1:0]   ch_in;
+            logic signed [DATA_W+16:0]  ch_product;
+            logic signed [DATA_W+16:0]  ch_rounded;
 
-            assign ch_in        = $signed(audio_in[ch]);
-            assign ch_product   = ch_in * $signed({1'b0, gain});
-            assign audio_out[ch] = ch_product[DATA_W+16-1 : 16];
+            assign ch_in       = $signed(audio_in[ch]);
+            assign ch_product  = ch_in * $signed({1'b0, gain});
+            assign ch_rounded  = ch_product + 33'sd32768;  // +0.5 LSB
+            assign audio_out[ch] = gate_bypass
+                                   ? audio_in[ch]
+                                   : ch_rounded[DATA_W+16-1 : 16];
         end
     endgenerate
 

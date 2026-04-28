@@ -274,13 +274,18 @@ module fx_distortion #(
 
     // -----------------------------------------------------------------------
     // OUTPUT
+    //
+    // True bypass when fx_mix == 0.  Without this the cabinet IIR (cab1/cab2)
+    // runs continuously and accumulates per-pole truncation noise even on
+    // banks that don't use distortion — and at high fx_tone the cabinet
+    // coefficient (safe_tone/256) exceeds 1.0 and amplifies upstream noise.
     // -----------------------------------------------------------------------
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
             for (int i = 0; i < 2; i++)
-                audio_out[i] <= cab2_n[i];
+                audio_out[i] <= (fx_mix == '0) ? audio_in[i] : cab2_n[i];
         end
     end
 

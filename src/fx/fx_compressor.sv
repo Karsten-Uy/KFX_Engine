@@ -246,25 +246,34 @@ module fx_compressor #(
     always_ff @(posedge clk or negedge reset_n) begin : apply_gain_ff
         if (!reset_n) audio_out <= '0;
         else if (sample_en) begin
-            // Dry: delayed pre-compression signal
-            dry_l = audio_lookahead[LOOKAHEAD_SAMPLES-1][0];
-            dry_r = audio_lookahead[LOOKAHEAD_SAMPLES-1][1];
+            if (fx_mix == '0) begin
+                // True bypass: skip input-gain register, lookahead delay,
+                // and all the wet-path multiplies.  Eliminates LOOKAHEAD+1
+                // sample latency and the input-gain truncation when the
+                // user has the compressor effectively disabled.
+                audio_out[0] <= audio_in[0];
+                audio_out[1] <= audio_in[1];
+            end else begin
+                // Dry: delayed pre-compression signal
+                dry_l = audio_lookahead[LOOKAHEAD_SAMPLES-1][0];
+                dry_r = audio_lookahead[LOOKAHEAD_SAMPLES-1][1];
 
-            // Wet: apply compression gain (Q0.15, >>15) then makeup gain (>>6, unity=64)
-            p_l = $signed(dry_l) * $signed({1'b0, gain_smooth});
-            p_r = $signed(dry_r) * $signed({1'b0, gain_smooth});
-            m_l = (p_l >>> 15) * $signed({1'b0, fx_makeup_gain});
-            m_r = (p_r >>> 15) * $signed({1'b0, fx_makeup_gain});
-            wet_l = (m_l >>> 6 > 32767)  ? 16'h7FFF : (m_l >>> 6 < -32768) ? 16'h8000 : m_l[15+6:6];
-            wet_r = (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
+                // Wet: apply compression gain (Q0.15, >>15) then makeup gain (>>6, unity=64)
+                p_l = $signed(dry_l) * $signed({1'b0, gain_smooth});
+                p_r = $signed(dry_r) * $signed({1'b0, gain_smooth});
+                m_l = (p_l >>> 15) * $signed({1'b0, fx_makeup_gain});
+                m_r = (p_r >>> 15) * $signed({1'b0, fx_makeup_gain});
+                wet_l = (m_l >>> 6 > 32767)  ? 16'h7FFF : (m_l >>> 6 < -32768) ? 16'h8000 : m_l[15+6:6];
+                wet_r = (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
 
-            // Blend: dry + (wet - dry) * mix / 256
-            // mix=0 → exact unity dry, mix=255 → ~99.6% wet
-            mixed_l = $signed(dry_l) + ((($signed(wet_l) - $signed(dry_l)) * $signed({1'b0, fx_mix})) >>> 8);
-            mixed_r = $signed(dry_r) + ((($signed(wet_r) - $signed(dry_r)) * $signed({1'b0, fx_mix})) >>> 8);
+                // Blend: dry + (wet - dry) * mix / 256
+                // mix=0 → exact unity dry, mix=255 → ~99.6% wet
+                mixed_l = $signed(dry_l) + ((($signed(wet_l) - $signed(dry_l)) * $signed({1'b0, fx_mix})) >>> 8);
+                mixed_r = $signed(dry_r) + ((($signed(wet_r) - $signed(dry_r)) * $signed({1'b0, fx_mix})) >>> 8);
 
-            audio_out[0] <= sat16(mixed_l);
-            audio_out[1] <= sat16(mixed_r);
+                audio_out[0] <= sat16(mixed_l);
+                audio_out[1] <= sat16(mixed_r);
+            end
         end
     end
 
