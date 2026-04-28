@@ -430,6 +430,15 @@ module AudioFX (
 
         logic [8:0] ramp_vol;   // 0–256 (256 = unity gain)
 
+        // Fade-in slow-down divider.  Fade-out advances ramp_vol every
+        // sample (5.3 ms ramp) so the pre-mute snap is tight, but
+        // fade-in advances only every Nth sample so the BRAM-fill region
+        // that delay/reverb later recirculate is gentle.  N = 4 → 21 ms.
+        // Without this, the 5.3 ms attack region in the delay BRAM gets
+        // re-emitted every delay_time as a "pop" through feedback.
+        localparam int FADE_IN_DIV = 4;
+        logic [$clog2(FADE_IN_DIV)-1:0] fade_in_div;
+
         typedef enum logic [1:0] {
             ST_UNMUTED,
             ST_FADE_OUT,
@@ -450,20 +459,23 @@ module AudioFX (
         // gated by chain_warm — fixed by using ADC_Valid[0] directly.
         always_ff @(posedge CLOCK_50 or negedge KEY[0]) begin
             if (!KEY[0]) begin
-                fade_state <= ST_UNMUTED;
-                ramp_vol   <= 9'd256;
+                fade_state  <= ST_UNMUTED;
+                ramp_vol    <= 9'd256;
+                fade_in_div <= '0;
             end else if (ADC_Valid[0]) begin   // <-- FIX 1: was sample_en_pipe[FX_STAGES-1]
                 case (fade_state)
                     ST_UNMUTED: begin
                         if (mute_req) begin
-                            fade_state <= ST_FADE_OUT;
-                            ramp_vol   <= ramp_vol - 1'b1;
+                            fade_state  <= ST_FADE_OUT;
+                            ramp_vol    <= ramp_vol - 1'b1;
+                            fade_in_div <= '0;
                         end
                     end
                     ST_FADE_OUT: begin
                         if (!mute_req) begin
-                            fade_state <= ST_FADE_IN;
-                            ramp_vol   <= ramp_vol + 1'b1;
+                            fade_state  <= ST_FADE_IN;
+                            ramp_vol    <= ramp_vol + 1'b1;
+                            fade_in_div <= '0;
                         end else if (ramp_vol == 9'd0) begin
                             fade_state <= ST_MUTED;   // fx_reset_n drops here
                         end else begin
@@ -474,8 +486,9 @@ module AudioFX (
                         // fx_reset_n = 0 while we stay here; FX modules
                         // hold reset until mute_req releases.
                         if (!mute_req) begin
-                            fade_state <= ST_FADE_IN;
-                            ramp_vol   <= ramp_vol + 1'b1;
+                            fade_state  <= ST_FADE_IN;
+                            ramp_vol    <= ramp_vol + 1'b1;
+                            fade_in_div <= '0;
                             // fx_reset_n rises on the same edge as we
                             // leave ST_MUTED, so FX modules come out of
                             // reset exactly as the fade-in begins.
@@ -483,12 +496,16 @@ module AudioFX (
                     end
                     ST_FADE_IN: begin
                         if (mute_req) begin
-                            fade_state <= ST_FADE_OUT;
-                            ramp_vol   <= ramp_vol - 1'b1;
+                            fade_state  <= ST_FADE_OUT;
+                            ramp_vol    <= ramp_vol - 1'b1;
+                            fade_in_div <= '0;
                         end else if (ramp_vol == 9'd256) begin
                             fade_state <= ST_UNMUTED;
+                        end else if (fade_in_div == FADE_IN_DIV - 1) begin
+                            fade_in_div <= '0;
+                            ramp_vol    <= ramp_vol + 1'b1;
                         end else begin
-                            ramp_vol <= ramp_vol + 1'b1;
+                            fade_in_div <= fade_in_div + 1'b1;
                         end
                     end
                 endcase
@@ -508,7 +525,7 @@ module AudioFX (
         // ---- FX 1: Noise Gate ----------------------------------------
         fx_gate #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_GATE (
             .clk          (CLOCK_50),
-            .reset_n      (fx_reset_n),
+            .reset_n      (KEY[0]),
             .audio_in     (gain_in_out),
             .audio_out    (gate_out),
             .fx_threshold (params[1][0]),
@@ -522,7 +539,7 @@ module AudioFX (
         // ---- FX 2: EQ 1  (pre-distortion) ---------------------------
         fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_1 (
             .clk         (CLOCK_50),
-            .reset_n     (fx_reset_n),
+            .reset_n     (KEY[0]),
             .audio_in    (gate_out),
             .audio_out   (eq_out_1),
             .fx_sub_gain (params[2][0]),
@@ -535,7 +552,7 @@ module AudioFX (
         // ---- FX 3: Compressor ----------------------------------------
         fx_compressor #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_COMPRESSOR (
             .clk           (CLOCK_50),
-            .reset_n       (fx_reset_n),
+            .reset_n       (KEY[0]),
             .audio_in      (eq_out_1),
             .audio_out     (comp_out),
             .fx_threshold  (params[3][0]),
@@ -551,7 +568,7 @@ module AudioFX (
         // ---- FX 4: Distortion ----------------------------------------
         fx_distortion #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_DISTORTION (
             .clk           (CLOCK_50),
-            .reset_n       (fx_reset_n),
+            .reset_n       (KEY[0]),
             .audio_in      (comp_out),
             .audio_out     (dist_out),
             .fx_drive      (params[4][0]),
@@ -568,7 +585,7 @@ module AudioFX (
         // ---- FX 5: EQ 2  (post-distortion) --------------------------
         fx_eq #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EQ_2 (
             .clk         (CLOCK_50),
-            .reset_n     (fx_reset_n),
+            .reset_n     (KEY[0]),
             .audio_in    (dist_out),
             .audio_out   (eq_out_2),
             .fx_sub_gain (params[5][0]),
@@ -581,7 +598,7 @@ module AudioFX (
         // ---- FX 6: Chorus --------------------------------------------
         fx_chorus #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_CHORUS (
             .clk      (CLOCK_50),
-            .reset_n  (fx_reset_n),
+            .reset_n  (KEY[0]),
             .audio_in (eq_out_2),
             .audio_out(chorus_out),
             .fx_rate  (params[6][0]),
