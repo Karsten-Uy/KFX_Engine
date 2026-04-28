@@ -1,29 +1,24 @@
 /*
- * AudioFX.sv  —  FIXED (pop + reverb-buzz)
+ * AudioFX.sv
  *
- * Fix 1 — Pop (ramp FSM stall)
- *   The fade FSM previously advanced only on sample_en_pipe[FX_STAGES-1],
- *   which is gated by chain_warm.  Before chain_warm asserts (65 535
- *   samples after reset) the FSM could stall mid-fade and produce a pop
- *   when audio finally began.  The FSM now advances on ADC_Valid[0],
- *   which is unconditional once the codec is running.
+ * Top-level for the FX pedal.  Wires the WM8731 codec, the parameter
+ * controller, the FX chain, and the soft-mute fade FSM together.
  *
- * Fix 2 — Reverb / delay buzz after bank switch
- *   When bank_sel flips at BANK_FADE_CYCLES the reverb comb-delay lengths
- *   change combinationally.  The read pointer (write_ptr - delay_samples)
- *   jumps to an arbitrary buffer position, injecting a discontinuous
- *   sample that then recirculates through the feedback path (gain ≈ 0.922)
- *   and rings — that's the buzz.  The 14 ms hold window doesn't help
- *   because the feedback loop sustains the glitch indefinitely.
+ * Soft-mute / bank-switch click suppression
+ * -----------------------------------------
+ *   The fade FSM (`fade_fsm`, src/fade_fsm.sv) drives `ramp_vol`,
+ *   `muted`, and `unmuted`.  These three outputs are consumed here:
  *
- *   Fix: assert fx_reset_n = 0 while fade_state == ST_MUTED (ramp_vol is
- *   already 0 so the DAC output is silent).  This re-initialises every
- *   delay pointer, BRAM address, and IIR accumulator to zero before the
- *   new bank's params take effect.  Residual BRAM content is inaudible
- *   because ramp_vol starts from 0 on fade-in and any leaking energy
- *   decays through the (now-reset) feedback path.
- *
- * All other logic is unchanged from the original.
+ *     • DAC output is multiplied by ramp_vol (smooth fade always).
+ *     • Chain input is multiplied by ramp_vol *during transitions
+ *       only*; in steady state it bypasses the multiplier so the
+ *       audio path is bit-exact (avoids DSP-block routing hiss).
+ *     • `fx_reset_n` drops while `muted` is high — clears delay /
+ *       reverb pointers + BRAM (via the self-clearing walk in
+ *       delay_line.sv) so old echo tails don't leak into the new
+ *       bank's feedback paths.
+ *     • `fx_flush` is just `muted`, used by delay/reverb to clamp
+ *       feedback during the muted window.
  */
 
 // `define NO_DSP
@@ -160,6 +155,30 @@ module AudioFX (
 
     // Potentiometer ADC
     logic [11:0] pot_value;
+
+    // Chain warm-up — gates sample_en_pipe[0] until the codec has
+    // produced WARM_UP_SAMPLES valid samples after reset.
+    localparam WARM_UP_SAMPLES = 16'd65535;
+    logic [15:0] warm_ctr;
+    logic        chain_warm;
+
+    // Soft-mute fade FSM (instantiated below as `fade_fsm`)
+    logic        mute_req;
+    logic [8:0]  ramp_vol;       // 0..256 (256 = unity gain)
+    logic        muted;          // ST_MUTED (drives fx_reset_n drop, fx_flush)
+    logic        unmuted;        // ST_UNMUTED (selects direct ADC bypass)
+    logic        fx_reset_n;     // KEY[0] && !muted — fed to delay/reverb
+    logic        fx_flush;       // == muted — clamps feedback in delay/reverb
+
+    // Chain-input scaler — only used during fade transitions.  In steady
+    // state, pre_fx is wired directly from ADC_Data so the multiplier is
+    // fully bypassed (bit-exact audio path, no DSP-block routing hiss).
+    logic signed [DATA_W+8:0] pre_fx_scaled;
+
+    // DAC output scaler — applies ramp_vol smoothly on every clock so
+    // the fade is heard at the speakers regardless of chain state.
+    logic signed [DATA_W+8:0] dac_left_scaled;
+    logic signed [DATA_W+8:0] dac_right_scaled;
 
     // ----------------------------------------------------------------
     // Audio Hardware IPs
@@ -345,30 +364,18 @@ module AudioFX (
 
     `ifndef NO_DSP
 
-        // Apply ramp_vol smoothing at the CHAIN INPUT only during the
-        // fade transitions; in ST_UNMUTED, pass ADC_Data through
-        // directly so the multiplier is fully bypassed in the steady-
-        // state audio path.  This avoids any DSP-block routing noise
-        // that would otherwise be amplified by high-gain banks (the
-        // multiplier was injecting low-level hiss visible at the
-        // amplified output even though the math is bit-exact at
-        // ramp_vol = 256).
         // Concatenating 1'b0 prevents the multiplier from misinterpreting
         // ramp_vol = 256 (9'h100) as a negative signed number.
-        logic signed [DATA_W+8:0] pre_fx_scaled;
         assign pre_fx_scaled = $signed(ADC_Data[0]) * $signed({1'b0, ramp_vol});
 
         // Guitar is mono: duplicate left ADC channel to both stereo lanes.
         // Direct passthrough in steady state, scaled during fade in/out.
-        assign pre_fx[0] = (fade_state == ST_UNMUTED)
-                           ? ADC_Data[0]
-                           : pre_fx_scaled[DATA_W+7:8];
-        assign pre_fx[1] = (fade_state == ST_UNMUTED)
-                           ? ADC_Data[0]
-                           : pre_fx_scaled[DATA_W+7:8];
+        assign pre_fx[0] = unmuted ? ADC_Data[0]
+                                   : pre_fx_scaled[DATA_W+7:8];
+        assign pre_fx[1] = unmuted ? ADC_Data[0]
+                                   : pre_fx_scaled[DATA_W+7:8];
 
-        logic fx_flush;
-        assign fx_flush = (fade_state == ST_MUTED);
+        assign fx_flush = muted;
 
         // ---- Tuner Engine ----------------------------------------
         tuner_yin_engine TUNER (
@@ -381,10 +388,10 @@ module AudioFX (
         );
 
         // ---- Sample-Enable Pipeline ----------------------------------
-        localparam WARM_UP_SAMPLES = 16'd65535;
-        logic [15:0] warm_ctr;
-        logic        chain_warm;
-
+        // Warm-up counter holds sample_en_pipe[0] low for the first
+        // WARM_UP_SAMPLES audio samples after reset, giving codec / PLL
+        // / IIR initial transients time to settle before the chain
+        // starts processing.
         always_ff @(posedge CLOCK_50) begin
             if (!KEY[0]) begin
                 warm_ctr   <= '0;
@@ -408,115 +415,31 @@ module AudioFX (
         end
 
         // ----------------------------------------------------------------
-        // DAC Soft-Mute Ramp + FX Reset
+        // Soft-Mute Fade FSM
         //
-        // mute_req sources: footswitch long-press, FSM busy, bank switching.
+        // mute_req sources: footswitch long-press (is_mute), controller
+        // FSM busy (fsm_busy), and bank switch in progress
+        // (bank_switching).  fade_fsm turns this into ramp_vol (DAC +
+        // chain-input scale) plus muted/unmuted flags consumed below.
         //
-        // FIX 1 — Pop:
-        //   The FSM now advances on ADC_Valid[0] rather than
-        //   sample_en_pipe[FX_STAGES-1].  The pipe-end enable is gated by
-        //   chain_warm, so the old FSM could stall before the chain was warm
-        //   and produce a pop when audio finally began.  ADC_Valid[0] is
-        //   unconditional once the codec is running and always advances the
-        //   ramp at the correct 48 kHz sample rate.
-        //
-        // FIX 2 — Reverb / delay buzz after bank switch:
-        //   fx_reset_n is driven low while fade_state == ST_MUTED.
-        //   At that point ramp_vol == 0 so the DAC output is silent —
-        //   resetting every delay pointer, BRAM address register, and IIR
-        //   accumulator is completely inaudible.  On the subsequent ST_FADE_IN
-        //   ramp_vol climbs from 0, so any residual BRAM content (old echo
-        //   tails) leaks in at negligible amplitude and decays naturally.
-        //   This eliminates the feedback-sustained buzz that the 14 ms hold
-        //   window alone could not suppress.
+        // Clocked on ADC_Valid[0] (not sample_en_pipe[FX_STAGES-1])
+        // because the latter is gated by chain_warm — the FSM must
+        // advance from the very first codec sample so it can never
+        // stall mid-fade.
         // ----------------------------------------------------------------
 
-        logic mute_req;
-        assign mute_req = is_mute || fsm_busy || bank_switching;
+        assign mute_req   = is_mute || fsm_busy || bank_switching;
+        assign fx_reset_n = KEY[0] && !muted;
 
-        logic [8:0] ramp_vol;   // 0–256 (256 = unity gain)
-
-        // Fade-in slow-down divider.  Fade-out advances ramp_vol every
-        // sample (5.3 ms ramp) so the pre-mute snap is tight, but
-        // fade-in advances only every Nth sample so the BRAM-fill region
-        // that delay/reverb later recirculate is gentle.  N = 4 → 21 ms.
-        // Without this, the 5.3 ms attack region in the delay BRAM gets
-        // re-emitted every delay_time as a "pop" through feedback.
-        localparam int FADE_IN_DIV = 4;
-        logic [$clog2(FADE_IN_DIV)-1:0] fade_in_div;
-
-        typedef enum logic [1:0] {
-            ST_UNMUTED,
-            ST_FADE_OUT,
-            ST_MUTED,
-            ST_FADE_IN
-        } fade_state_t;
-        fade_state_t fade_state;
-
-        // ---- FIX 2: FX reset signal ----------------------------------
-        // Low while ST_MUTED; propagates to every FX module's reset_n port.
-        // Because ramp_vol is already 0 before this asserts, the DAC sees
-        // no discontinuity.
-        logic fx_reset_n;
-        assign fx_reset_n = KEY[0] && (fade_state != ST_MUTED);
-
-        // ---- FIX 1: Soft-mute FSM clocked on ADC_Valid[0] -----------
-        // Previously clocked on sample_en_pipe[FX_STAGES-1] which is
-        // gated by chain_warm — fixed by using ADC_Valid[0] directly.
-        always_ff @(posedge CLOCK_50 or negedge KEY[0]) begin
-            if (!KEY[0]) begin
-                fade_state  <= ST_UNMUTED;
-                ramp_vol    <= 9'd256;
-                fade_in_div <= '0;
-            end else if (ADC_Valid[0]) begin   // <-- FIX 1: was sample_en_pipe[FX_STAGES-1]
-                case (fade_state)
-                    ST_UNMUTED: begin
-                        if (mute_req) begin
-                            fade_state  <= ST_FADE_OUT;
-                            ramp_vol    <= ramp_vol - 1'b1;
-                            fade_in_div <= '0;
-                        end
-                    end
-                    ST_FADE_OUT: begin
-                        if (!mute_req) begin
-                            fade_state  <= ST_FADE_IN;
-                            ramp_vol    <= ramp_vol + 1'b1;
-                            fade_in_div <= '0;
-                        end else if (ramp_vol == 9'd0) begin
-                            fade_state <= ST_MUTED;   // fx_reset_n drops here
-                        end else begin
-                            ramp_vol <= ramp_vol - 1'b1;
-                        end
-                    end
-                    ST_MUTED: begin
-                        // fx_reset_n = 0 while we stay here; FX modules
-                        // hold reset until mute_req releases.
-                        if (!mute_req) begin
-                            fade_state  <= ST_FADE_IN;
-                            ramp_vol    <= ramp_vol + 1'b1;
-                            fade_in_div <= '0;
-                            // fx_reset_n rises on the same edge as we
-                            // leave ST_MUTED, so FX modules come out of
-                            // reset exactly as the fade-in begins.
-                        end
-                    end
-                    ST_FADE_IN: begin
-                        if (mute_req) begin
-                            fade_state  <= ST_FADE_OUT;
-                            ramp_vol    <= ramp_vol - 1'b1;
-                            fade_in_div <= '0;
-                        end else if (ramp_vol == 9'd256) begin
-                            fade_state <= ST_UNMUTED;
-                        end else if (fade_in_div == FADE_IN_DIV - 1) begin
-                            fade_in_div <= '0;
-                            ramp_vol    <= ramp_vol + 1'b1;
-                        end else begin
-                            fade_in_div <= fade_in_div + 1'b1;
-                        end
-                    end
-                endcase
-            end
-        end
+        fade_fsm #(.FADE_IN_DIV(4)) FADE (
+            .clk       (CLOCK_50),
+            .reset_n   (KEY[0]),
+            .sample_en (ADC_Valid[0]),
+            .mute_req  (mute_req),
+            .ramp_vol  (ramp_vol),
+            .muted     (muted),
+            .unmuted   (unmuted)
+        );
 
         // ---- FX 0: Input Gain ----------------------------------------
         fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_INPUT_GAIN (
@@ -664,9 +587,6 @@ module AudioFX (
         // ---- DAC Output  (apply ramp_vol) ----------------------------
         // Concatenating 1'b0 prevents the multiplier from misinterpreting
         // ramp_vol = 256 (9'h100) as a negative signed number.
-        logic signed [DATA_W+8:0] dac_left_scaled;
-        logic signed [DATA_W+8:0] dac_right_scaled;
-
         assign dac_left_scaled  = $signed(gain_out_out[0]) * $signed({1'b0, ramp_vol});
         assign dac_right_scaled = $signed(gain_out_out[1]) * $signed({1'b0, ramp_vol});
 
