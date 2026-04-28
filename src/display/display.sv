@@ -113,6 +113,8 @@ module display #(
     logic [4:0] tuner_HEX [5:0];
 
     tuner_display TUNER_DISPLAY (
+        .clk        (clk),
+        .reset_n    (reset_n),
         .best_lag_q4(tuner_lag_latch),  // 0 when silent → shows dashes
         .mode_sel   (SW[9]),
         .tuner_vals (tuner_HEX)

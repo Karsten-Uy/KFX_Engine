@@ -19,34 +19,37 @@
  *
  * Lag-to-frequency conversion
  * ---------------------------
- *   The tuner engine runs at 96 kHz effective sample rate, so
- *     frequency = 96000 / lag_int     (where lag_int = best_lag_q4 >> 4)
+ *   frequency = 96000 / (best_lag_q4 >> 4)
  *
  * Cents computation
  * -----------------
  *   For small offsets,
  *     cents ≈ 1731 · (target_q4 - measured_q4) / target_q4
  *   We avoid a runtime divide by storing per-note  inv_factor_q16  =
- *   round(1731 · 65536 / target_q4)  in the note table, then
+ *   round(1731 · 4096 / target)  in the note table, then
  *     cents = (diff_q4 · inv_factor_q16) >>> 16
  *   Convention: positive cents = sharp, negative = flat.
  *
- * Note lookup
- * -----------
- *   Boundaries placed at the integer-lag midpoint between adjacent
- *   target lags.  Priority order is highest pitch first (smallest lag)
- *   so the first matching condition wins.  Lookup uses the integer
- *   part of best_lag_q4.
+ * Pipeline
+ * --------
+ *   The lookup, multiply, and BCD divides are pushed through three
+ *   pipeline stages (lookup → cents/freq compute → BCD digits).
+ *   Without these registers Quartus has to fit a 17×17 multiplier,
+ *   a 28-way priority MUX, and a chain of constant divisions in
+ *   one combinational web — the fitter time blows up.  At ~50 MHz
+ *   the three-stage delay is 60 ns total, invisible on a 7-segment.
  *
  * Ports
  * -----
- *   best_lag_q4 — 16-bit Q12.4 fundamental period from tuner_yin_engine
- *                 (0 = no signal)
+ *   clk, reset_n
+ *   best_lag_q4 — 16-bit Q12.4 lag from tuner_yin_engine (0 = no signal)
  *   mode_sel    — 0 = note + cents display, 1 = frequency display
  *   tuner_vals  — six 5-bit indices for sevseg_display, [5] = leftmost
  */
 
 module tuner_display (
+    input  logic        clk,
+    input  logic        reset_n,
     input  logic [15:0] best_lag_q4,
     input  logic        mode_sel,
     output logic [4:0]  tuner_vals [5:0]
@@ -55,30 +58,10 @@ module tuner_display (
     import lab_pkg::*;
 
     // ----------------------------------------------------------------
-    // Frequency Calculation  (uses integer part of best_lag_q4)
-    // ----------------------------------------------------------------
-
-    logic [11:0] best_lag_int;
-    logic [20:0] frequency;
-    logic [3:0]  ones, tens, hundreds, thousands;
-
-    assign best_lag_int = best_lag_q4[15:4];
-
-    always_comb begin
-        frequency = (best_lag_int > 12'd0) ? (21'd96000 / {9'b0, best_lag_int}) : 21'd0;
-        thousands = (frequency / 1000) % 10;
-        hundreds  = (frequency / 100)  % 10;
-        tens      = (frequency / 10)   % 10;
-        ones      =  frequency         % 10;
-    end
-
-    // ----------------------------------------------------------------
     // Chromatic Note Table
     //
     //   target          ideal lag (= 96000 / note_hz)
-    //   inv_factor_q16  round(1731 · 65536 / (target · 16))
-    //                   = round(1731 · 4096 / target)
-    //                   used for the cents calculation:
+    //   inv_factor_q16  round(1731 · 4096 / target), used as
     //                     cents = (diff_q4 · inv_factor_q16) >>> 16
     //                   where diff_q4 = (target << 4) - measured_q4
     // ----------------------------------------------------------------
@@ -123,111 +106,175 @@ module tuner_display (
     localparam note_t N_F4  = '{5'd15,          1'b0, 5'd4, 12'd275,  16'd25777};
 
     // ----------------------------------------------------------------
-    // Note Lookup  (uses integer best_lag)
+    // Stage 0  (combinational)
+    //   • Note lookup from integer lag
+    //   • Lag and validity captured for the next stage
     // ----------------------------------------------------------------
 
-    note_t nearest;
+    logic [11:0] best_lag_int;
+    note_t       nearest_c;
+    logic        signal_ok_c;
+
+    assign best_lag_int = best_lag_q4[15:4];
+    assign signal_ok_c  = (best_lag_q4 != 16'd0);
 
     always_comb begin
-        if      (best_lag_int < 12'd283)  nearest = N_F4;
-        else if (best_lag_int < 12'd300)  nearest = N_E4;
-        else if (best_lag_int < 12'd318)  nearest = N_Ds4;
-        else if (best_lag_int < 12'd337)  nearest = N_D4;
-        else if (best_lag_int < 12'd357)  nearest = N_Cs4;
-        else if (best_lag_int < 12'd378)  nearest = N_C4;
-        else if (best_lag_int < 12'd401)  nearest = N_B3;
-        else if (best_lag_int < 12'd424)  nearest = N_As3;
-        else if (best_lag_int < 12'd449)  nearest = N_A3;
-        else if (best_lag_int < 12'd476)  nearest = N_Gs3;
-        else if (best_lag_int < 12'd505)  nearest = N_G3;
-        else if (best_lag_int < 12'd535)  nearest = N_Fs3;
-        else if (best_lag_int < 12'd567)  nearest = N_F3;
-        else if (best_lag_int < 12'd600)  nearest = N_E3;
-        else if (best_lag_int < 12'd636)  nearest = N_Ds3;
-        else if (best_lag_int < 12'd674)  nearest = N_D3;
-        else if (best_lag_int < 12'd714)  nearest = N_Cs3;
-        else if (best_lag_int < 12'd756)  nearest = N_C3;
-        else if (best_lag_int < 12'd801)  nearest = N_B2;
-        else if (best_lag_int < 12'd849)  nearest = N_As2;
-        else if (best_lag_int < 12'd899)  nearest = N_A2;
-        else if (best_lag_int < 12'd953)  nearest = N_Gs2;
-        else if (best_lag_int < 12'd1009) nearest = N_G2;
-        else if (best_lag_int < 12'd1069) nearest = N_Fs2;
-        else if (best_lag_int < 12'd1132) nearest = N_F2;
-        else if (best_lag_int < 12'd1200) nearest = N_E2;
-        else                              nearest = N_Ds2;
+        if      (best_lag_int < 12'd283)  nearest_c = N_F4;
+        else if (best_lag_int < 12'd300)  nearest_c = N_E4;
+        else if (best_lag_int < 12'd318)  nearest_c = N_Ds4;
+        else if (best_lag_int < 12'd337)  nearest_c = N_D4;
+        else if (best_lag_int < 12'd357)  nearest_c = N_Cs4;
+        else if (best_lag_int < 12'd378)  nearest_c = N_C4;
+        else if (best_lag_int < 12'd401)  nearest_c = N_B3;
+        else if (best_lag_int < 12'd424)  nearest_c = N_As3;
+        else if (best_lag_int < 12'd449)  nearest_c = N_A3;
+        else if (best_lag_int < 12'd476)  nearest_c = N_Gs3;
+        else if (best_lag_int < 12'd505)  nearest_c = N_G3;
+        else if (best_lag_int < 12'd535)  nearest_c = N_Fs3;
+        else if (best_lag_int < 12'd567)  nearest_c = N_F3;
+        else if (best_lag_int < 12'd600)  nearest_c = N_E3;
+        else if (best_lag_int < 12'd636)  nearest_c = N_Ds3;
+        else if (best_lag_int < 12'd674)  nearest_c = N_D3;
+        else if (best_lag_int < 12'd714)  nearest_c = N_Cs3;
+        else if (best_lag_int < 12'd756)  nearest_c = N_C3;
+        else if (best_lag_int < 12'd801)  nearest_c = N_B2;
+        else if (best_lag_int < 12'd849)  nearest_c = N_As2;
+        else if (best_lag_int < 12'd899)  nearest_c = N_A2;
+        else if (best_lag_int < 12'd953)  nearest_c = N_Gs2;
+        else if (best_lag_int < 12'd1009) nearest_c = N_G2;
+        else if (best_lag_int < 12'd1069) nearest_c = N_Fs2;
+        else if (best_lag_int < 12'd1132) nearest_c = N_F2;
+        else if (best_lag_int < 12'd1200) nearest_c = N_E2;
+        else                              nearest_c = N_Ds2;
     end
 
     // ----------------------------------------------------------------
-    // Cents Calculation
-    //
-    //   diff_q4   = (target << 4) - measured_q4               (signed)
-    //   prod      = diff_q4 · inv_factor_q16                  (signed)
-    //   cents     = prod >>> 16                               (signed)
-    //
-    // Convention:
-    //   diff_q4 > 0  ⇒  measured period < target  ⇒  pitch sharp ⇒  cents > 0
-    //   diff_q4 < 0  ⇒  measured period > target  ⇒  pitch flat  ⇒  cents < 0
-    //
-    // Then split into sign-magnitude for the two-digit display.
+    // Stage 1  (registered)
+    //   • Latch nearest, lag, signal-ok flag
+    //   • Compute cents and integer frequency
     // ----------------------------------------------------------------
 
-    logic signed [16:0] diff_q4;
-    logic signed [33:0] cents_prod;
-    logic signed [9:0]  cents;
-    logic               cents_neg;
-    logic [6:0]         cents_mag;
-    logic [3:0]         cents_tens, cents_units;
+    note_t              nearest_s1;
+    logic [15:0]        best_lag_q4_s1;
+    logic [11:0]        best_lag_int_s1;
+    logic               signal_ok_s1;
 
-    assign diff_q4    = $signed({1'b0, nearest.target, 4'b0}) - $signed({1'b0, best_lag_q4});
-    assign cents_prod = diff_q4 * $signed({1'b0, nearest.inv_factor_q16});
-    assign cents      = cents_prod[25:16];                 // ≈ ±99 in normal use
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            nearest_s1      <= '0;
+            best_lag_q4_s1  <= '0;
+            best_lag_int_s1 <= '0;
+            signal_ok_s1    <= 1'b0;
+        end else begin
+            nearest_s1      <= nearest_c;
+            best_lag_q4_s1  <= best_lag_q4;
+            best_lag_int_s1 <= best_lag_int;
+            signal_ok_s1    <= signal_ok_c;
+        end
+    end
 
-    assign cents_neg  = cents[9];
-    assign cents_mag   = cents_neg ? 7'(-cents) : 7'(cents);
+    // Combinational compute on Stage 1's registered inputs
+    logic signed [16:0] diff_q4_c;
+    logic signed [33:0] cents_prod_c;
+    logic signed [9:0]  cents_c;
+    logic [20:0]        frequency_c;
+
+    assign diff_q4_c    = $signed({1'b0, nearest_s1.target, 4'b0}) -
+                          $signed({1'b0, best_lag_q4_s1});
+    assign cents_prod_c = diff_q4_c * $signed({1'b0, nearest_s1.inv_factor_q16});
+    assign cents_c      = cents_prod_c[25:16];
+
+    assign frequency_c  = (best_lag_int_s1 > 12'd0)
+                              ? (21'd96000 / {9'b0, best_lag_int_s1})
+                              : 21'd0;
+
+    // ----------------------------------------------------------------
+    // Stage 2  (registered)
+    //   • Latch cents and frequency
+    //   • BCD digits computed combinationally on the cheap (small Wb)
+    // ----------------------------------------------------------------
+
+    note_t       nearest_s2;
+    logic        signal_ok_s2;
+    logic        mode_sel_s2;
+    logic signed [9:0] cents_s2;
+    logic [20:0] frequency_s2;
+
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            nearest_s2   <= '0;
+            signal_ok_s2 <= 1'b0;
+            mode_sel_s2  <= 1'b0;
+            cents_s2     <= '0;
+            frequency_s2 <= '0;
+        end else begin
+            nearest_s2   <= nearest_s1;
+            signal_ok_s2 <= signal_ok_s1;
+            mode_sel_s2  <= mode_sel;
+            cents_s2     <= cents_c;
+            frequency_s2 <= frequency_c;
+        end
+    end
+
+    // Cents BCD (7-bit magnitude → /10, %10) — small enough that
+    // Quartus' constant-divisor folding handles it cheaply
+    logic        cents_neg;
+    logic [6:0]  cents_mag;
+    logic [3:0]  cents_tens, cents_units;
+    assign cents_neg   = cents_s2[9];
+    assign cents_mag   = cents_neg ? 7'(-cents_s2) : 7'(cents_s2);
     assign cents_tens  = 4'((cents_mag / 7'd10) % 4'd10);
     assign cents_units = 4'(cents_mag % 7'd10);
 
+    // Frequency BCD digits
+    logic [3:0] f_thousands, f_hundreds, f_tens, f_ones;
+    assign f_thousands = 4'((frequency_s2 / 21'd1000) % 21'd10);
+    assign f_hundreds  = 4'((frequency_s2 / 21'd100)  % 21'd10);
+    assign f_tens      = 4'((frequency_s2 / 21'd10)   % 21'd10);
+    assign f_ones      = 4'( frequency_s2             % 21'd10);
+
     // ----------------------------------------------------------------
-    // Output Mux
-    //
-    // Note mode layout:
-    //   HEX5 = letter   HEX4 = '#' or blank   HEX3 = octave digit
-    //   HEX2 = '-' if flat (else blank)
-    //   HEX1 = cents tens   HEX0 = cents units
-    //
-    // Frequency mode layout:
-    //   HEX5 = 'F'    HEX4 = 'r'    HEX3..HEX0 = Hz (leading zeros blanked)
+    // Stage 3  (registered output) — Mode-dependent layout
     // ----------------------------------------------------------------
+
+    logic [4:0] tuner_vals_n [5:0];
 
     always_comb begin
-        for (int i = 0; i < 6; i++) tuner_vals[i] = SEVSEG_BLANK_INDEX;
+        for (int i = 0; i < 6; i++) tuner_vals_n[i] = SEVSEG_BLANK_INDEX;
 
-        if (!mode_sel) begin
-            if (best_lag_q4 != 16'd0) begin
-                tuner_vals[5] = nearest.letter;
-                tuner_vals[4] = nearest.is_sharp ? SEVSEG_SHARP_INDEX : SEVSEG_BLANK_INDEX;
-                tuner_vals[3] = nearest.octave;
-                tuner_vals[2] = cents_neg ? SEVSEG_LINE_INDEX : SEVSEG_BLANK_INDEX;
-                tuner_vals[1] = {1'b0, cents_tens};
-                tuner_vals[0] = {1'b0, cents_units};
+        if (!mode_sel_s2) begin
+            if (signal_ok_s2) begin
+                tuner_vals_n[5] = nearest_s2.letter;
+                tuner_vals_n[4] = nearest_s2.is_sharp ? SEVSEG_SHARP_INDEX
+                                                     : SEVSEG_BLANK_INDEX;
+                tuner_vals_n[3] = nearest_s2.octave;
+                tuner_vals_n[2] = cents_neg ? SEVSEG_LINE_INDEX
+                                            : SEVSEG_BLANK_INDEX;
+                tuner_vals_n[1] = {1'b0, cents_tens};
+                tuner_vals_n[0] = {1'b0, cents_units};
             end else begin
-                for (int i = 0; i < 6; i++) tuner_vals[i] = SEVSEG_LINE_INDEX;
+                for (int i = 0; i < 6; i++) tuner_vals_n[i] = SEVSEG_LINE_INDEX;
             end
-
         end else begin
-            tuner_vals[5] = 5'd15;          // 'F'
-            tuner_vals[4] = SEVSEG_R_INDEX;
-
-            if (frequency != 21'd0) begin
-                if (thousands != 4'd0)
-                    tuner_vals[3] = {1'b0, thousands};
-                tuner_vals[2] = {1'b0, hundreds};
-                tuner_vals[1] = {1'b0, tens};
-                tuner_vals[0] = {1'b0, ones};
+            tuner_vals_n[5] = 5'd15;            // 'F'
+            tuner_vals_n[4] = SEVSEG_R_INDEX;
+            if (frequency_s2 != 21'd0) begin
+                if (f_thousands != 4'd0)
+                    tuner_vals_n[3] = {1'b0, f_thousands};
+                tuner_vals_n[2] = {1'b0, f_hundreds};
+                tuner_vals_n[1] = {1'b0, f_tens};
+                tuner_vals_n[0] = {1'b0, f_ones};
             end else begin
-                for (int i = 0; i < 4; i++) tuner_vals[i] = SEVSEG_LINE_INDEX;
+                for (int i = 0; i < 4; i++) tuner_vals_n[i] = SEVSEG_LINE_INDEX;
             end
+        end
+    end
+
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            for (int i = 0; i < 6; i++) tuner_vals[i] <= SEVSEG_BLANK_INDEX;
+        end else begin
+            for (int i = 0; i < 6; i++) tuner_vals[i] <= tuner_vals_n[i];
         end
     end
 
