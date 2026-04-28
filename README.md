@@ -139,7 +139,7 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 
 | FX          | Parameter       | FX Number | Parameter Number |
 | ----------- | --------------- | --------- | ---------------- |
-| Gain1       | fx_gain         | F0        | P0               |
+| Input Gain  | fx_gain         | F0        | P0               |
 | Gate        | fx_threshold    | F1        | P0               |
 | Gate        | fx_attack       | F1        | P1               |
 | Gate        | fx_release      | F1        | P2               |
@@ -158,6 +158,11 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 | Compressor  | fx_mix          | F3        | P7               |
 | Distortion  | fx_drive        | F4        | P0               |
 | Distortion  | fx_makeup_gain  | F4        | P1               |
+| Distortion  | fx_bias         | F4        | P2               |
+| Distortion  | fx_sag          | F4        | P3               |
+| Distortion  | fx_tone         | F4        | P4               |
+| Distortion  | fx_tightness    | F4        | P5               |
+| Distortion  | fx_smooth       | F4        | P6               |
 | Distortion  | fx_mix          | F4        | P7               |
 | EQ2         | fx_sub_gain     | F5        | P0               |
 | EQ2         | fx_low_gain     | F5        | P1               |
@@ -166,14 +171,14 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 | Chorus      | fx_rate         | F6        | P0               |
 | Chorus      | fx_depth        | F6        | P1               |
 | Chorus      | fx_mix          | F6        | P7               |
-| Gain2       | fx_gain         | F7*       | P0*              |
+| EXP Gain    | fx_gain         | F7*       | P0*              |
 | Delay       | fx_time         | F8        | P0               |
 | Delay       | fx_feedback     | F8        | P1               |
 | Delay       | fx_mix          | F8        | P7               |
 | Reverb      | fx_size         | F9        | P0               |
 | Reverb      | fx_damping      | F9        | P1               |
 | Reverb      | fx_mix          | F9        | P7               |
-| Gain2       | fx_gain         | F10       | P0               |
+| Output Gain | fx_gain         | F10       | P0               |
 
 NOTES:
 - You should see the FX Number values on HEX5-HEX4, with HEX5 always being F

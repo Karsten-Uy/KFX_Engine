@@ -229,78 +229,48 @@ module fx_compressor #(
         end
     end
 
-    // ----------------------------------------------------------------
-    // 7b. Bypass Delay Line  (latency-matched true bypass)
-    //
-    // Wet path total latency from audio_in → audio_out is:
-    //   1 (input_gain reg) + LOOKAHEAD_SAMPLES (lookahead) + 1 (output reg)
-    //   = LOOKAHEAD_SAMPLES + 2 sample cycles.
-    //
-    // For a true bypass at fx_mix == 0 to be sample-aligned with any
-    // partial-mix path, the bypass must contribute LOOKAHEAD_SAMPLES + 1
-    // cycles of delay before the output register adds the last cycle.
-    // dry_aligned[LOOKAHEAD_SAMPLES] is exactly that: audio_in delayed
-    // by LOOKAHEAD_SAMPLES + 1 sample cycles, with no input_gain applied.
-    // ----------------------------------------------------------------
-
-    logic signed [1:0][DATA_W-1:0] dry_aligned [0:LOOKAHEAD_SAMPLES];
-
-    always_ff @(posedge clk or negedge reset_n) begin
-        if (!reset_n) for (int i=0; i<=LOOKAHEAD_SAMPLES; i++) dry_aligned[i] <= '0;
-        else if (sample_en) begin
-            dry_aligned[0] <= audio_in;
-            for (int i=1; i<=LOOKAHEAD_SAMPLES; i++)
-                dry_aligned[i] <= dry_aligned[i-1];
-        end
-    end
+    logic signed [PROD_W-1:0]       p_l, p_r;
+    logic signed [PROD_W+PARAM_W:0] m_l, m_r;
+    logic signed [DATA_W-1:0]       wet_l, wet_r;
+    logic signed [DATA_W-1:0]       dry_l, dry_r;
+    logic signed [DATA_W+PARAM_W:0] mixed_l, mixed_r;
 
     // ----------------------------------------------------------------
     // 8. Output Stage: Compression + Mix
     //
     // dry = lookahead-delayed audio (pre-compression, post-input-gain)
     // wet = dry × gain_smooth (Q0.15) then scaled by makeup gain
-    // out = dry + (wet - dry) * mix / 256  (mix=0 → bit-exact bypass)
+    // out = dry + (wet - dry) * mix / 256
     //
-    // Wet-path scratch values are declared `automatic` so they are
-    // pure procedural temporaries — without that, leaving them
-    // unassigned in the bypass branch makes the synthesizer infer
-    // ~260 bits of enable-flops, which choked the fitter.
+    // At fx_mix == 0 the blend collapses to mixed = dry exactly, which
+    // gives a mathematical bypass (the wet term contributes 0).  No
+    // explicit bypass branch is needed and latency naturally matches
+    // every partial-mix value, since dry and wet share the same
+    // lookahead path.  Note this dry path includes input_gain — for
+    // bit-exact silent-state passthrough, set fx_input_gain = 64.
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk or negedge reset_n) begin : apply_gain_ff
         if (!reset_n) audio_out <= '0;
         else if (sample_en) begin
-            if (fx_mix == '0) begin
-                // True bypass: latency-matched to the wet path so toggling
-                // mix between 0 and non-zero doesn't shift sample timing.
-                audio_out[0] <= dry_aligned[LOOKAHEAD_SAMPLES][0];
-                audio_out[1] <= dry_aligned[LOOKAHEAD_SAMPLES][1];
-            end else begin : compute
-                automatic logic signed [DATA_W-1:0]       dry_l, dry_r;
-                automatic logic signed [PROD_W-1:0]       p_l, p_r;
-                automatic logic signed [PROD_W+PARAM_W:0] m_l, m_r;
-                automatic logic signed [DATA_W-1:0]       wet_l, wet_r;
-                automatic logic signed [DATA_W+PARAM_W:0] mixed_l, mixed_r;
+            // Dry: delayed pre-compression signal
+            dry_l = audio_lookahead[LOOKAHEAD_SAMPLES-1][0];
+            dry_r = audio_lookahead[LOOKAHEAD_SAMPLES-1][1];
 
-                // Dry: delayed pre-compression signal
-                dry_l = audio_lookahead[LOOKAHEAD_SAMPLES-1][0];
-                dry_r = audio_lookahead[LOOKAHEAD_SAMPLES-1][1];
+            // Wet: apply compression gain (Q0.15, >>15) then makeup gain (>>6, unity=64)
+            p_l = $signed(dry_l) * $signed({1'b0, gain_smooth});
+            p_r = $signed(dry_r) * $signed({1'b0, gain_smooth});
+            m_l = (p_l >>> 15) * $signed({1'b0, fx_makeup_gain});
+            m_r = (p_r >>> 15) * $signed({1'b0, fx_makeup_gain});
+            wet_l = (m_l >>> 6 > 32767)  ? 16'h7FFF : (m_l >>> 6 < -32768) ? 16'h8000 : m_l[15+6:6];
+            wet_r = (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
 
-                // Wet: apply compression gain (Q0.15, >>15) then makeup gain (>>6, unity=64)
-                p_l = $signed(dry_l) * $signed({1'b0, gain_smooth});
-                p_r = $signed(dry_r) * $signed({1'b0, gain_smooth});
-                m_l = (p_l >>> 15) * $signed({1'b0, fx_makeup_gain});
-                m_r = (p_r >>> 15) * $signed({1'b0, fx_makeup_gain});
-                wet_l = (m_l >>> 6 > 32767)  ? 16'h7FFF : (m_l >>> 6 < -32768) ? 16'h8000 : m_l[15+6:6];
-                wet_r = (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
+            // Blend: dry + (wet - dry) * mix / 256
+            mixed_l = $signed(dry_l) + ((($signed(wet_l) - $signed(dry_l)) * $signed({1'b0, fx_mix})) >>> 8);
+            mixed_r = $signed(dry_r) + ((($signed(wet_r) - $signed(dry_r)) * $signed({1'b0, fx_mix})) >>> 8);
 
-                // Blend: dry + (wet - dry) * mix / 256
-                mixed_l = $signed(dry_l) + ((($signed(wet_l) - $signed(dry_l)) * $signed({1'b0, fx_mix})) >>> 8);
-                mixed_r = $signed(dry_r) + ((($signed(wet_r) - $signed(dry_r)) * $signed({1'b0, fx_mix})) >>> 8);
-
-                audio_out[0] <= sat16(mixed_l);
-                audio_out[1] <= sat16(mixed_r);
-            end
+            audio_out[0] <= sat16(mixed_l);
+            audio_out[1] <= sat16(mixed_r);
         end
     end
 
