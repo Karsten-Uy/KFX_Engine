@@ -155,16 +155,21 @@ module tuner_yin_engine (
     // ----------------------------------------------------------------
 
     logic [ACCUM_W-1:0] d_prev_r;     // d at tau_min - 1
-    logic [ACCUM_W-1:0] d_min_r;      // d at tau_min
+    logic [ACCUM_W-1:0] d_min_r;      // d at tau_min (running minimum during descent)
     logic [ACCUM_W-1:0] d_next_r;     // d at tau_min + 1
     logic [11:0]        tau_min_r;
-    logic               refining;
+    // descending = 1 once the threshold has crossed; we walk the dip,
+    // updating (tau_min_r, d_min_r) as it deepens, and exit once d_tau
+    // starts increasing again — that's the true local minimum, vs. the
+    // earlier threshold-crossing point (which is on the descending slope
+    // and biases the reported lag short by several samples).
+    logic               descending;
 
     // d_next_w lets the combinational refinement operands "see" the
-    // about-to-be-latched d_next on the same edge S_YIN_EVAL fires
-    // with refining=1, so we can latch sub_acc with the right value.
+    // about-to-be-latched d_next on the same edge we leave the descent,
+    // so we can latch sub_acc with the right value in one step.
     logic [ACCUM_W-1:0] d_next_w;
-    assign d_next_w = (state == S_YIN_EVAL && refining) ? d_tau : d_next_r;
+    assign d_next_w = (state == S_YIN_EVAL && descending) ? d_tau : d_next_r;
 
     // Truncate the three d values to 32-bit operands.  If any has
     // non-zero bits in [47:32], shift everyone right by 16 to fit;
@@ -229,7 +234,7 @@ module tuner_yin_engine (
             wptr                 <= '0;
             sample_cnt           <= '0;
             signal_strong_enough <= 1'b0;
-            refining             <= 1'b0;
+            descending           <= 1'b0;
         end else begin
             data_valid <= 1'b0;
 
@@ -252,7 +257,7 @@ module tuner_yin_engine (
                         running_sum_d <= 48'd1;
                         d_best_global <= '1;
                         base_ptr      <= wptr - BUF_BITS'(COMP_WINDOW + MAX_LAG);
-                        refining      <= 1'b0;
+                        descending    <= 1'b0;
                         state         <= S_SETUP;
                     end
                 end
@@ -282,34 +287,62 @@ module tuner_yin_engine (
                 S_YIN_EVAL: begin
                     running_sum_d <= running_sum_d + d_tau;
 
-                    if (refining) begin
-                        // d_tau is d_next.  Latch it and kick the
-                        // sub-and-count divider with num_abs_8 (which
-                        // already reflects d_next via d_next_w).
-                        d_next_r <= d_tau;
-                        sub_acc  <= num_abs_8;
-                        sub_cnt  <= '0;
-                        state    <= S_REFINE_DIV;
+                    if (descending) begin
+                        // Walking the dip after the threshold cross.
+                        if (d_tau < d_min_r) begin
+                            // Still descending: this is the new minimum.
+                            // Old d_min becomes d_prev (it's d at tau-1).
+                            d_prev_r  <= d_min_r;
+                            d_min_r   <= d_tau;
+                            tau_min_r <= tau;
+                            if (tau == 12'(MAX_LAG)) begin
+                                // Hit scan limit while still descending.
+                                if (signal_strong_enough) begin
+                                    best_lag_q4_out <= {tau, 4'b0};
+                                    data_valid      <= 1'b1;
+                                end
+                                signal_strong_enough <= 1'b0;
+                                descending           <= 1'b0;
+                                state                <= S_IDLE;
+                            end else begin
+                                tau   <= tau + 1'b1;
+                                state <= S_SETUP;
+                            end
+                        end else begin
+                            // d_tau >= d_min_r: dip ended.  d_prev_r,
+                            // d_min_r are correct for tau_min_r; current
+                            // d_tau is d at tau_min_r + 1 (d_next).
+                            if (signal_strong_enough) begin
+                                d_next_r <= d_tau;
+                                sub_acc  <= num_abs_8;
+                                sub_cnt  <= '0;
+                                state    <= S_REFINE_DIV;
+                            end else begin
+                                signal_strong_enough <= 1'b0;
+                                state                <= S_IDLE;
+                            end
+                            descending <= 1'b0;
+                        end
 
                     end else if ((d_tau * ACCUM_W'(tau)) <
                                  ((running_sum_d * THRESH_NUM) >> THRESH_DEN_SHFT)) begin
-                        // First minimum.
+                        // First threshold crossing.  This is the leading
+                        // edge of the dip, NOT the actual minimum — set
+                        // descending and keep walking until d_tau rises.
                         if (signal_strong_enough) begin
                             if (tau == 12'(MIN_LAG) || tau == 12'(MAX_LAG)) begin
-                                // No room to refine — emit integer Q12.4.
+                                // No room to descend — emit integer.
                                 best_lag_q4_out      <= {tau, 4'b0};
                                 data_valid           <= 1'b1;
                                 signal_strong_enough <= 1'b0;
                                 state                <= S_IDLE;
                             end else begin
                                 // d_prev_r already holds d at tau-1.
-                                // Save d_min and tau_min, advance tau
-                                // to capture d_next.
-                                d_min_r   <= d_tau;
-                                tau_min_r <= tau;
-                                refining  <= 1'b1;
-                                tau       <= tau + 1'b1;
-                                state     <= S_SETUP;
+                                d_min_r    <= d_tau;
+                                tau_min_r  <= tau;
+                                descending <= 1'b1;
+                                tau        <= tau + 1'b1;
+                                state      <= S_SETUP;
                             end
                         end else begin
                             signal_strong_enough <= 1'b0;
@@ -347,7 +380,6 @@ module tuner_yin_engine (
                             data_valid      <= 1'b1;
                         end
                         signal_strong_enough <= 1'b0;
-                        refining             <= 1'b0;
                         state                <= S_IDLE;
                     end
                 end
