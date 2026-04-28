@@ -136,6 +136,7 @@ module tuner_yin_engine (
         S_FETCH,
         S_ACCUM,
         S_YIN_EVAL,
+        S_REFINE_KICK,
         S_REFINE_DIV
     } state_t;
 
@@ -165,11 +166,14 @@ module tuner_yin_engine (
     // and biases the reported lag short by several samples).
     logic               descending;
 
-    // d_next_w lets the combinational refinement operands "see" the
-    // about-to-be-latched d_next on the same edge we leave the descent,
-    // so we can latch sub_acc with the right value in one step.
+    // d_next_w is just an alias for d_next_r now.  The dip-end transition
+    // latches d_next_r and waits one cycle in S_REFINE_KICK before kicking
+    // the divider, so num_abs_8's combinational chain only fires when all
+    // three operands (d_prev_r, d_min_r, d_next_r) are stable registers.
+    // Letting it be driven combinationally by d_tau during the descent
+    // walk caused the fitter to crash.
     logic [ACCUM_W-1:0] d_next_w;
-    assign d_next_w = (state == S_YIN_EVAL && descending) ? d_tau : d_next_r;
+    assign d_next_w = d_next_r;
 
     // Truncate the three d values to 32-bit operands.  If any has
     // non-zero bits in [47:32], shift everyone right by 16 to fit;
@@ -309,14 +313,14 @@ module tuner_yin_engine (
                                 state <= S_SETUP;
                             end
                         end else begin
-                            // d_tau >= d_min_r: dip ended.  d_prev_r,
+                            // d_tau >= d_min_r: dip ended.  d_prev_r and
                             // d_min_r are correct for tau_min_r; current
-                            // d_tau is d at tau_min_r + 1 (d_next).
+                            // d_tau is d at tau_min_r + 1.  Latch d_next_r
+                            // and let num_abs_8 settle for one cycle in
+                            // S_REFINE_KICK before driving sub_acc.
                             if (signal_strong_enough) begin
                                 d_next_r <= d_tau;
-                                sub_acc  <= num_abs_8;
-                                sub_cnt  <= '0;
-                                state    <= S_REFINE_DIV;
+                                state    <= S_REFINE_KICK;
                             end else begin
                                 signal_strong_enough <= 1'b0;
                                 state                <= S_IDLE;
@@ -367,6 +371,15 @@ module tuner_yin_engine (
                         tau   <= tau + 1'b1;
                         state <= S_SETUP;
                     end
+                end
+
+                S_REFINE_KICK: begin
+                    // d_prev_r, d_min_r, d_next_r are all stable registers
+                    // now, so num_abs_8 / para_den have settled.  Latch the
+                    // divider operands and start subtract-and-count.
+                    sub_acc <= num_abs_8;
+                    sub_cnt <= '0;
+                    state   <= S_REFINE_DIV;
                 end
 
                 S_REFINE_DIV: begin
