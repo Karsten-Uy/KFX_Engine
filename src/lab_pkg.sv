@@ -268,26 +268,26 @@ package lab_pkg;
             bank3_default(input int fx, input int param);
         bank3_default = '0;
         case (fx)
-            0:  if (param==0) bank3_default = 8'd128;
+            0:  if (param==0) bank3_default = 8'd32;           // input gain unity
             1:  case (param)
-                    0: bank3_default = 8'd0; 
+                    0: bank3_default = 8'd1;                     // gate off
                     1: bank3_default = 8'd40;
-                    2: bank3_default = 8'd200;
+                    2: bank3_default = 8'd128;
                 endcase
             2:  case (param)
-                    0: bank3_default = 8'd30;
-                    1: bank3_default = 8'd120;
-                    2: bank3_default = 8'd110;
-                    3: bank3_default = 8'd100;
+                    0: bank3_default = 8'd0;
+                    1: bank3_default = 8'd4;                     // slight low cut
+                    2: bank3_default = 8'd128;
+                    3: bank3_default = 8'd128;
                 endcase
             3:  case (param)
                     0: bank3_default = 8'd32;
-                    1: bank3_default = 8'd0;                     // comp off
+                    1: bank3_default = 8'd0;
                     2: bank3_default = 8'd64;
                     3: bank3_default = 8'd128;
-                    4: bank3_default = 8'd64;
-                    5: bank3_default = 8'd64;
-                    7: bank3_default = 8'd0;
+                    4: bank3_default = 8'd64;                    // Unity Input gain
+                    5: bank3_default = 8'd64; 
+                    7: bank3_default = 8'd0;                     // Compressor Off
                 endcase
             4:  case (param)
                     0: bank3_default = 8'd128;
@@ -295,26 +295,26 @@ package lab_pkg;
                     7: bank3_default = 8'd0;                     // distortion off
                 endcase
             5:  case (param)
-                    0: bank3_default = 8'd20;
-                    1: bank3_default = 8'd110;
-                    2: bank3_default = 8'd120;
-                    3: bank3_default = 8'd90;                    // roll off highs
+                    0: bank3_default = 8'd0;
+                    1: bank3_default = 8'd100;
+                    2: bank3_default = 8'd128;
+                    3: bank3_default = 8'd150;
                 endcase
             6:  case (param)
                     0: bank3_default = 8'd90;                    // slow rate
                     1: bank3_default = 8'd180;                   // deep
-                    7: bank3_default = 8'd0;                   // mostly wet
+                    7: bank3_default = 8'd100;                   // wetish
                 endcase
             7:  if (param==0) bank3_default = 8'd128;
             8:  case (param)
                     0: bank3_default = 8'd200;
                     1: bank3_default = 8'd140;
-                    7: bank3_default = 8'd100;
+                    7: bank3_default = 8'd40;                    // decent amount of delay
                 endcase
             9:  case (param)
                     0: bank3_default = 8'd230;                   // huge room
                     1: bank3_default = 8'd80;                    // low damping
-                    7: bank3_default = 8'd0;
+                    7: bank3_default = 8'd60;                    // decent amount of reverb
                 endcase
             10: if (param==0) bank3_default = 8'd120;
         endcase

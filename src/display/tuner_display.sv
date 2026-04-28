@@ -234,9 +234,9 @@ module tuner_display (
             end else begin
                 displayed_note_s2 <= held_note;
                 if      (cents_c >  $signed(10'(IN_TUNE_CENTS)))
-                    indicator_s2 <= SEVSEG_DOWN_INDEX;
-                else if (cents_c < -$signed(10'(IN_TUNE_CENTS)))
                     indicator_s2 <= SEVSEG_UP_INDEX;
+                else if (cents_c < -$signed(10'(IN_TUNE_CENTS)))
+                    indicator_s2 <= SEVSEG_DOWN_INDEX;
                 else
                     indicator_s2 <= SEVSEG_LINE_INDEX;
             end
