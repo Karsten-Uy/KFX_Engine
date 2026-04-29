@@ -169,7 +169,7 @@ module tuner_display (
     // ----------------------------------------------------------------
     // Stage 2  (combinational compute against held_note)
     //   • cents_c — for hysteresis decision *and* for the indicator
-    //   • frequency_c — combinational divide
+    //   • frequency_div — sequential divider output (see below)
     // ----------------------------------------------------------------
 
     note_t held_note;
@@ -178,16 +178,74 @@ module tuner_display (
     logic signed [16:0] diff_q4_c;
     logic signed [33:0] cents_prod_c;
     logic signed [9:0]  cents_c;
-    logic [20:0]        frequency_c;
 
     assign diff_q4_c    = $signed({1'b0, held_note.target, 4'b0}) -
                           $signed({1'b0, best_lag_q4_s1});
     assign cents_prod_c = diff_q4_c * $signed({1'b0, held_note.inv_factor_q16});
     assign cents_c      = cents_prod_c[25:16];
 
-    assign frequency_c  = (best_lag_int_s1 > 12'd0)
-                              ? (21'd96000 / {9'b0, best_lag_int_s1})
-                              : 21'd0;
+    // ----------------------------------------------------------------
+    // Sequential Frequency Divider  (replaces combinational 96000 / lag)
+    //
+    // The unrolled combinational divide put 17 levels of subtractor in
+    // a single cycle and missed the 50 MHz timing budget by ~7.6 ns.
+    // Standard restoring shift/subtract divider, MSB first.  Each
+    // iteration is one shift + one 17-bit compare-and-subtract → ~3 ns
+    // combinational depth, easily fits.
+    //
+    // 17 iterations + idle/done states ≈ 18 cycles per division.
+    // YIN updates lag every ~62 ms (~3 M cycles); display can lag
+    // by 360 ns and nobody notices.
+    //
+    // No BRAM, no initial-block ROM inference — just plain register
+    // logic that Quartus has no trouble synthesizing.
+    // ----------------------------------------------------------------
+
+    logic [16:0] div_dividend, div_remainder, div_quotient;
+    logic [11:0] div_divisor;
+    logic [4:0]  div_count;
+    logic        div_busy;
+    logic [16:0] frequency_div;       // last completed quotient
+
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            div_busy      <= 1'b0;
+            div_count     <= '0;
+            div_dividend  <= '0;
+            div_divisor   <= '0;
+            div_remainder <= '0;
+            div_quotient  <= '0;
+            frequency_div <= '0;
+        end else if (!div_busy) begin
+            // Idle — start a new division (or hold zero if no signal)
+            div_dividend  <= 17'd96000;
+            div_divisor   <= best_lag_int_s1;
+            div_remainder <= '0;
+            div_quotient  <= '0;
+            div_count     <= 5'd17;
+            if (best_lag_int_s1 == 12'd0) begin
+                frequency_div <= 17'd0;
+            end else begin
+                div_busy <= 1'b1;
+            end
+        end else if (div_count > 0) begin
+            // One shift-subtract iteration
+            automatic logic [17:0] shft = {div_remainder[15:0], div_dividend[16]};
+            if (shft >= {6'b0, div_divisor}) begin
+                div_remainder <= shft[16:0] - {5'b0, div_divisor};
+                div_quotient  <= {div_quotient[15:0], 1'b1};
+            end else begin
+                div_remainder <= shft[16:0];
+                div_quotient  <= {div_quotient[15:0], 1'b0};
+            end
+            div_dividend <= {div_dividend[15:0], 1'b0};
+            div_count    <= div_count - 1;
+        end else begin
+            // Done — latch quotient, return to idle for next divide
+            frequency_div <= div_quotient;
+            div_busy      <= 1'b0;
+        end
+    end
 
     logic should_switch;
     assign should_switch = (cents_c >  $signed(10'(SWITCH_CENTS))) ||
@@ -206,7 +264,6 @@ module tuner_display (
     logic        signal_ok_s2;
     logic        mode_sel_s2;
     logic [4:0]  indicator_s2;
-    logic [20:0] frequency_s2;
 
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
@@ -214,13 +271,11 @@ module tuner_display (
             held_valid        <= 1'b0;
             displayed_note_s2 <= '0;
             signal_ok_s2      <= 1'b0;
-            frequency_s2      <= '0;
             mode_sel_s2       <= 1'b0;
             indicator_s2      <= SEVSEG_BLANK_INDEX;
         end else begin
             signal_ok_s2 <= signal_ok_s1;
             mode_sel_s2  <= mode_sel;
-            frequency_s2 <= frequency_c;
 
             if (!signal_ok_s1) begin
                 held_valid        <= 1'b0;
@@ -245,10 +300,10 @@ module tuner_display (
 
     // Frequency BCD digits
     logic [3:0] f_thousands, f_hundreds, f_tens, f_ones;
-    assign f_thousands = 4'((frequency_s2 / 21'd1000) % 21'd10);
-    assign f_hundreds  = 4'((frequency_s2 / 21'd100)  % 21'd10);
-    assign f_tens      = 4'((frequency_s2 / 21'd10)   % 21'd10);
-    assign f_ones      = 4'( frequency_s2             % 21'd10);
+    assign f_thousands = 4'((frequency_div / 17'd1000) % 17'd10);
+    assign f_hundreds  = 4'((frequency_div / 17'd100)  % 17'd10);
+    assign f_tens      = 4'((frequency_div / 17'd10)   % 17'd10);
+    assign f_ones      = 4'( frequency_div             % 17'd10);
 
     // ----------------------------------------------------------------
     // Stage 3  (registered output) — Mode-dependent layout
@@ -274,7 +329,7 @@ module tuner_display (
         end else begin
             tuner_vals_n[5] = 5'd15;            // 'F'
             tuner_vals_n[4] = SEVSEG_R_INDEX;
-            if (frequency_s2 != 21'd0) begin
+            if (frequency_div != 17'd0) begin
                 if (f_thousands != 4'd0)
                     tuner_vals_n[3] = {1'b0, f_thousands};
                 tuner_vals_n[2] = {1'b0, f_hundreds};
