@@ -645,7 +645,6 @@ module AudioFX (
             .flush     (fx_flush),
             .fx_size   (params[9][0]),
             .fx_damping(params[9][1]),
-            .fx_decay  (params[9][2]),
             .fx_mix    (params[9][7]),
             .sample_en (sample_en_pipe[9])
         );
