@@ -156,7 +156,10 @@ module fx_reverb #(
     logic signed [DATA_W-1:0]   comb1L_delayed, comb2L_delayed, comb3L_delayed, comb4L_delayed;
     logic signed [DATA_W-1:0]   comb1L_in,      comb2L_in,      comb3L_in,      comb4L_in;
     logic signed [DATA_W-1:0]   comb1L_out,     comb2L_out,     comb3L_out,     comb4L_out;
-    logic signed [31:0]         comb1L_fb,      comb2L_fb,      comb3L_fb,      comb4L_fb;
+    // multstyle="logic" forces constant feedback multiplies into ALUTs
+    // instead of DSP blocks — the four-case decay structure produces 32
+    // constant multipliers and the device only has 87 DSPs total.
+    (* multstyle = "logic" *) logic signed [31:0] comb1L_fb, comb2L_fb, comb3L_fb, comb4L_fb;
     logic signed [DATA_W+1:0]   comb_sum_L;
     logic signed [31:0]         comb1L_lp, comb2L_lp, comb3L_lp, comb4L_lp;  // Q16
 
@@ -164,7 +167,7 @@ module fx_reverb #(
     logic signed [DATA_W-1:0]   comb1R_delayed, comb2R_delayed, comb3R_delayed, comb4R_delayed;
     logic signed [DATA_W-1:0]   comb1R_in,      comb2R_in,      comb3R_in,      comb4R_in;
     logic signed [DATA_W-1:0]   comb1R_out,     comb2R_out,     comb3R_out,     comb4R_out;
-    logic signed [31:0]         comb1R_fb,      comb2R_fb,      comb3R_fb,      comb4R_fb;
+    (* multstyle = "logic" *) logic signed [31:0] comb1R_fb, comb2R_fb, comb3R_fb, comb4R_fb;
     logic signed [DATA_W+1:0]   comb_sum_R;
     logic signed [31:0]         comb1R_lp, comb2R_lp, comb3R_lp, comb4R_lp;  // Q16
 
