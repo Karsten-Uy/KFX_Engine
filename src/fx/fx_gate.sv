@@ -201,16 +201,7 @@ module fx_gate #(
 
     // ----------------------------------------------------------------
     // 8. Apply Gain to Both Channels  (Q0.16 multiply)
-    //
-    // True bypass when fx_threshold == 0 && fx_knee == 0: gate_open is
-    // true for all input (abs_in >= 0), gain_target stays at 0xFFFF, and
-    // the multiplier just truncates 1 LSB off every positive sample for
-    // no benefit.  Bypassing also takes the multiplier off the critical
-    // path on banks that don't gate.
     // ----------------------------------------------------------------
-
-    logic gate_bypass;
-    assign gate_bypass = (fx_threshold == '0) && (fx_knee == '0);
 
     generate
         genvar ch;
@@ -218,11 +209,9 @@ module fx_gate #(
             logic signed [DATA_W-1:0]  ch_in;
             logic signed [DATA_W+16:0] ch_product;
 
-            assign ch_in       = $signed(audio_in[ch]);
-            assign ch_product  = ch_in * $signed({1'b0, gain});
-            assign audio_out[ch] = gate_bypass
-                                   ? audio_in[ch]
-                                   : ch_product[DATA_W+16-1 : 16];
+            assign ch_in        = $signed(audio_in[ch]);
+            assign ch_product   = ch_in * $signed({1'b0, gain});
+            assign audio_out[ch] = ch_product[DATA_W+16-1 : 16];
         end
     endgenerate
 
