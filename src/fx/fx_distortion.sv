@@ -205,8 +205,13 @@ module fx_distortion #(
     logic signed [15:0] cab1[1:0], cab2[1:0], cab1_n[1:0], cab2_n[1:0];
     logic signed [16:0] d1[1:0],   d2[1:0];
     logic signed [26:0] cab1_mult[1:0], cab2_mult[1:0]; 
+    // Clamp to 256 so the cabinet IIR coefficient (safe_tone/256) never
+    // exceeds 1.0 — anything > 1.0 makes the cabinet IIR unstable and it
+    // rings into wrap-around.  For fx_tone in [246..255] we'd otherwise
+    // produce safe_tone in [256..265]; floor everything in that band to
+    // exactly 256 (coefficient = 1.0, all-pass).
     logic [8:0] safe_tone;
-    assign safe_tone = {1'b0, fx_tone} + 9'd10; 
+    assign safe_tone = (fx_tone >= 8'd246) ? 9'd256 : ({1'b0, fx_tone} + 9'd10);
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
