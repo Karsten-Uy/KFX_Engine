@@ -173,6 +173,7 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 | Delay       | fx_mix          | F8        | P7               |
 | Reverb      | fx_size         | F9        | P0               |
 | Reverb      | fx_damping      | F9        | P1               |
+| Reverb      | fx_decay        | F9        | P2               |
 | Reverb      | fx_mix          | F9        | P7               |
 | Output Gain | fx_gain         | F10       | P0               |
 
@@ -403,10 +404,17 @@ Implements an echo effect using delay lines with feedback.
 
 Implements a **Schroeder Reverberator** using parallel damped feedback comb filters followed by series all-pass filters to simulate room reverberation.
 
+**Decay vs. size are independent.** `fx_size` scales the comb delay lengths (controls *what kind of room* - small = dense early reflections, large = sparse, spacious), and `fx_decay` selects the comb feedback gain in 4 discrete steps (controls *how long the tail rings*). This lets you set up small-room/long-tail or large-room/short-tail combinations that a single "size" parameter couldn't reach.
+
 **Parameters**
 
-* `fx_size`: Room size / decay time - scales all comb filter delays (`0` = smallest room / shortest tail, `255` = largest room / longest tail)
+* `fx_size`: Room size - scales all four comb filter delays (`0` = smallest / densest room, `255` = largest / most spacious)
 * `fx_damping`: High-frequency damping of the reverb tail (`0` = bright / full HF content, `255` = dark / heavily damped)
+* `fx_decay`: Tail length / RT60 - 4 discrete steps selected by the upper two bits:
+  * `0–63` → short tail (~1–2 s at max delay)
+  * `64–127` → medium (~3 s)
+  * `128–191` → original behavior (~7-8 s)
+  * `192–255` → long (~15+ s)
 * `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
 
 ---
