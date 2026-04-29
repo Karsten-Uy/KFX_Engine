@@ -169,7 +169,9 @@ module tuner_display (
     // ----------------------------------------------------------------
     // Stage 2  (combinational compute against held_note)
     //   • cents_c — for hysteresis decision *and* for the indicator
-    //   • frequency_c — combinational divide
+    //   • frequency comes from a registered ROM lookup below — the old
+    //     21-bit/12-bit `96000 / lag` combinational divide blew the
+    //     50 MHz timing budget by ~8 ns.
     // ----------------------------------------------------------------
 
     note_t held_note;
@@ -178,16 +180,38 @@ module tuner_display (
     logic signed [16:0] diff_q4_c;
     logic signed [33:0] cents_prod_c;
     logic signed [9:0]  cents_c;
-    logic [20:0]        frequency_c;
 
     assign diff_q4_c    = $signed({1'b0, held_note.target, 4'b0}) -
                           $signed({1'b0, best_lag_q4_s1});
     assign cents_prod_c = diff_q4_c * $signed({1'b0, held_note.inv_factor_q16});
     assign cents_c      = cents_prod_c[25:16];
 
-    assign frequency_c  = (best_lag_int_s1 > 12'd0)
-                              ? (21'd96000 / {9'b0, best_lag_int_s1})
-                              : 21'd0;
+    // ----------------------------------------------------------------
+    // Frequency Lookup ROM  (replaces the combinational divider)
+    //
+    // 4096 × 10-bit ROM holds 96000 / i for every possible 12-bit lag.
+    // Quartus infers this as registered M10K BRAM — one cycle of
+    // latency, ~5 ns of combinational delay (vs. 25+ levels for the
+    // unrolled divider).  10-bit output covers 0–1023 Hz, more than
+    // enough for guitar tuning (low E ≈ 82, high E ≈ 330, capped at
+    // 1023 for any out-of-range lag).
+    // ----------------------------------------------------------------
+
+    logic [9:0] freq_rom [0:4095];
+
+    initial begin
+        for (int i = 0; i < 4096; i++) begin
+            if (i == 0)                  freq_rom[i] = 10'd0;
+            else if ((96000 / i) > 1023) freq_rom[i] = 10'd1023;
+            else                         freq_rom[i] = 10'(96000 / i);
+        end
+    end
+
+    logic [9:0] frequency_s2;
+
+    always_ff @(posedge clk) begin
+        frequency_s2 <= freq_rom[best_lag_int_s1];
+    end
 
     logic should_switch;
     assign should_switch = (cents_c >  $signed(10'(SWITCH_CENTS))) ||
@@ -206,7 +230,6 @@ module tuner_display (
     logic        signal_ok_s2;
     logic        mode_sel_s2;
     logic [4:0]  indicator_s2;
-    logic [20:0] frequency_s2;
 
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
@@ -216,11 +239,9 @@ module tuner_display (
             signal_ok_s2      <= 1'b0;
             mode_sel_s2       <= 1'b0;
             indicator_s2      <= SEVSEG_BLANK_INDEX;
-            frequency_s2      <= '0;
         end else begin
             signal_ok_s2 <= signal_ok_s1;
             mode_sel_s2  <= mode_sel;
-            frequency_s2 <= frequency_c;
 
             if (!signal_ok_s1) begin
                 held_valid        <= 1'b0;
@@ -243,12 +264,13 @@ module tuner_display (
         end
     end
 
-    // Frequency BCD digits
+    // Frequency BCD digits — 10-bit dividend, constant divisors.  These
+    // synthesize to small constant-divisor logic (no DSP / no big chain).
     logic [3:0] f_thousands, f_hundreds, f_tens, f_ones;
-    assign f_thousands = 4'((frequency_s2 / 21'd1000) % 21'd10);
-    assign f_hundreds  = 4'((frequency_s2 / 21'd100)  % 21'd10);
-    assign f_tens      = 4'((frequency_s2 / 21'd10)   % 21'd10);
-    assign f_ones      = 4'( frequency_s2             % 21'd10);
+    assign f_thousands = 4'((frequency_s2 / 10'd1000) % 10'd10);
+    assign f_hundreds  = 4'((frequency_s2 / 10'd100)  % 10'd10);
+    assign f_tens      = 4'((frequency_s2 / 10'd10)   % 10'd10);
+    assign f_ones      = 4'( frequency_s2             % 10'd10);
 
     // ----------------------------------------------------------------
     // Stage 3  (registered output) — Mode-dependent layout
@@ -274,7 +296,7 @@ module tuner_display (
         end else begin
             tuner_vals_n[5] = 5'd15;            // 'F'
             tuner_vals_n[4] = SEVSEG_R_INDEX;
-            if (frequency_s2 != 21'd0) begin
+            if (frequency_s2 != 10'd0) begin
                 if (f_thousands != 4'd0)
                     tuner_vals_n[3] = {1'b0, f_thousands};
                 tuner_vals_n[2] = {1'b0, f_hundreds};
