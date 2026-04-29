@@ -298,26 +298,12 @@ module tuner_display (
         end
     end
 
-    // ----------------------------------------------------------------
-    // Frequency BCD digits — registered to break the long path:
-    //   frequency_div → 4 constant-divisor BCD divides → output mux
-    //                 → tuner_vals reg
-    // The 17-bit constant-divisor divides synthesize to ~10 LUT levels
-    // each.  Stuffing the BCD computation into a dedicated register
-    // splits the path so neither half exceeds the 20 ns budget.
-    //
-    // Adds one cycle of latency on the frequency display path.
-    // ----------------------------------------------------------------
+    // Frequency BCD digits
     logic [3:0] f_thousands, f_hundreds, f_tens, f_ones;
-    logic       freq_nonzero;
-
-    always_ff @(posedge clk) begin
-        f_thousands  <= 4'((frequency_div / 17'd1000) % 17'd10);
-        f_hundreds   <= 4'((frequency_div / 17'd100)  % 17'd10);
-        f_tens       <= 4'((frequency_div / 17'd10)   % 17'd10);
-        f_ones       <= 4'( frequency_div             % 17'd10);
-        freq_nonzero <= (frequency_div != 17'd0);
-    end
+    assign f_thousands = 4'((frequency_div / 17'd1000) % 17'd10);
+    assign f_hundreds  = 4'((frequency_div / 17'd100)  % 17'd10);
+    assign f_tens      = 4'((frequency_div / 17'd10)   % 17'd10);
+    assign f_ones      = 4'( frequency_div             % 17'd10);
 
     // ----------------------------------------------------------------
     // Stage 3  (registered output) — Mode-dependent layout
@@ -343,7 +329,7 @@ module tuner_display (
         end else begin
             tuner_vals_n[5] = 5'd15;            // 'F'
             tuner_vals_n[4] = SEVSEG_R_INDEX;
-            if (freq_nonzero) begin
+            if (frequency_div != 17'd0) begin
                 if (f_thousands != 4'd0)
                     tuner_vals_n[3] = {1'b0, f_thousands};
                 tuner_vals_n[2] = {1'b0, f_hundreds};

@@ -49,6 +49,20 @@ set_multicycle_path -hold  -from [get_registers {fx_distortion:FX_DISTORTION|*}]
 set_multicycle_path -setup -from [get_registers {fx_*:*|*}] -to [get_registers {fx_*:*|*}] 2
 set_multicycle_path -hold  -from [get_registers {fx_*:*|*}] -to [get_registers {fx_*:*|*}] 1
 
+# Tuner display BCD divider chain.
+#
+# frequency_div (sequential divider output) feeds /1000, /100, /10
+# constant-divisor BCD divides (Quartus infers lpm_divide for each)
+# and the result mux into tuner_vals.  Worst-case combinational depth
+# is ~10-12 LUT levels through the lpm_divide internals, sitting
+# ~1.3 ns over the 20 ns budget.
+#
+# tuner_vals only drives the HEX displays at human refresh rates.
+# Allowing the path 2 cycles instead of 1 makes display updates lag
+# by 20 ns — invisible — and easily closes timing.
+set_multicycle_path -setup -from [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|frequency_div[*]}] -to [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|tuner_vals[*][*]}] 2
+set_multicycle_path -hold  -from [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|frequency_div[*]}] -to [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|tuner_vals[*][*]}] 1
+
 #**************************************************************
 # False Paths
 #**************************************************************
