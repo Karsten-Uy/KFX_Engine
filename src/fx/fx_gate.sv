@@ -168,33 +168,48 @@ module fx_gate #(
     end
 
     // ----------------------------------------------------------------
-    // 7. Envelope Gain Register  (slews toward gain_target_r)
+    // 7. Envelope Gain Register  (IIR slew toward gain_target_r)
     //
-    // attack_step and release_step map the 8-bit params to a step size
-    // where 0 → 256 (instant) and 255 → 1 (slowest).
+    // Each sample, gain moves toward gain_target_r by (diff >> shift),
+    // i.e. an exponential approach.  Shift is derived from the upper
+    // nibble of the attack/release params:
+    //
+    //   shift = 1 + fx_param[7:4]   →  range 1..16
+    //
+    // Lower shift = faster (diff halves per sample at shift=1).
+    // Higher shift = slower (diff barely changes per sample at shift=16).
+    //
+    // Linear ramping (the previous behaviour) sounds rough on release
+    // because constant amplitude steps are huge in dB at low gain — a
+    // 1/256 step is 0.03 dB at full scale but 6 dB once gain is at 1/256.
+    // IIR decay keeps the per-sample dB drop constant, which sounds like
+    // a natural fade.  The snap-to-target when diff <= 1 ensures the
+    // gain actually reaches its endpoint instead of asymptoting forever.
     // ----------------------------------------------------------------
 
     logic [15:0] gain;
-    logic [8:0]  attack_step;
-    logic [8:0]  release_step;
+    logic [3:0]  atk_shift;
+    logic [3:0]  rel_shift;
 
-    assign attack_step  = 9'd256 - {1'b0, fx_attack};
-    assign release_step = 9'd256 - {1'b0, fx_release};
+    assign atk_shift = 4'd1 + fx_attack[7:4];
+    assign rel_shift = 4'd1 + fx_release[7:4];
 
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
             gain <= 16'hFFFF;
         end else if (sample_en) begin
             if (gain < gain_target_r) begin
-                if ((gain_target_r - gain) <= {7'b0, attack_step})
+                automatic logic [15:0] diff_up = gain_target_r - gain;
+                if (diff_up <= 16'd1)
                     gain <= gain_target_r;
                 else
-                    gain <= gain + {7'b0, attack_step};
+                    gain <= gain + (diff_up >> atk_shift);
             end else if (gain > gain_target_r) begin
-                if ((gain - gain_target_r) <= {7'b0, release_step})
+                automatic logic [15:0] diff_dn = gain - gain_target_r;
+                if (diff_dn <= 16'd1)
                     gain <= gain_target_r;
                 else
-                    gain <= gain - {7'b0, release_step};
+                    gain <= gain - (diff_dn >> rel_shift);
             end
         end
     end
