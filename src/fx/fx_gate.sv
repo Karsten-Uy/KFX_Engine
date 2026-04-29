@@ -168,48 +168,44 @@ module fx_gate #(
     end
 
     // ----------------------------------------------------------------
-    // 7. Envelope Gain Register  (IIR slew toward gain_target_r)
+    // 7. Envelope Gain Register  (slews toward gain_target_r)
     //
-    // Each sample, gain moves toward gain_target_r by (diff >> shift),
-    // i.e. an exponential approach.  Shift is derived from the upper
-    // nibble of the attack/release params:
+    // attack_step and release_step map the 8-bit params to a step size
+    // where 0 → 256 (instant) and 255 → 1 (slowest).
     //
-    //   shift = 1 + fx_param[7:4]   →  range 1..16
-    //
-    // Lower shift = faster (diff halves per sample at shift=1).
-    // Higher shift = slower (diff barely changes per sample at shift=16).
-    //
-    // Linear ramping (the previous behaviour) sounds rough on release
-    // because constant amplitude steps are huge in dB at low gain — a
-    // 1/256 step is 0.03 dB at full scale but 6 dB once gain is at 1/256.
-    // IIR decay keeps the per-sample dB drop constant, which sounds like
-    // a natural fade.  The snap-to-target when diff <= 1 ensures the
-    // gain actually reaches its endpoint instead of asymptoting forever.
+    // Note: linear amplitude ramping at low gain values is perceptually
+    // "rough" because a constant LSB step becomes a large dB jump near
+    // zero — this is unavoidable without an IIR-style approach.  An IIR
+    // tracker is incompatible here because gain_target_r already moves
+    // at audio rate inside the knee zone (knee_target is a function of
+    // the current sample's abs_in), and a fast IIR ends up amplitude-
+    // modulating the audio with itself, producing a constant crackle.
+    // The linear slew effectively low-passes those fluctuations because
+    // its rate is bounded.  For natural-sounding decay use higher
+    // fx_release values (smaller step → longer tail).
     // ----------------------------------------------------------------
 
     logic [15:0] gain;
-    logic [3:0]  atk_shift;
-    logic [3:0]  rel_shift;
+    logic [8:0]  attack_step;
+    logic [8:0]  release_step;
 
-    assign atk_shift = 4'd1 + fx_attack[7:4];
-    assign rel_shift = 4'd1 + fx_release[7:4];
+    assign attack_step  = 9'd256 - {1'b0, fx_attack};
+    assign release_step = 9'd256 - {1'b0, fx_release};
 
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
             gain <= 16'hFFFF;
         end else if (sample_en) begin
             if (gain < gain_target_r) begin
-                automatic logic [15:0] diff_up = gain_target_r - gain;
-                if (diff_up <= 16'd1)
+                if ((gain_target_r - gain) <= {7'b0, attack_step})
                     gain <= gain_target_r;
                 else
-                    gain <= gain + (diff_up >> atk_shift);
+                    gain <= gain + {7'b0, attack_step};
             end else if (gain > gain_target_r) begin
-                automatic logic [15:0] diff_dn = gain - gain_target_r;
-                if (diff_dn <= 16'd1)
+                if ((gain - gain_target_r) <= {7'b0, release_step})
                     gain <= gain_target_r;
                 else
-                    gain <= gain - (diff_dn >> rel_shift);
+                    gain <= gain - {7'b0, release_step};
             end
         end
     end
