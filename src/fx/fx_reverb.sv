@@ -33,7 +33,10 @@
  *     fx_damping = 0   → lp_coef = 256 → LP fully open  (bright)
  *     fx_damping = 240 → lp_coef = 16  → LP narrow      (dark, clamped)
  *
- *   FIXED_FB_GAIN = 236 / 256 ≈ 0.922 → RT60 ≈ 7–8 s at max delay.
+ *   Comb feedback gain (fb_gain) is now driven by fx_decay independently
+ *   of fx_size, so the user can dial in short tails on long delays
+ *   ("big sparse hall, quick decay") or long tails on short delays
+ *   ("small dense room, long ring").  See parameter mapping below.
  *
  * Stage 2 — Three series all-pass filters per channel.
  *   g = 0.5 (ALLPASS_COEF = 128):  y[n] = −g·x[n] + x[n−d] + g·y[n−d]
@@ -51,11 +54,20 @@
  *   Allpass 2: 441 samples (~9 ms)
  *   Allpass 3: 341 samples (~7 ms)
  *
+ * Feedback / decay mapping
+ * ------------------------
+ *   fb_gain  = 184 + (fx_decay >> 2)            (8-bit unsigned)
+ *   fx_decay = 0   → fb_gain = 184/256 ≈ 0.719  (RT60 ≈ 0.6 s at max delay)
+ *   fx_decay = 208 → fb_gain = 236/256 ≈ 0.922  (RT60 ≈ 7–8 s, original default)
+ *   fx_decay = 255 → fb_gain = 247/256 ≈ 0.965  (RT60 ≈ 18 s at max delay)
+ *   Capped at 247 so the comb loop stays comfortably below unity.
+ *
  * Parameter mapping  (all 8-bit, 0–255)
  * --------------------------------------
- *   fx_size    — room size / decay time  (scales all comb delays)
- *   fx_damping — HF damping              (0 = bright, 255 = dark)
- *   fx_mix     — dry/wet blend           (0 = dry, 255 = full wet)
+ *   fx_size    — room size                (scales all comb delays)
+ *   fx_damping — HF damping               (0 = bright, 255 = dark)
+ *   fx_decay   — tail length / RT60       (0 = short, 255 = very long)
+ *   fx_mix     — dry/wet blend            (0 = dry, 255 = full wet)
  *
  * Ports
  * -----
@@ -75,6 +87,7 @@ module fx_reverb #(
     input  logic                          flush,
     input  logic [PARAM_W-1:0]            fx_size,
     input  logic [PARAM_W-1:0]            fx_damping,
+    input  logic [PARAM_W-1:0]            fx_decay,
     input  logic [PARAM_W-1:0]            fx_mix,
     input  logic                          sample_en
 );
@@ -99,7 +112,6 @@ module fx_reverb #(
     localparam ALLPASS_ADDR_W = $clog2(ALLPASS1_DELAY);
 
     localparam ALLPASS_COEF  = 8'd128;
-    localparam FIXED_FB_GAIN = 9'sd236;
     localparam LP_FRAC_BITS  = 16;
 
     // DC blocker: R = 32764/32768 ≈ 0.99988 → fc ≈ 5.5 Hz @ 48 kHz, τ ≈ 170 ms.
@@ -126,6 +138,18 @@ module fx_reverb #(
                   ? 9'd16
                   : 9'd256 - {1'b0, fx_damping};
     end
+
+    // ----------------------------------------------------------------
+    // Feedback Gain  (decoupled from fx_size via fx_decay)
+    //
+    // fb_gain = 184 + (fx_decay >> 2)      → 184..247
+    //   ≈ 0.719  at fx_decay = 0           (very short tail)
+    //   ≈ 0.922  at fx_decay = 208         (matches old fixed behaviour)
+    //   ≈ 0.965  at fx_decay = 255         (long, but still < 1.0 → stable)
+    // ----------------------------------------------------------------
+
+    logic [7:0] fb_gain;
+    assign fb_gain = 8'd184 + (fx_decay >> 2);
 
     // ----------------------------------------------------------------
     // Comb Filter Signals
@@ -369,10 +393,10 @@ module fx_reverb #(
 
     always_comb begin
         // LEFT
-        comb1L_fb  = (dc1L_y * FIXED_FB_GAIN) >>> 8;
-        comb2L_fb  = (dc2L_y * FIXED_FB_GAIN) >>> 8;
-        comb3L_fb  = (dc3L_y * FIXED_FB_GAIN) >>> 8;
-        comb4L_fb  = (dc4L_y * FIXED_FB_GAIN) >>> 8;
+        comb1L_fb  = ($signed(dc1L_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb2L_fb  = ($signed(dc2L_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb3L_fb  = ($signed(dc3L_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb4L_fb  = ($signed(dc4L_y) * $signed({1'b0, fb_gain})) >>> 8;
         comb1L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb1L_fb);
         comb2L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb2L_fb);
         comb3L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb3L_fb);
@@ -385,10 +409,10 @@ module fx_reverb #(
                      $signed(comb3L_out) + $signed(comb4L_out);
 
         // RIGHT
-        comb1R_fb  = (dc1R_y * FIXED_FB_GAIN) >>> 8;
-        comb2R_fb  = (dc2R_y * FIXED_FB_GAIN) >>> 8;
-        comb3R_fb  = (dc3R_y * FIXED_FB_GAIN) >>> 8;
-        comb4R_fb  = (dc4R_y * FIXED_FB_GAIN) >>> 8;
+        comb1R_fb  = ($signed(dc1R_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb2R_fb  = ($signed(dc2R_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb3R_fb  = ($signed(dc3R_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb4R_fb  = ($signed(dc4R_y) * $signed({1'b0, fb_gain})) >>> 8;
         comb1R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb1R_fb);
         comb2R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb2R_fb);
         comb3R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb3R_fb);
