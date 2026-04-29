@@ -1,8 +1,53 @@
 /*
-    Distortion with Amp Dynamics (Sag, Variable Bias, Tone, and DC Blocking)
-    (Bit-width stable and phase-aligned)
-    NEW: Anti-aliasing Amp Sandwich with safe transient handling.
-*/
+ * fx_distortion.sv
+ *
+ * Stereo amp-style distortion modelling the full overdriven-guitar-amp
+ * signal chain.  Bit-width stable and phase-aligned across both channels,
+ * with safe transient handling and an anti-aliasing amp sandwich (pre-
+ * emphasis filter → drive/clip → post low-pass) around the clipping core.
+ *
+ * Signal flow
+ * -----------
+ *   1. Envelope follower + power-supply sag — the per-channel drive is
+ *      reduced briefly during loud transients, mimicking tube-amp
+ *      compression.
+ *   2. Pre-emphasis (first-difference high-shelf) — boosts the presence
+ *      band before clipping, adding bite and pick attack.
+ *   3. Drive — multiplies by 1×..32.875× (256 + fx_drive·32).
+ *   4. Asymmetric DC bias — shifts clipping threshold so the half-cycles
+ *      clip at different levels, generating even-order harmonics.
+ *   5. Soft-clip — 3rd-order polynomial approximation of tanh(x).
+ *   6. DC blocker (one-pole high-pass).
+ *   7. Post low-pass — tames clipping fizz / aliasing.
+ *   8. Wet/dry mix with fx_mix.
+ *   9. Makeup gain (128 = unity).
+ *  10. Cabinet simulation — two cascaded one-pole IIR low-pass stages
+ *      modelling speaker-cabinet rolloff; the pole coefficient
+ *      safe_tone/256 is clamped at 1.0 (fx_tone ≥ 246 → safe_tone = 256)
+ *      so the cabinet stays stable at any tone setting.
+ *
+ * True bypass at fx_mix == 0 — the entire wet chain plus the cabinet IIR
+ * is taken out of the audio path so banks that don't use distortion are
+ * bit-exact pass-through with no per-pole truncation noise.
+ *
+ * Latency: 6 samples (pipeline registers in the drive/clip/post chain).
+ *
+ * Parameters
+ * ----------
+ *   fx_drive       — clipping-stage gain (0 → 1×, 255 → ~32.875×)
+ *   fx_makeup_gain — post-clip output level (128 = unity)
+ *   fx_mix         — dry/wet blend (0 → true bypass, 255 → ~99.6 % wet)
+ *   fx_bias        — asymmetric DC offset (harmonic balance / tube warmth)
+ *   fx_sag         — supply-sag depth (transient compression)
+ *   fx_tone        — cabinet brightness (0 → darkest, ≥ 246 → fully open)
+ *   fx_tightness   — pre-clip high-pass amount
+ *   fx_smooth      — post-clip low-pass amount
+ *
+ * Ports
+ * -----
+ *   audio_in/out  — stereo signed 16-bit
+ *   sample_en     — single-cycle sample strobe
+ */
 
 module fx_distortion #(
     parameter DATA_W  = 16,

@@ -1,12 +1,81 @@
-/*
+ /*
  * AudioFX.sv
  *
- * Top-level for the FX pedal.  Wires the WM8731 codec, the parameter
- * controller, the FX chain, and the soft-mute fade FSM together.
+ * Top-level module for the multi-effects guitar pedalboard on DE1-SoC.
+ *
+ * Instantiates and connects the following subsystems:
+ *
+ *   Audio I/O     — PLL (AUD_XCK), I2C codec config (AVConfig), and the
+ *                   streaming codec interface (AudioCodec).  Gated by the
+ *                   `ifndef NO_DSP macro for simulation without hardware IPs.
+ *
+ *   Flash memory  — FlashMemInterface Qsys/Platform Designer IP, providing
+ *                   two Avalon-MM buses (avl_mem + avl_csr) to the controller
+ *                   for save/load of preset banks across power cycles.
+ *
+ *   Controller    — Manages params[][], button inputs, save/load, mute,
+ *                   tap-tempo, and bank selection.
+ *
+ *   Display       — Drives LEDR, HEX0–HEX5, and the tap/mute LED from
+ *                   controller state and the tuner engine output.
+ *
+ *   Tuner         — Runs continuously on the raw ADC input regardless of
+ *                   the chain state; result shown on HEX while muted.
+ *
+ *   Fade FSM      — Soft-mutes the DAC and chain input during bank switches
+ *                   and footswitch mute, suppressing pops and BRAM-tail
+ *                   bleed-through.
+ *
+ * FX chain  (audio flows in this order)
+ * --------
+ *   FX 0  Input Gain   — fx_gain (32 = unity)
+ *   FX 1  Gate         — bit-exact bypass when fx_threshold==0 && fx_knee==0
+ *   FX 2  EQ 1         — 4-band (sub/low/mid/high), unity at gain=128
+ *   FX 3  Compressor   — mathematical bypass at fx_mix==0 (mixed = dry)
+ *   FX 4  Distortion   — true bypass at fx_mix==0; cabinet IIR coefficient
+ *                        clamped at 1.0 (fx_tone>=246 → safe_tone=256) so
+ *                        the cabinet stays stable at any tone setting
+ *   FX 5  EQ 2         — same module as EQ 1
+ *   FX 6  Chorus       — stereo, two-voice (0°/90° quadrature)
+ *   FX 7  Expression Gain — driven from external pedal via ADC_DOUT
+ *   FX 8  Delay        — tap-tempo capable; KEY[1]/footswitch sets BPM
+ *   FX 9  Reverb       — Schroeder (parallel comb + series allpass)
+ *   FX 10 Output Gain  — fx_gain (32 = unity)
+ *
+ * Peripheral pins
+ * ---------------
+ *   GPIO_1[3:0]   — four bank-select footswitches (each picks a preset bank)
+ *   GPIO_1[4]     — mute / tuner footswitch (OR'd with KEY[1])
+ *   GPIO_1_LED    — tap LED: solid when muted, pulses at tap-tempo when not
+ *   ADC_DOUT      — pot/ADC stream from external knob + expression pedal
+ *                   (knob → pot_value for parameter editing; pedal →
+ *                    Expression Gain stage at FX 7)
+ *
+ * DAC muting
+ * ----------
+ *   The DAC output is forced to zero when is_mute is asserted (footswitch
+ *   long-press / KEY[1]) or fsm_busy is high (flash save / load in progress).
+ *   Muting during fsm_busy prevents audible glitches from mid-stream param
+ *   updates while the load FSM writes bytes one at a time into the FX chain.
+ *
+ * Tuner
+ * -----
+ *   tuner_yin_engine runs continuously on the raw ADC input and produces a
+ *   Q12.4 lag estimate roughly every 170 ms.  Pitch detection uses YIN with
+ *   threshold-cross *plus a descent walk* — once the difference function
+ *   d(tau) drops below threshold the engine keeps walking down the dip until
+ *   d(tau) starts increasing, then parabolic-interpolates around the actual
+ *   local minimum for sub-sample precision (eliminates the +60..90 cent
+ *   bias that the old plain-threshold-cross implementation had on guitar).
+ *
+ *   tuner_display takes the lag and produces the six HEX values: SW[9]
+ *   selects between note mode (letter + octave + ^/V/- indicator with
+ *   ±5-cent tolerance and ±10-cent boundary hysteresis) and frequency mode
+ *   (Hz reading).  Output goes to HEX0–HEX5 only while is_mute is high.
  *
  * Soft-mute / bank-switch click suppression
  * -----------------------------------------
- *   The fade FSM (`fade_fsm`, src/fade_fsm.sv) drives `ramp_vol`,
+ *   The fade FSM (`fade_fsm`, src/control/fade_fsm.sv) drives `ramp_vol`,
  *   `muted`, and `unmuted`.  These three outputs are consumed here:
  *
  *     • DAC output is multiplied by ramp_vol (smooth fade always).
@@ -19,6 +88,11 @@
  *       bank's feedback paths.
  *     • `fx_flush` is just `muted`, used by delay/reverb to clamp
  *       feedback during the muted window.
+ *
+ * Macro
+ * -----
+ *   `define NO_DSP  — omit all audio hardware IPs and FX chain; useful for
+ *                     controller / display simulation without codec files.
  */
 
 // `define NO_DSP

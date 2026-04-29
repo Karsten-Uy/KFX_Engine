@@ -1,10 +1,5 @@
 # Helix at Home (HaH) Processor 🎸
 
-## TODO
-- updated documentation
-- Scripting documentation
-  - build.tcl and program_sof.tcl work but not program_jic.tcl
-
 ## Overview
 
 **Helix at Home (HaH)** is a **synthesizable multi-effects guitar processor** implemented in **SystemVerilog** on the **DE1-SoC FPGA**. It uses the on-board **audio codec ADC and DAC** to process live audio input from an electric guitar through a configurable chain of digital audio effects.
@@ -21,7 +16,7 @@ The design was initially forked from the *audio-loopback-only* example in
 Audio is processed sequentially through the following effect chain:
 
 ```
-Gain → Gate → EQ → Compressor → Distortion → EQ → Chorus → Gain → Delay → Reverb → Gain
+Gain -> Gate -> EQ -> Compressor -> Distortion -> EQ -> Chorus -> Gain -> Delay -> Reverb -> Gain
 ```
 
 ---
@@ -74,8 +69,9 @@ The following sections outline how to use the board with the base hardware that 
 
 ### Software Required
 
-- Quartus Prime
+- Quartus Prime for compilation and programming the FPGA
   - `Quartus Prime Version 18.1.0 Build 09/12/2018 SJ Lite Edition` was used to develop this project
+- Modelsim for running testbenches
 
 ### Minimum Hardware Needed
 NOTE* This list is just to run the project without periferals, all DSP functionality and control can be done with just this hardware
@@ -187,22 +183,91 @@ NOTES:
 - Gain2 should be modulated by the expression pedal
 - Descriptions for what the parameters do are in the next section
 
-## Periferal Usage 
+### Saving and Loading Presets (Banks)
+
+The pedalboard stores **four independent preset banks** in the on-board EPCQ256 SPI flash. Each bank is a complete snapshot of every parameter for every FX in the chain — selecting a different bank instantly recalls a totally different sound (different gate threshold, EQ curve, distortion drive, delay time, reverb size, etc.) without losing what you had configured on the other banks.
+
+**What a save captures.** A single save writes **all four banks** to flash at once, not just the active one. So the workflow is: dial in bank 0 the way you want it (using the bank switch on `GPIO_1[0]` or `SW[2]` to be on bank 0, then editing FX/params), switch to bank 1, dial that one in, then bank 2, then bank 3 — and finally save once. After the save, every bank's full state is in flash and survives a power cycle.
+
+**Storage layout.** Total preset data is `BANK_COUNT × FX_COUNT × PARAM_COUNT = 4 × 16 × 8 = 512 bytes`, which fits comfortably inside one 64 KB EPCQ sector. The first byte of the sector is a `0xA5` **sentinel** that marks the data as valid — this lets the loader distinguish a freshly-erased flash (all `0xFF`) from a real saved preset, so a board with no save history won't load garbage on boot.
+
+**Save sequence** (triggered by `SW[0]` rising edge — flip up):
+
+1. `b` appears on `HEX1` (`fsm_busy = 1`) and the audio chain is muted to suppress glitches from mid-stream parameter writes.
+2. `WREN` (write enable) command issued to flash via CSR.
+3. The full 64 KB sector is erased — this is the slow part, **about 3 seconds worst-case**, during which `b` stays lit.
+4. All 512 parameter bytes (every bank, every FX, every param) are written sequentially.
+5. The `0xA5` sentinel is written to slot 0 **last** — so if power is lost mid-save the sentinel won't be present and the next boot's load will safely abort instead of using a half-written preset.
+6. `b` clears, audio fades back in. Save complete.
+
+**Load sequence** (triggered by `SW[1]` rising edge — flip up then down):
+
+1. Read slot 0 from flash; check for `0xA5`. If absent, abort silently (board keeps current in-RAM presets).
+2. If present, read all 512 parameter bytes and write them into the live `params` array, bank by bank.
+3. The current bank's parameters are immediately reflected on the FX chain.
+
+**Power-persistent operation.** If you flash the design as a `.jic` file (see "How to create .jic file for power persistant design" above), the saved bank data lives in the EPCQ256 alongside the bitstream and survives a full power-off. On any subsequent boot, flipping `SW[1]` recalls the four banks exactly as they were last saved.
+
+## Periferal Usage
 
 ### Periferal Hardware
 NOTE* The periferals only add live stage accessable controls and do not change the DSP functionality.
 
 - [5x Momentary Soft Touch Foot Switch](https://www.amazon.ca/dp/B08TBTWDYV)
 - [1x 15" x 5.7" Aluminum Alloy Guitar Effects PedalBoard with Carry Bag](https://www.amazon.ca/dp/B0D5CBVMHY)
+- [1x Expression Pedal](https://www.amazon.ca/dp/B07CZJYLJV) - any TRS expression pedal works
+- [1x Rotary Potentiometer (10 kΩ linear)](https://www.amazon.ca/dp/B07Y19D81B) - for parameter editing
 - Masking Tape
-- [Soldering Iron](https://www.amazon.ca/Soldering-Electronics-Adjustable-Temperature-Repairing/dp/B097XX76V4/ref=sr_1_1_sspa?s=hi&sr=1-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY)
+- [Soldering Iron](https://www.amazon.ca/Soldering-Electronics-Adjustable-Temperature-Repairing/dp/B097XX76V4)
 - Glue Gun
 - Electronic Cardboard Boxes
 - [Electronics Kit](https://www.amazon.ca/dp/B01ERP6WL4)
   - Wires
   - Resistors
-  - x1 LEDs
+  - x1 LED
   - [Multimeter](https://www.amazon.ca/dp/B01ISAMUA6)
+
+### Wiring & Pin Map
+
+| Peripheral             | DE1-SoC pin   | Behavior                                                                      |
+| ---------------------- | ------------- | ----------------------------------------------------------------------------- |
+| Bank footswitch 0      | `GPIO_1[0]`   | Press -> activate preset bank 0                                                |
+| Bank footswitch 1      | `GPIO_1[1]`   | Press -> activate preset bank 1                                                |
+| Bank footswitch 2      | `GPIO_1[2]`   | Press -> activate preset bank 2                                                |
+| Bank footswitch 3      | `GPIO_1[3]`   | Press -> activate preset bank 3                                                |
+| Mute / tuner footswitch | `GPIO_1[4]`  | Tap to mute (OR'd with KEY[1]); while muted the HEX displays show the tuner  |
+| Tap / mute LED          | `GPIO_1_LED` | Solid ON while muted; pulses at the current tap-tempo when unmuted           |
+| Expression pedal        | ADC channel 0 (`ADC_DOUT`) | Drives FX 7 (Expression Gain); sweep adjusts overall chain volume |
+
+All footswitches are momentary (active-low) - wire one terminal to the `GPIO_1` pin and through a resistor then to ground; an internal pull-up on the FPGA holds the line high when not pressed. For the Expression pedal, the wiper is connected to the ADC channel and the other 2 pins are connect 2 ground and the 3.3V pin on the `GPIO` pins.
+
+### Tuner
+
+The on-board YIN-based pitch tracker is always running on the raw ADC input regardless of mute state. To use it:
+
+1. Press `KEY[1]` (or the mute footswitch on `GPIO_1[4]`) to mute the audio chain.
+2. While muted, the six HEX displays show the tuner output:
+   * **`SW[9]` low -> note mode**: `HEX5`/`HEX4` show the note letter and `#` (sharp marker), `HEX3` shows the octave digit, `HEX0` shows a tuning indicator:
+     * `V` - string is *flat*, tighten it (raise pitch).
+     * `^` - string is *sharp*, loosen it (lower pitch).
+     * `-` - within ±5 cents of the target note (in tune).
+   * **`SW[9]` high -> frequency mode**: `HEX5–HEX4` show `Fr`, and `HEX3–HEX0` show the measured fundamental in Hz (e.g. `247` for B3).
+3. The note classifier holds the displayed note for a ±10-cent hysteresis window past each chromatic boundary, so notes near the half-semitone line don't flicker between adjacent letters.
+4. After ~500 ms of silence the display falls back to all dashes.
+
+Press `KEY[1]` (or the mute footswitch) again to un-mute and resume audio processing.
+
+### Bank Switching
+
+Each of the four bank footswitches loads its corresponding preset bank from flash. The fade FSM ramps the DAC down -> flips `bank_sel` -> ramps back up over ~126 ms total to suppress the click that would otherwise occur when delay/reverb feedback paths and IIR coefficients change instantaneously.
+
+### Tap Tempo
+
+While unmuted, repeatedly tap the mute footswitch (or `KEY[1]`) on the beat. The controller measures the inter-tap interval and sets the delay time to that BPM. The tap-tempo LED pulses on each beat to confirm. Long-pressing the same switch (>500 ms) instead activates mute / tuner mode rather than registering as a tap.
+
+### Expression Pedal
+
+The expression pedal at FX 7 is a wet-only volume control inserted between the chorus and delay stages. With the pedal heel-down, the chain is silent at that point; Useful for swells and volume-controlled feedback into delay and reverb.
 
 ## Implemented Effects & Parameters
 
@@ -220,13 +285,15 @@ Applies a gain multiplier to the signal.
 
 Noise gate with a soft-knee and adjustable floor gain. Signals above the threshold pass through at unity; signals below are attenuated toward the depth floor. The knee region smoothly transitions between open and closed rather than switching abruptly.
 
+**Bypass behavior**: when `fx_threshold == 0` and `fx_knee == 0` the gate becomes a true wire - `audio_out = audio_in` with no multiplier on the path. This avoids the small per-sample LSB truncation the multiply otherwise produces on every positive sample.
+
 **Parameters**
 
-* `fx_threshold`: Gate open level (scaled to the full 16-bit signal range)
-* `fx_attack`: Speed at which the gate opens after the signal exceeds the threshold (`0` = instant, `255` = slowest)
-* `fx_release`: Speed at which the gate closes after the signal falls below the threshold (`0` = instant, `255` = slowest)
-* `fx_knee`: Soft-knee half-width — widens the transition region around the threshold (`0` = hard switch, `255` = widest knee)
-* `fx_depth`: Gain floor when the gate is fully closed (`0` = full mute, `255` = unity — effectively bypasses gating)
+* `fx_threshold`: Gate open level (scaled to the full 16-bit signal range). Set to `0` together with `fx_knee = 0` for true bypass.
+* `fx_attack`: Speed at which the gate opens after the signal exceeds the threshold (`0` = instant, `255` = slowest). Linear amplitude ramp.
+* `fx_release`: Speed at which the gate closes after the signal falls below the threshold (`0` = instant, `255` = slowest). Linear amplitude ramp - for a smoother decay tail use higher values (~200–240).
+* `fx_knee`: Soft-knee half-width - widens the transition region around the threshold (`0` = hard switch, `255` = widest knee).
+* `fx_depth`: Gain floor when the gate is fully closed (`0` = full mute, `255` = unity - effectively bypasses gating).
 
 ---
 
@@ -245,31 +312,39 @@ Noise gate with a soft-knee and adjustable floor gain. Signals above the thresho
 
 ### Compressor
 
-Peak-envelope-based compressor with lookahead that reduces signal levels above a threshold while leaving lower levels unchanged. Includes independent input and output gain stages and a parallel dry/wet blend for New York-style parallel compression.
+Peak-envelope-based compressor with 8-sample lookahead that reduces signal levels above a threshold while leaving lower levels unchanged. Includes independent input and output gain stages and a parallel dry/wet blend for New York-style parallel compression.
+
+**Bypass behavior**: at `fx_mix = 0` the wet term contributes 0 and the output collapses to the lookahead-delayed dry signal - mathematically a clean bypass with naturally-matched latency to any partial-mix value, so you can sweep `fx_mix` smoothly through 0 without timing artifacts. For a *bit-exact* unity-gain dry signal also set `fx_input_gain = 64` (the dry path is post-input-gain).
 
 **Parameters**
 
 * `fx_threshold`: Compression onset level (0–255, scaled to full 16-bit range)
-* `fx_ratio`: Compression ratio — `0` = 1:1 (no compression), `255` = maximum ratio
+* `fx_ratio`: Compression ratio - `0` = 1:1 (no compression), `255` = maximum ratio
 * `fx_attack`: Time before gain reduction begins after exceeding the threshold (upper nibble controls slew rate)
 * `fx_release`: Time before gain reduction is released after falling below the threshold (upper nibble controls slew rate)
 * `fx_input_gain`: Pre-compression input gain (`64 = unity`)
 * `fx_makeup_gain`: Post-compression output gain (`64 = unity`)
-* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
+* `fx_mix`: Dry/wet blend (`0` = fully dry / mathematical bypass, `255` = ~99.6% wet)
 
 ---
 
 ### Distortion
 
-Amp-style distortion that models the full signal chain of an overdriven guitar amplifier through seven processing stages:
+Amp-style distortion that models the full signal chain of an overdriven guitar amplifier through seven processing stages.
 
-1. **Pre-emphasis** — A first-difference high-shelf filter (`emph = x + (x − x_prev) >> 2`) boosts the presence band (~3 kHz) before the signal hits the clipping stage, adding bite and pick attack to the distorted tone.
+**Bypass behavior**: at `fx_mix = 0` the entire wet chain (drive, clipping, DC blocker, makeup, and cabinet IIR) is bypassed at the output - `audio_out = audio_in`. This is important because the cabinet IIR runs continuously and accumulates per-sample truncation noise; bypassing it at mix=0 keeps banks that don't use distortion completely clean.
 
-2. **Drive** — Multiplies the pre-emphasized signal by a gain in the range 1× to 32.875× (`drive_gain = 256 + fx_drive × 32`). Higher drive pushes more of the signal into the clipping region.
+**Stability**: the cabinet IIR's pole coefficient is `safe_tone / 256` where `safe_tone = fx_tone + 10`. For `fx_tone ≥ 246` the raw value exceeds 256, which would make the IIR unstable and ring; the design clamps `safe_tone` at exactly 256 in that band so the cabinet stays at unity gain and never diverges.
 
-3. **Asymmetric bias** — A fixed +5% full-scale DC offset is added before clamping. This shifts the clipping threshold so positive and negative half-cycles clip at different levels, introducing even-order harmonics that give the distortion a warmer, more tube-like character.
+The seven stages:
 
-4. **Soft clip (tanh approximation)** — The biased signal is passed through a 3rd-order polynomial approximation of `tanh(x)`, which smoothly compresses peaks rather than hard-squaring them:
+1. **Pre-emphasis** - A first-difference high-shelf filter (`emph = x + (x − x_prev) >> 2`) boosts the presence band (~3 kHz) before the signal hits the clipping stage, adding bite and pick attack to the distorted tone.
+
+2. **Drive** - Multiplies the pre-emphasized signal by a gain in the range 1× to 32.875× (`drive_gain = 256 + fx_drive × 32`). Higher drive pushes more of the signal into the clipping region.
+
+3. **Asymmetric bias** - A fixed +5% full-scale DC offset is added before clamping. This shifts the clipping threshold so positive and negative half-cycles clip at different levels, introducing even-order harmonics that give the distortion a warmer, more tube-like character.
+
+4. **Soft clip (tanh approximation)** - The biased signal is passed through a 3rd-order polynomial approximation of `tanh(x)`, which smoothly compresses peaks rather than hard-squaring them:
 
    ```
            {  +2/3              , x ≥ +1
@@ -279,11 +354,11 @@ Amp-style distortion that models the full signal chain of an overdriven guitar a
 
    Division by 3 is approximated as `(x + x>>2 + x>>4 + x>>6) >> 2` (error ≤ 0.39%, inaudible).
 
-5. **Wet/dry mix** — Blends the clipped signal with the original dry input (`0` = fully dry, `255` = ~99.6% wet), enabling parallel or blended distortion tones.
+5. **Wet/dry mix** - Blends the clipped signal with the original dry input (`0` = fully dry, `255` = ~99.6% wet), enabling parallel or blended distortion tones.
 
-6. **Makeup gain** — Compensates for the level reduction caused by clipping (`128 = unity`).
+6. **Makeup gain** - Compensates for the level reduction caused by clipping (`128 = unity`).
 
-7. **Cabinet simulation** — Two cascaded one-pole IIR low-pass filters (fc ≈ 4.4 kHz @ 48 kHz) roll off the harsh ultrasonic content produced by hard clipping, approximating the frequency response of a guitar speaker cabinet.
+7. **Cabinet simulation** - Two cascaded one-pole IIR low-pass filters (fc ≈ 4.4 kHz @ 48 kHz) roll off the harsh ultrasonic content produced by hard clipping, approximating the frequency response of a guitar speaker cabinet.
 
 **Latency:** 6 samples.
 
@@ -291,7 +366,12 @@ Amp-style distortion that models the full signal chain of an overdriven guitar a
 
 * `fx_drive`: Amount of gain into the clipping stage (`0` = 1× / unity, `255` ≈ 32.875×)
 * `fx_makeup_gain`: Output level after clipping and cabinet simulation (`128 = unity`)
-* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
+* `fx_bias`: Asymmetric DC bias added before clipping - controls the harmonic balance (more even-order harmonics at higher values, more "tube-like")
+* `fx_sag`: Power-supply sag emulation depth - at high values the drive collapses briefly during loud transients, mimicking tube-amp compression
+* `fx_tone`: Cabinet IIR cutoff (`0` = darkest / heaviest filtering, `246–255` = brightest / fully open with safe-tone clamp)
+* `fx_tightness`: Pre-clip high-pass amount - higher values tighten low-end bloom under high gain
+* `fx_smooth`: Post-clip low-pass amount - higher values reduce fizz / aliasing artifacts
+* `fx_mix`: Dry/wet blend (`0` = true bypass, `255` = ~99.6% wet)
 
 ---
 
@@ -325,7 +405,7 @@ Implements a **Schroeder Reverberator** using parallel damped feedback comb filt
 
 **Parameters**
 
-* `fx_size`: Room size / decay time — scales all comb filter delays (`0` = smallest room / shortest tail, `255` = largest room / longest tail)
+* `fx_size`: Room size / decay time - scales all comb filter delays (`0` = smallest room / shortest tail, `255` = largest room / longest tail)
 * `fx_damping`: High-frequency damping of the reverb tail (`0` = bright / full HF content, `255` = dark / heavily damped)
 * `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
 
@@ -335,6 +415,7 @@ Implements a **Schroeder Reverberator** using parallel damped feedback comb filt
 
 * **FPGA Board:** DE1-SoC
 * **HDL:** SystemVerilog
+* **Algorithmic Prototyping:** Python
 * **Audio Codec:** DE1-SoC on-board codec
 * **Synthesis & Programming:** Intel Quartus
 * **Simulation:** ModelSim
