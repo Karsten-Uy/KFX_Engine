@@ -22,7 +22,7 @@
  *     Cycle N  : LP state update  → comb*_lp   (Q16 register)
  *     Cycle N+1: lp_out capture   → lp_out_*   (integer, Q16 >> LP_FRAC_BITS)
  *     Cycle N+1: DC blocker update→ dc*_x, dc*_y
- *     Cycle N+1: feedback         → dc*_y * FIXED_FB_GAIN >> 8
+ *     Cycle N+1: feedback         → dc*_y * fb_gain >> 8
  *
  *   The one-cycle pipeline gap between LP and DC blocker is inaudible
  *   (20 µs at 48 kHz) and eliminates the combinational loop that would
@@ -34,11 +34,12 @@
  *     fx_damping = 240 → lp_coef = 16  → LP narrow      (dark, clamped)
  *
  *   Comb feedback gain (fb_gain) is selected from four discrete constants
- *   by the upper two bits of fx_decay.  Keeping each branch a constant
- *   lets the synthesizer fold the multiplier into shifts/adds (the way
- *   the old single-literal 9'sd236 did) — a dynamic fb_gain forced full
- *   DSP-block multipliers and routing/timing on those didn't behave the
- *   same way, which broke the audio.
+ *   by fx_decay[7:6] and registered once per audio sample.  The 8 comb
+ *   multipliers share this registered runtime input — stable edge-to-
+ *   edge so the math is correct, and forced into ALUTs via the
+ *   multstyle="logic" attribute on the comb_fb signal declarations so
+ *   they don't consume DSP blocks (the device has 87 DSPs and the rest
+ *   of the design needs most of them).
  *
  * Stage 2 — Three series all-pass filters per channel.
  *   g = 0.5 (ALLPASS_COEF = 128):  y[n] = −g·x[n] + x[n−d] + g·y[n−d]
@@ -116,8 +117,10 @@ module fx_reverb #(
     localparam LP_FRAC_BITS  = 16;
 
     // Four discrete feedback-gain constants selected by fx_decay[7:6].
-    // Keeping these as compile-time constants is what lets the synthesizer
-    // fold the comb multipliers into shifts/adds — see header comment.
+    // The selection happens once per audio sample (see fb_gain register
+    // below) so the comb multipliers see a stable runtime input edge-to-
+    // edge.  Combined with multstyle="logic" on the comb_fb signals, this
+    // keeps the 8 multipliers out of DSP blocks (they fold into ALUTs).
     localparam logic signed [8:0] FB_GAIN_SHORT  = 9'sd200;  // ~0.781
     localparam logic signed [8:0] FB_GAIN_MEDIUM = 9'sd220;  // ~0.859
     localparam logic signed [8:0] FB_GAIN_LONG   = 9'sd236;  // ~0.922 (original)
@@ -146,6 +149,29 @@ module fx_reverb #(
         lp_coef = (9'd256 - {1'b0, fx_damping} < 9'd16)
                   ? 9'd16
                   : 9'd256 - {1'b0, fx_damping};
+    end
+
+    // ----------------------------------------------------------------
+    // Comb Feedback Gain  (registered once per sample)
+    //
+    // Updates only on sample_en, so the 8 comb multipliers see a stable
+    // 9-bit signed runtime value edge-to-edge.  Resets to FB_GAIN_LONG
+    // (= 9'sd236) so on power-up before any param load the reverb has
+    // the same character as the previous fixed-gain build.
+    // ----------------------------------------------------------------
+
+    logic signed [8:0] fb_gain;
+
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) fb_gain <= FB_GAIN_LONG;
+        else if (sample_en) begin
+            case (fx_decay[7:6])
+                2'b00: fb_gain <= FB_GAIN_SHORT;
+                2'b01: fb_gain <= FB_GAIN_MEDIUM;
+                2'b10: fb_gain <= FB_GAIN_LONG;
+                2'b11: fb_gain <= FB_GAIN_HUGE;
+            endcase
+        end
     end
 
     // ----------------------------------------------------------------
@@ -388,56 +414,22 @@ module fx_reverb #(
     // Comb Filter Combinational Logic  (feedback from dc*_y)
     //
     // dc*_y is already in the ±32767 integer range (LP_FRAC_BITS stripped
-    // in Stage B), so apply FIXED_FB_GAIN directly.
+    // in Stage B), so apply fb_gain directly.
     // ----------------------------------------------------------------
 
-    // Comb feedback — explicit per-decay-step multiplications so each
-    // branch keeps a constant operand and gets constant-folded by the
-    // synthesizer (same pattern that worked with the original FIXED
-    // literal).  fx_decay[7:6] picks one of the four constants.
+    // Comb feedback — 8 multiplies sharing the registered fb_gain.
+    // multstyle="logic" on the comb_fb signal declarations forces these
+    // into ALUTs instead of DSP blocks (Cyclone V only has 87 DSPs and
+    // the rest of the design uses most of them).
     always_comb begin
-        case (fx_decay[7:6])
-            2'b00: begin
-                comb1L_fb = (dc1L_y * FB_GAIN_SHORT) >>> 8;
-                comb2L_fb = (dc2L_y * FB_GAIN_SHORT) >>> 8;
-                comb3L_fb = (dc3L_y * FB_GAIN_SHORT) >>> 8;
-                comb4L_fb = (dc4L_y * FB_GAIN_SHORT) >>> 8;
-                comb1R_fb = (dc1R_y * FB_GAIN_SHORT) >>> 8;
-                comb2R_fb = (dc2R_y * FB_GAIN_SHORT) >>> 8;
-                comb3R_fb = (dc3R_y * FB_GAIN_SHORT) >>> 8;
-                comb4R_fb = (dc4R_y * FB_GAIN_SHORT) >>> 8;
-            end
-            2'b01: begin
-                comb1L_fb = (dc1L_y * FB_GAIN_MEDIUM) >>> 8;
-                comb2L_fb = (dc2L_y * FB_GAIN_MEDIUM) >>> 8;
-                comb3L_fb = (dc3L_y * FB_GAIN_MEDIUM) >>> 8;
-                comb4L_fb = (dc4L_y * FB_GAIN_MEDIUM) >>> 8;
-                comb1R_fb = (dc1R_y * FB_GAIN_MEDIUM) >>> 8;
-                comb2R_fb = (dc2R_y * FB_GAIN_MEDIUM) >>> 8;
-                comb3R_fb = (dc3R_y * FB_GAIN_MEDIUM) >>> 8;
-                comb4R_fb = (dc4R_y * FB_GAIN_MEDIUM) >>> 8;
-            end
-            2'b10: begin
-                comb1L_fb = (dc1L_y * FB_GAIN_LONG) >>> 8;
-                comb2L_fb = (dc2L_y * FB_GAIN_LONG) >>> 8;
-                comb3L_fb = (dc3L_y * FB_GAIN_LONG) >>> 8;
-                comb4L_fb = (dc4L_y * FB_GAIN_LONG) >>> 8;
-                comb1R_fb = (dc1R_y * FB_GAIN_LONG) >>> 8;
-                comb2R_fb = (dc2R_y * FB_GAIN_LONG) >>> 8;
-                comb3R_fb = (dc3R_y * FB_GAIN_LONG) >>> 8;
-                comb4R_fb = (dc4R_y * FB_GAIN_LONG) >>> 8;
-            end
-            2'b11: begin
-                comb1L_fb = (dc1L_y * FB_GAIN_HUGE) >>> 8;
-                comb2L_fb = (dc2L_y * FB_GAIN_HUGE) >>> 8;
-                comb3L_fb = (dc3L_y * FB_GAIN_HUGE) >>> 8;
-                comb4L_fb = (dc4L_y * FB_GAIN_HUGE) >>> 8;
-                comb1R_fb = (dc1R_y * FB_GAIN_HUGE) >>> 8;
-                comb2R_fb = (dc2R_y * FB_GAIN_HUGE) >>> 8;
-                comb3R_fb = (dc3R_y * FB_GAIN_HUGE) >>> 8;
-                comb4R_fb = (dc4R_y * FB_GAIN_HUGE) >>> 8;
-            end
-        endcase
+        comb1L_fb = (dc1L_y * fb_gain) >>> 8;
+        comb2L_fb = (dc2L_y * fb_gain) >>> 8;
+        comb3L_fb = (dc3L_y * fb_gain) >>> 8;
+        comb4L_fb = (dc4L_y * fb_gain) >>> 8;
+        comb1R_fb = (dc1R_y * fb_gain) >>> 8;
+        comb2R_fb = (dc2R_y * fb_gain) >>> 8;
+        comb3R_fb = (dc3R_y * fb_gain) >>> 8;
+        comb4R_fb = (dc4R_y * fb_gain) >>> 8;
     end
 
     always_comb begin
