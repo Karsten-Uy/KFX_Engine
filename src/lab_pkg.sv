@@ -87,11 +87,11 @@ package lab_pkg;
             bank0_default(input int fx, input int param);
         bank0_default = '0;
         case (fx)
-            0:  if (param==0) bank0_default = 8'd32;           // input gain unity
+            0:  if (param==0) bank0_default = 8'd128;           // input gain unity
             1:  case (param)
-                    0: bank0_default = 8'd1;                     // gate off
+                    0: bank0_default = 8'd1;                     // very light gate
                     1: bank0_default = 8'd40;
-                    2: bank0_default = 8'd128;
+                    2: bank0_default = 8'd240;
                 endcase
             2:  case (param)
                     0: bank0_default = 8'd0;
@@ -198,7 +198,7 @@ package lab_pkg;
                     1: bank1_default = 8'd150;
                     7: bank1_default = 8'd0;
                 endcase
-            10: if (param==0) bank1_default = 8'd1;
+            10: if (param==0) bank1_default = 8'd10;
         endcase
     endfunction
 
@@ -209,55 +209,60 @@ package lab_pkg;
             bank2_default(input int fx, input int param);
         bank2_default = '0;
         case (fx)
-            0:  if (param==0) bank2_default = 8'd150;
+            0:  if (param==0) bank2_default = 8'd140;
             1:  case (param)
                     0: bank2_default = 8'd1;
-                    1: bank2_default = 8'd30;
-                    2: bank2_default = 8'd80;
+                    1: bank2_default = 8'd40;
+                    2: bank2_default = 8'd100;
                 endcase
             2:  case (param)
                     0: bank2_default = 8'd0;
-                    1: bank2_default = 8'd60;                    // low cut
-                    2: bank2_default = 8'd150;
-                    3: bank2_default = 8'd130;
+                    1: bank2_default = 8'd40;
+                    2: bank2_default = 8'd160;   
+                    3: bank2_default = 8'd140;
                 endcase
             3:  case (param)
-                    0: bank2_default = 8'd80;
-                    1: bank2_default = 8'd140;                   // ratio ~4:1
-                    2: bank2_default = 8'd30;                    // fast attack
-                    3: bank2_default = 8'd100;
-                    4: bank2_default = 8'd100;
-                    5: bank2_default = 8'd100;
-                    7: bank2_default = 8'd220;
+                    0: bank2_default = 8'd60;
+                    1: bank2_default = 8'd128;
+                    2: bank2_default = 8'd50;
+                    3: bank2_default = 8'd110;
+                    4: bank2_default = 8'd255;
+                    5: bank2_default = 8'd255;
+                    7: bank2_default = 8'd255;
                 endcase
             4:  case (param)
-                    0: bank2_default = 8'd220;                   // high gain
-                    1: bank2_default = 8'd90;
-                    7: bank2_default = 8'd240;
+                    0: bank2_default = 8'd255;       
+                    1: bank2_default = 8'd50;
+                    2: bank2_default = 8'd50;
+                    3: bank2_default = 8'd0;
+                    4: bank2_default = 8'd230;
+                    5: bank2_default = 8'd30;
+                    6: bank2_default = 8'd230;
+                    7: bank2_default = 8'd64;
                 endcase
             5:  case (param)
                     0: bank2_default = 8'd0;
-                    1: bank2_default = 8'd70;
-                    2: bank2_default = 8'd160;
-                    3: bank2_default = 8'd180;
+                    1: bank2_default = 8'd90;
+                    2: bank2_default = 8'd140;
+                    3: bank2_default = 8'd170;     
                 endcase
             6:  case (param)
                     0: bank2_default = 8'd128;
                     1: bank2_default = 8'd128;
-                    7: bank2_default = 8'd0;                     // no chorus on lead
+                    7: bank2_default = 8'd0;
                 endcase
             7:  if (param==0) bank2_default = 8'd128;
             8:  case (param)
-                    0: bank2_default = 8'd170;                   // dotted-eighth
-                    1: bank2_default = 8'd120;
-                    7: bank2_default = 8'd80;
+                    0: bank2_default = 8'd100;     
+                    1: bank2_default = 8'd60;
+                    7: bank2_default = 8'd60;
                 endcase
             9:  case (param)
-                    0: bank2_default = 8'd190;
-                    1: bank2_default = 8'd100;
-                    7: bank2_default = 8'd90;
+                    0: bank2_default = 8'd80;
+                    1: bank2_default = 8'd150;
+                    7: bank2_default = 8'd0;
                 endcase
-            10: if (param==0) bank2_default = 8'd64;
+            10: if (param==0) bank2_default = 8'd1;
         endcase
     endfunction
 

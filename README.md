@@ -239,7 +239,7 @@ NOTE* The periferals only add live stage accessable controls and do not change t
 | Tap / mute LED          | `GPIO_1_LED` | Solid ON while muted; pulses at the current tap-tempo when unmuted           |
 | Expression pedal        | ADC channel 0 (`ADC_DOUT`) | Drives FX 7 (Expression Gain); sweep adjusts overall chain volume |
 
-All footswitches are momentary (active-low) - wire one terminal to the `GPIO_1` pin and through a resistor then to ground; an internal pull-up on the FPGA holds the line high when not pressed. For the Expression pedal, the wiper is connected to the ADC channel and the other 2 pins are connect 2 ground and the 3.3V pin on the `GPIO` pins.
+All footswitches are momentary (active-low) - wire one terminal to the `GPIO_1` pin and through a 10K resistor then to ground; an internal pull-up on the FPGA holds the line high when not pressed. For the Expression pedal, the wiper is connected to the ADC channel and the other 2 pins are connect 2 ground and the 3.3V pin on the `GPIO` pins. The LED is connected to a `GPIO_1_LED`, which is `GPIO_5` through a 1k resistor into ground.
 
 ### Tuner
 
