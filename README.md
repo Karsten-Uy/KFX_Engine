@@ -133,7 +133,7 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 
 ### FX Mapping Table
 
-| FX          | Parameter       | FX Number | Parameter Number |
+| FX          | Parameter       | FX Number | Param Number |
 | ----------- | --------------- | --------- | ---------------- |
 | Input Gain  | fx_gain         | F0        | P0               |
 | Gate        | fx_threshold    | F1        | P0               |

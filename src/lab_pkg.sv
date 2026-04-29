@@ -202,8 +202,7 @@ package lab_pkg;
         endcase
     endfunction
 
-    // ---- Bank 2 : LEAD ----------------------------------------
-    // High-gain lead tone — hard compression, heavy saturation,
+    // ---- Bank 2 : LIGHT DRIVE ----------------------------------------
     // long dotted-eighth delay, lush reverb.
     function automatic logic [PARAM_W-1:0]
             bank2_default(input int fx, input int param);
@@ -260,6 +259,7 @@ package lab_pkg;
             9:  case (param)
                     0: bank2_default = 8'd80;
                     1: bank2_default = 8'd150;
+                    2: bank2_default = 8'd0;
                     7: bank2_default = 8'd0;
                 endcase
             10: if (param==0) bank2_default = 8'd1;
@@ -319,6 +319,7 @@ package lab_pkg;
             9:  case (param)
                     0: bank3_default = 8'd230;                   // huge room
                     1: bank3_default = 8'd80;                    // low damping
+                    2: bank3_default = 8'd200;                   // super long tail
                     7: bank3_default = 8'd60;                    // decent amount of reverb
                 endcase
             10: if (param==0) bank3_default = 8'd120;
