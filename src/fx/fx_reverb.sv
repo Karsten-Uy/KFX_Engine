@@ -142,14 +142,18 @@ module fx_reverb #(
     // ----------------------------------------------------------------
     // Feedback Gain  (decoupled from fx_size via fx_decay)
     //
-    // fb_gain = 184 + (fx_decay >> 2)      → 184..247
+    // fb_gain = 184 + (fx_decay >> 2)      → 184..247   (Q0.8, < 1.0)
     //   ≈ 0.719  at fx_decay = 0           (very short tail)
     //   ≈ 0.922  at fx_decay = 208         (matches old fixed behaviour)
     //   ≈ 0.965  at fx_decay = 255         (long, but still < 1.0 → stable)
+    //
+    // Declared as 9-bit signed (top bit always 0) so it can drop straight
+    // into the existing `dc*_y * <signed 9-bit>` multiplier expressions
+    // — same shape as the original `9'sd236` literal it replaces.
     // ----------------------------------------------------------------
 
-    logic [7:0] fb_gain;
-    assign fb_gain = 8'd184 + (fx_decay >> 2);
+    logic signed [8:0] fb_gain;
+    assign fb_gain = $signed({1'b0, 8'd184 + (fx_decay >> 2)});
 
     // ----------------------------------------------------------------
     // Comb Filter Signals
@@ -393,10 +397,10 @@ module fx_reverb #(
 
     always_comb begin
         // LEFT
-        comb1L_fb  = ($signed(dc1L_y) * $signed({1'b0, fb_gain})) >>> 8;
-        comb2L_fb  = ($signed(dc2L_y) * $signed({1'b0, fb_gain})) >>> 8;
-        comb3L_fb  = ($signed(dc3L_y) * $signed({1'b0, fb_gain})) >>> 8;
-        comb4L_fb  = ($signed(dc4L_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb1L_fb  = (dc1L_y * fb_gain) >>> 8;
+        comb2L_fb  = (dc2L_y * fb_gain) >>> 8;
+        comb3L_fb  = (dc3L_y * fb_gain) >>> 8;
+        comb4L_fb  = (dc4L_y * fb_gain) >>> 8;
         comb1L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb1L_fb);
         comb2L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb2L_fb);
         comb3L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb3L_fb);
@@ -409,10 +413,10 @@ module fx_reverb #(
                      $signed(comb3L_out) + $signed(comb4L_out);
 
         // RIGHT
-        comb1R_fb  = ($signed(dc1R_y) * $signed({1'b0, fb_gain})) >>> 8;
-        comb2R_fb  = ($signed(dc2R_y) * $signed({1'b0, fb_gain})) >>> 8;
-        comb3R_fb  = ($signed(dc3R_y) * $signed({1'b0, fb_gain})) >>> 8;
-        comb4R_fb  = ($signed(dc4R_y) * $signed({1'b0, fb_gain})) >>> 8;
+        comb1R_fb  = (dc1R_y * fb_gain) >>> 8;
+        comb2R_fb  = (dc2R_y * fb_gain) >>> 8;
+        comb3R_fb  = (dc3R_y * fb_gain) >>> 8;
+        comb4R_fb  = (dc4R_y * fb_gain) >>> 8;
         comb1R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb1R_fb);
         comb2R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb2R_fb);
         comb3R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb3R_fb);
