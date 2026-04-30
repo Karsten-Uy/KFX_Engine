@@ -232,7 +232,7 @@ package lab_pkg;
             6:  case (param)
                     0: bank2_default = 8'd128;
                     1: bank2_default = 8'd128;
-                    7: bank2_default = 8'd0;
+                    7: bank2_default = 8'd60;
                 endcase
             7:  if (param==0) bank2_default = 8'd128;
             8:  case (param)
@@ -286,7 +286,7 @@ package lab_pkg;
                 endcase
             5:  case (param)
                     0: bank3_default = 8'd0;
-                    1: bank3_default = 8'd100;
+                    1: bank3_default = 8'd30;
                     2: bank3_default = 8'd128;
                     3: bank3_default = 8'd150;
                 endcase

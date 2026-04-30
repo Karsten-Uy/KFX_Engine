@@ -1,8 +1,8 @@
-# Helix at Home (HaH) Processor 🎸
+# KFX Engine 🎸
 
 ## Overview
 
-**Helix at Home (HaH)** is a **synthesizable multi-effects guitar processor** implemented in **SystemVerilog** on the **DE1-SoC FPGA**. It uses the on-board **audio codec ADC and DAC** to process live audio input from an electric guitar through a configurable chain of digital audio effects.
+The **KFX Engine** is a **synthesizable multi-effects guitar processor** implemented in **SystemVerilog** on the **DE1-SoC FPGA**. It uses the on-board **audio codec ADC and DAC** to process live audio input from an electric guitar through a configurable chain of digital audio effects.
 
 This project was created to explore **audio DSP in hardware**, with a focus on real-time streaming, pipelined processing, and FPGA-based system design.
 
@@ -96,14 +96,14 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 #### How to create .jic file for power persistant design
 1. Compile via quartus to generate the .sof file normally
 2. Go to `File` > `Convert Programming File` in Quartus and then create the .jic file with the following settings and then click `Generate`
-  - Configuration device: `EPCQ128A`
-  - Flash Loader: `5CSEMA5`
-  - SOF Data: .sof file generated in step 1 (should be `AudioFX.sof`)
-  - Name: Whatever you want it to be (right now, I set the latest one to be `output_file.jic`)
+    - Configuration device: `EPCQ128A`
+    - Flash Loader: `5CSEMA5`
+    - SOF Data: .sof file generated in step 1 (should be `output_files/AudioFX.sof`)
+    - Name: Whatever you want it to be (right now, I set the latest one to be `output_file.jic`)
 3. Plug in the DE1 SoC and open the `Programmer` tool then click `Auto Detect` and in the popup select `5CSEMA5`
-4. Right click on the second chip in the GUI and click `Change File` and select the file generated in step 2
+4. Right click on the second chip in the GUI (`5CSEMA5`) and click `Change File` and select the file generated in step 2
 5. Check the `Program/Configure` box for the selected box and then click `Start` 
-  - This takes a few minutes to compile
+    - This takes a few minutes to program 
 
 ### How to control FX
 
@@ -133,7 +133,7 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 
 ### FX Mapping Table
 
-| FX          | Parameter       | FX Number | Param Number |
+| FX          | Parameter       | FX Num | Parameter Num |
 | ----------- | --------------- | --------- | ---------------- |
 | Input Gain  | fx_gain         | F0        | P0               |
 | Gate        | fx_threshold    | F1        | P0               |
@@ -219,11 +219,12 @@ NOTE* The periferals only add live stage accessable controls and do not change t
 - [5x Momentary Soft Touch Foot Switch](https://www.amazon.ca/dp/B08TBTWDYV)
 - [1x 15" x 5.7" Aluminum Alloy Guitar Effects PedalBoard with Carry Bag](https://www.amazon.ca/dp/B0D5CBVMHY)
 - [1x Expression Pedal](https://www.amazon.ca/dp/B07CZJYLJV) - any TRS expression pedal works
-- [1x Rotary Potentiometer (10 kΩ linear)](https://www.amazon.ca/dp/B07Y19D81B) - for parameter editing
 - Masking Tape
 - [Soldering Iron](https://www.amazon.ca/Soldering-Electronics-Adjustable-Temperature-Repairing/dp/B097XX76V4)
 - Glue Gun
-- Electronic Cardboard Boxes
+- Electronic Cardboard Boxes or Aluminium cast die boxes for buttons and electronics
+- AUX cables you are willing to cut
+- [x1 AUX to 1/4 TRS for expression pedal](https://www.amazon.ca/Hosa-GPM-103-3-5mm-TRS-Adaptor/dp/B000068O3T)
 - [Electronics Kit](https://www.amazon.ca/dp/B01ERP6WL4)
   - Wires
   - Resistors
