@@ -136,6 +136,7 @@ package lab_pkg;
                     7: bank0_default = 8'd40;                    // light reverb
                 endcase
             10: if (param==0) bank0_default = 8'd32;             // Output Unity Gain
+            15: if (param==0) bank0_default = 8'd32;             // Global Gain (unity, mirrored across banks)
         endcase
     endfunction
 
@@ -199,6 +200,7 @@ package lab_pkg;
                     7: bank1_default = 8'd0;
                 endcase
             10: if (param==0) bank1_default = 8'd10;
+            15: if (param==0) bank1_default = 8'd32;
         endcase
     endfunction
 
@@ -263,6 +265,7 @@ package lab_pkg;
                     7: bank2_default = 8'd0;
                 endcase
             10: if (param==0) bank2_default = 8'd32;
+            15: if (param==0) bank2_default = 8'd32;
         endcase
     endfunction
 
@@ -323,6 +326,7 @@ package lab_pkg;
                     7: bank3_default = 8'd60;                    // decent amount of reverb
                 endcase
             10: if (param==0) bank3_default = 8'd20;
+            15: if (param==0) bank3_default = 8'd32;
         endcase
     endfunction
 
@@ -385,7 +389,12 @@ package lab_pkg;
     // 4. FX Constants
     // ----------------------------------------------------------------
 
-    parameter FX_STAGES = 11;
+    parameter FX_STAGES = 12;
+
+    // FX 15 — global gain slot, mirrored across all banks.  Controller
+    // writes propagate to every bank when fx_sel == GLOBAL_GAIN_FX so
+    // the value is identical regardless of which bank is active.
+    parameter GLOBAL_GAIN_FX = 15;
 
     parameter COMP_LOOKAHEAD         = 16;
     parameter logic [15:0] UNITY_Q15 = 16'h7FFF;

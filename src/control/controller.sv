@@ -414,20 +414,45 @@ module controller (
 
         end else begin
 
+            // FX 15 is a "global" slot — its value is mirrored across all
+            // banks so it acts like a single chain-wide control regardless
+            // of which bank is active.  Edits and load-from-flash both
+            // write to every bank's FX 15 row to maintain the invariant.
+            // Save works for free: all four banks already store the same
+            // value, so the existing save FSM persists it correctly.
             if (ld_mem && load_valid) begin
-                all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
+                if (f_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX)) begin
+                    for (int b = 0; b < BANK_COUNT; b++)
+                        all_params[b][f_fx][f_p] <= latched_readdata[7:0];
+                end else begin
+                    all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
+                end
 
             end else if (!fsm_busy) begin
-                if (inc_p || inc_r)
-                    all_params[bank_sel][fx_sel][param_sel] <=
+                if (inc_p || inc_r) begin
+                    automatic logic [PARAM_W-1:0] inc_val =
                         (all_params[bank_sel][fx_sel][param_sel] < 8'd255)
                             ? all_params[bank_sel][fx_sel][param_sel] + 1'b1
                             : 8'd255;
-                if (dec_p || dec_r)
-                    all_params[bank_sel][fx_sel][param_sel] <=
+                    if (fx_sel == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX)) begin
+                        for (int b = 0; b < BANK_COUNT; b++)
+                            all_params[b][fx_sel][param_sel] <= inc_val;
+                    end else begin
+                        all_params[bank_sel][fx_sel][param_sel] <= inc_val;
+                    end
+                end
+                if (dec_p || dec_r) begin
+                    automatic logic [PARAM_W-1:0] dec_val =
                         (all_params[bank_sel][fx_sel][param_sel] > 8'd0)
                             ? all_params[bank_sel][fx_sel][param_sel] - 1'b1
                             : 8'd0;
+                    if (fx_sel == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX)) begin
+                        for (int b = 0; b < BANK_COUNT; b++)
+                            all_params[b][fx_sel][param_sel] <= dec_val;
+                    end else begin
+                        all_params[bank_sel][fx_sel][param_sel] <= dec_val;
+                    end
+                end
 
                 // Pot: only write when change exceeds 1 LSB hysteresis.
                 if (pot_diff > 9'd1) begin

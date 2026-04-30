@@ -176,12 +176,14 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 | Reverb      | fx_decay        | F9        | P2               |
 | Reverb      | fx_mix          | F9        | P7               |
 | Output Gain | fx_gain         | F10       | P0               |
+| Global Gain | fx_gain         | F15       | P0               |
 
 NOTES:
 - You should see the FX Number values on HEX5-HEX4, with HEX5 always being F
 - You should see the Parameter Number values on HEX3-HEX2, with HEX3 always being P
 - The order of FX numbers represents the order the FX are connected in series, with the output of F0 being connected to the input of F1, and so on
 - Gain2 should be modulated by the expression pedal
+- **F15 (Global Gain)** is the only "global" slot — its value is mirrored across all four banks. Editing it on any bank instantly updates the same slot on every other bank, and saving captures the same value four times to flash. Use it as a chain-wide master volume that survives bank switches.
 - Descriptions for what the parameters do are in the next section
 
 ### Saving and Loading Presets (Banks)
@@ -279,6 +281,8 @@ Applies a gain multiplier to the signal.
 **Parameters**
 
 * `fx_gain`: Gain multiplier (0–255), where `32 = unity`. Values above 32 amplify; values below 32 attenuate.
+
+The same `fx_gain` module is reused as **Input Gain (F0)**, **Output Gain (F10)**, **Expression Gain (F7)** (driven by the external expression pedal at FX 7), and **Global Gain (F15)**. The first three are bank-specific; the last is global — the controller mirrors writes to F15 across every bank's params slot, so adjusting it on one bank changes it on all of them, and a single save persists the value to flash.
 
 ---
 
