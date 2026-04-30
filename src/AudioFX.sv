@@ -89,6 +89,26 @@
  *     • `fx_flush` is just `muted`, used by delay/reverb to clamp
  *       feedback during the muted window.
  *
+ * Chain latency  (audio_in → audio_out, in 48 kHz samples)
+ * --------------------------------------------------------
+ *   FX 0  Input Gain     1     fx_gain registered output
+ *   FX 1  Gate           0     audio_out is combinational (assign)
+ *   FX 2  EQ 1           2     leaky integrators + output reg
+ *   FX 3  Compressor    10     1 input_gain + 8 lookahead + 1 output reg
+ *   FX 4  Distortion     6     pipeline regs in drive/clip/post chain
+ *                              (drops to 1 when fx_mix == 0 — true bypass)
+ *   FX 5  EQ 2           2     same module as EQ 1
+ *   FX 6  Chorus         3     2 delay_line_li pipeline + 1 output reg
+ *   FX 7  Expression     1     fx_gain registered output
+ *   FX 8  Delay          2     1 delay-line RAM + 1 output reg
+ *   FX 9  Reverb         1     dry path: combinational mix + output reg
+ *   FX 10 Output Gain    1     fx_gain registered output
+ *   FX 15 Global Gain    1     fx_gain registered output
+ *   DAC reg              0     <1 CLOCK_50 cycle, negligible
+ *   --------------------------
+ *   Worst case (all engaged):  30 samples = 625 µs  @ 48 kHz
+ *   Best case (dist bypassed): 25 samples = 521 µs  @ 48 kHz
+ *
  * Macro
  * -----
  *   `define NO_DSP  — omit all audio hardware IPs and FX chain; useful for

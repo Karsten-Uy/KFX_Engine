@@ -71,6 +71,12 @@
  *   fx_decay   — tail length / RT60      (4 discrete steps via [7:6])
  *   fx_mix     — dry/wet blend           (0 = dry, 255 = full wet)
  *
+ * Latency: 1 sample (dry path)
+ *   audio_in → mixed_L combinational → audio_out register.
+ *   The wet branch (combs + allpass + LP/DC chain) adds its own
+ *   intentional reverb tail group delay but contributes no extra
+ *   register stages on the dry signal that's blended in at fx_mix=0.
+ *
  * Ports
  * -----
  *   audio_in  — stereo signed 16-bit input
