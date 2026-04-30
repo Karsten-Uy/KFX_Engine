@@ -225,16 +225,16 @@ package lab_pkg;
                     1: bank2_default = 8'd128;
                     2: bank2_default = 8'd50;
                     3: bank2_default = 8'd110;
-                    4: bank2_default = 8'd255;
-                    5: bank2_default = 8'd255;
+                    4: bank2_default = 8'd64;
+                    5: bank2_default = 8'd64;
                     7: bank2_default = 8'd255;
                 endcase
             4:  case (param)
-                    0: bank2_default = 8'd255;       
+                    0: bank2_default = 8'd2;       
                     1: bank2_default = 8'd50;
-                    2: bank2_default = 8'd50;
+                    2: bank2_default = 8'd255;
                     3: bank2_default = 8'd0;
-                    4: bank2_default = 8'd230;
+                    4: bank2_default = 8'd128;
                     5: bank2_default = 8'd30;
                     6: bank2_default = 8'd230;
                     7: bank2_default = 8'd64;
@@ -262,7 +262,7 @@ package lab_pkg;
                     2: bank2_default = 8'd0;
                     7: bank2_default = 8'd0;
                 endcase
-            10: if (param==0) bank2_default = 8'd1;
+            10: if (param==0) bank2_default = 8'd32;
         endcase
     endfunction
 
@@ -290,9 +290,9 @@ package lab_pkg;
                     1: bank3_default = 8'd0;
                     2: bank3_default = 8'd64;
                     3: bank3_default = 8'd128;
-                    4: bank3_default = 8'd64;                    // Unity Input gain
+                    4: bank3_default = 8'd200;                    // Unity Input gain
                     5: bank3_default = 8'd64; 
-                    7: bank3_default = 8'd0;                     // Compressor Off
+                    7: bank3_default = 8'd255;                     // Compressor Off
                 endcase
             4:  case (param)
                     0: bank3_default = 8'd128;
@@ -322,7 +322,7 @@ package lab_pkg;
                     2: bank3_default = 8'd200;                   // super long tail
                     7: bank3_default = 8'd60;                    // decent amount of reverb
                 endcase
-            10: if (param==0) bank3_default = 8'd120;
+            10: if (param==0) bank3_default = 8'd20;
         endcase
     endfunction
 
