@@ -59,26 +59,8 @@ package lab_pkg;
     // 2. Default Parameter Table
     //
     // Public entry-point:  param_default(bank, fx, param)
-    //
-    // FX index map (shared across all banks)
-    //   0  Input Gain       [0]=gain
-    //   1  Noise Gate       [0]=threshold [1]=attack [2]=release [3]=knee [4]=depth
-    //   2  EQ 1 (pre-dist)  [0]=sub [1]=low [2]=mid [3]=high
-    //   3  Compressor        [0]=thresh [1]=ratio [2]=attack [3]=release
-    //                        [4]=input_gain [5]=makeup_gain [7]=mix
-    //   4  Distortion        [0]=drive [1]=makeup_gain [7]=mix
-    //   5  EQ 2 (post-dist)  [0]=sub [1]=low [2]=mid [3]=high
-    //   6  Chorus            [0]=rate [1]=depth [7]=mix
-    //   7  Expression Gain   [0]=gain
-    //   8  Delay             [0]=time [1]=feedback [7]=mix
-    //   9  Reverb            [0]=size [1]=damping [7]=mix
-    //  10  Output Gain       [0]=gain
-    //
-    // Encoding convention (8-bit, 0-255):
-    //   Gain / level  128 = unity  (x1.0)
-    //   Mix           0   = dry    255 = fully wet
-    //   Off           mix = 0
-    // ----------------------------------------------------------------
+
+    parameter DEFAULT_MASTER_OUT_GAIN  = 8'd14;
 
     // ---- Bank 0 : CLEAN ----------------------------------------
     // Transparent signal path: unity gain everywhere, no distortion,
@@ -136,7 +118,7 @@ package lab_pkg;
                     7: bank0_default = 8'd40;                    // light reverb
                 endcase
             10: if (param==0) bank0_default = 8'd32;             // Output Unity Gain
-            15: if (param==0) bank0_default = 8'd32;             // Global Gain (unity, mirrored across banks)
+            15: if (param==0) bank0_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 
@@ -192,15 +174,15 @@ package lab_pkg;
             8:  case (param)
                     0: bank1_default = 8'd100;     
                     1: bank1_default = 8'd60;
-                    7: bank1_default = 8'd60;
+                    7: bank1_default = 8'd0;
                 endcase
             9:  case (param)
                     0: bank1_default = 8'd80;
                     1: bank1_default = 8'd150;
-                    7: bank1_default = 8'd0;
+                    7: bank1_default = 8'd20;
                 endcase
             10: if (param==0) bank1_default = 8'd10;
-            15: if (param==0) bank1_default = 8'd32;
+            15: if (param==0) bank1_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 
@@ -232,14 +214,14 @@ package lab_pkg;
                     7: bank2_default = 8'd255;
                 endcase
             4:  case (param)
-                    0: bank2_default = 8'd2;       
+                    0: bank2_default = 8'd80;       
                     1: bank2_default = 8'd50;
                     2: bank2_default = 8'd255;
                     3: bank2_default = 8'd0;
                     4: bank2_default = 8'd128;
                     5: bank2_default = 8'd30;
                     6: bank2_default = 8'd230;
-                    7: bank2_default = 8'd64;
+                    7: bank2_default = 8'd210;
                 endcase
             5:  case (param)
                     0: bank2_default = 8'd0;
@@ -256,7 +238,7 @@ package lab_pkg;
             8:  case (param)
                     0: bank2_default = 8'd100;     
                     1: bank2_default = 8'd60;
-                    7: bank2_default = 8'd60;
+                    7: bank2_default = 8'd20;
                 endcase
             9:  case (param)
                     0: bank2_default = 8'd80;
@@ -265,7 +247,7 @@ package lab_pkg;
                     7: bank2_default = 8'd0;
                 endcase
             10: if (param==0) bank2_default = 8'd32;
-            15: if (param==0) bank2_default = 8'd32;
+            15: if (param==0) bank2_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 
@@ -325,8 +307,8 @@ package lab_pkg;
                     2: bank3_default = 8'd200;                   // super long tail
                     7: bank3_default = 8'd60;                    // decent amount of reverb
                 endcase
-            10: if (param==0) bank3_default = 8'd20;
-            15: if (param==0) bank3_default = 8'd32;
+            10: if (param==0) bank3_default = 8'd128;
+            15: if (param==0) bank3_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 

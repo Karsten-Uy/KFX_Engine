@@ -183,7 +183,7 @@ NOTES:
 - You should see the Parameter Number values on HEX3-HEX2, with HEX3 always being P
 - The order of FX numbers represents the order the FX are connected in series, with the output of F0 being connected to the input of F1, and so on
 - Gain2 should be modulated by the expression pedal
-- **F15 (Global Gain)** is the only "global" slot — its value is mirrored across all four banks. Editing it on any bank instantly updates the same slot on every other bank, and saving captures the same value four times to flash. Use it as a chain-wide master volume that survives bank switches.
+- **F15 (Global Gain)** is the only "global" slot — its value is mirrored across all four banks. Editing it on any bank instantly updates the same slot on every other bank, and saving captures the same value on all banks to flash. Use it as a chain-wide master volume that survives bank switches.
 - Descriptions for what the parameters do are in the next section
 
 ### Saving and Loading Presets (Banks)
