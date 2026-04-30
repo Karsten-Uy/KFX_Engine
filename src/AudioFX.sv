@@ -195,6 +195,7 @@ module AudioFX (
     logic [1:0][DATA_W-1:0] delay_out;
     logic [1:0][DATA_W-1:0] reverb_out;
     logic [1:0][DATA_W-1:0] gain_out_out;
+    logic [1:0][DATA_W-1:0] global_gain_out;
 
     // Sample-enable shift register
     logic [FX_STAGES-1:0] sample_en_pipe;
@@ -653,18 +654,31 @@ module AudioFX (
         // ---- FX 10: Output Gain -------------------------------------
         fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_OUTPUT_GAIN (
             .clk      (CLOCK_50),
-            .reset_n  (KEY[0]),       
+            .reset_n  (KEY[0]),
             .audio_in (reverb_out),
             .audio_out(gain_out_out),
             .fx_gain  (params[10][0]),
             .sample_en(sample_en_pipe[10])
         );
 
+        // ---- FX 15: Global Gain (mirrored across all banks) ---------
+        // Master volume that's the same regardless of active bank.  The
+        // controller writes the same value to every bank's params[15][0]
+        // slot, so this read is bank-agnostic.
+        fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_GLOBAL_GAIN (
+            .clk      (CLOCK_50),
+            .reset_n  (KEY[0]),
+            .audio_in (gain_out_out),
+            .audio_out(global_gain_out),
+            .fx_gain  (params[15][0]),
+            .sample_en(sample_en_pipe[11])
+        );
+
         // ---- DAC Output  (apply ramp_vol) ----------------------------
         // Concatenating 1'b0 prevents the multiplier from misinterpreting
         // ramp_vol = 256 (9'h100) as a negative signed number.
-        assign dac_left_scaled  = $signed(gain_out_out[0]) * $signed({1'b0, ramp_vol});
-        assign dac_right_scaled = $signed(gain_out_out[1]) * $signed({1'b0, ramp_vol});
+        assign dac_left_scaled  = $signed(global_gain_out[0]) * $signed({1'b0, ramp_vol});
+        assign dac_right_scaled = $signed(global_gain_out[1]) * $signed({1'b0, ramp_vol});
 
         always_ff @(posedge CLOCK_50) begin
             DAC_Data[0] <= dac_left_scaled[DATA_W+7:8];
