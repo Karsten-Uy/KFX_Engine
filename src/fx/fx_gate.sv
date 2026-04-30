@@ -21,7 +21,12 @@
  *   fx_knee      — soft-knee half-width  (0 = hard switch)
  *   fx_depth     — gain floor when closed  (0 = full mute, 255 = unity)
  *
- * Latency: 1 sample (gain_target register) + envelope slew.
+ * Latency: 0 samples on the audio path
+ *   audio_out is combinational (assign) from audio_in × gain.  The
+ *   "1 sample" you'll see referenced elsewhere is the gain-control
+ *   response delay (gain_target register settles 1 sample after a
+ *   threshold crossing) plus envelope slew — those affect *when* the
+ *   gate opens/closes, not how long an audio sample takes to traverse.
  *
  * Ports
  * -----

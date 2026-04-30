@@ -55,7 +55,34 @@ Gain -> Gate -> EQ -> Compressor -> Distortion -> EQ -> Chorus -> Gain -> Delay 
 | Internal Clock    | 50 MHz                                          |
 | Max FX Slots      | 16                                              |
 | Parameters per FX | Up to 8                                         |
-| Latency           | under 1ms                                       |
+| Latency           | 25-30 samples (~520-625 µs @ 48 kHz)            |
+
+---
+
+## Audio Latency Breakdown
+
+Total latency from `LINE IN` to `LINE OUT` is the sum of register stages in each FX module. All values in 48 kHz samples (one sample = ~20.83 µs).
+
+| Stage | Samples | Detail |
+| ----- | ------: | ------ |
+| FX 0 — Input Gain | 1 | `fx_gain` output register |
+| FX 1 — Gate | 0 | `audio_out` is combinational (assign-driven multiplier) |
+| FX 2 — EQ 1 | 2 | leaky-integrator band-split + output register |
+| FX 3 — Compressor | 10 | 1 (input gain) + 8 (lookahead) + 1 (output) — lookahead is intentional |
+| FX 4 — Distortion | 6 (engaged) / 1 (bypassed) | 6-stage drive/clip/post pipeline; mix=0 routes `audio_in` directly through 1 register |
+| FX 5 — EQ 2 | 2 | same module as EQ 1 |
+| FX 6 — Chorus | 3 | 2 (delay-line pipeline) + 1 (output register) |
+| FX 7 — Expression Gain | 1 | `fx_gain` output register |
+| FX 8 — Delay | 2 | 1 (delay-line RAM) + 1 (output register) |
+| FX 9 — Reverb | 1 | dry path: combinational mix + output register |
+| FX 10 — Output Gain | 1 | `fx_gain` output register |
+| FX 15 — Global Gain | 1 | `fx_gain` output register |
+| DAC register | <1 | runs at CLOCK_50, ~20 ns ≈ 0.001 audio samples |
+
+* **Worst case** (every effect engaged with `fx_mix > 0`): **30 samples ≈ 625 µs**
+* **Best case** (distortion at `fx_mix = 0`): **25 samples ≈ 521 µs**
+
+The compressor's lookahead is the largest contributor (one third of the chain). It's not waste — the lookahead lets the gain reduction apply to the same peak that triggered it, instead of acting on already-clipped samples.
 
 ---
 ## Block Diagram

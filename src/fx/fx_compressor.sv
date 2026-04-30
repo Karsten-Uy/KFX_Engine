@@ -27,6 +27,13 @@
  *   fx_makeup_gain — post-compression gain   (64 = unity)
  *   fx_mix        — dry/wet blend            (0 = dry, 255 = ~99.6% wet)
  *
+ * Latency: 10 samples
+ *   1 sample (input_gain register)
+ * + 8 samples (audio_lookahead shift register, LOOKAHEAD_SAMPLES = 8)
+ * + 1 sample (apply_gain_ff output register)
+ * The lookahead is intentional — it lets the compressor anticipate
+ * peaks and apply gain reduction in time for the same audio sample.
+ *
  * Ports
  * -----
  *   audio_in  — stereo signed 16-bit input
