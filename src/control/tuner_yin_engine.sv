@@ -230,7 +230,7 @@ module tuner_yin_engine (
     // Main Control Process
     // ----------------------------------------------------------------
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
             state                <= S_IDLE;
             data_valid           <= 1'b0;

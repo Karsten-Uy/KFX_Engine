@@ -168,7 +168,7 @@ module fx_reverb #(
 
     logic signed [8:0] fb_gain;
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) fb_gain <= FB_GAIN_LONG;
         else if (sample_en) begin
             case (fx_decay[7:6])

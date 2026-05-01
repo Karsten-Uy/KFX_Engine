@@ -79,7 +79,7 @@ module fx_compressor #(
 
     logic signed [1:0][DATA_W-1:0] audio_pre;
 
-    always_ff @(posedge clk) begin : input_gain_ff
+    always_ff @(posedge clk or negedge reset_n) begin : input_gain_ff
         if (!reset_n) audio_pre <= '0;
         else if (sample_en) begin
             automatic logic signed [DATA_W+PARAM_W:0] pre_l, pre_r;
@@ -120,7 +120,7 @@ module fx_compressor #(
     assign atk_s = fx_attack[PARAM_W-1 -: 4] | 4'd1;
     assign rel_s = fx_release[PARAM_W-1 -: 4] | 4'd1;
 
-    always_ff @(posedge clk) begin : env_ff
+    always_ff @(posedge clk or negedge reset_n) begin : env_ff
         if (!reset_n) env <= '0;
         else if (sample_en) begin
             if (peak > env) env <= env + ((peak - env) >> atk_s);
@@ -163,7 +163,7 @@ module fx_compressor #(
     logic              dv_done;
     logic [DATA_W:0]   trial;
 
-    always_ff @(posedge clk) begin : divider_ff
+    always_ff @(posedge clk or negedge reset_n) begin : divider_ff
         if (!reset_n) begin
             {dv_comp, dv_env, dv_cnt, dv_done} <= '0;
             dv_bypass <= 1'b1;
@@ -193,7 +193,7 @@ module fx_compressor #(
 
     logic [GAIN_W-1:0] gain_target_r;
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) gain_target_r <= GAIN_UNITY;
         else if (dv_done) gain_target_r <= dv_bypass ? GAIN_UNITY : dv_quot;
     end
@@ -209,7 +209,7 @@ module fx_compressor #(
 
     logic [GAIN_W-1:0] gain_smooth;
 
-    always_ff @(posedge clk) begin : gain_smooth_ff
+    always_ff @(posedge clk or negedge reset_n) begin : gain_smooth_ff
         if (!reset_n) gain_smooth <= GAIN_UNITY;
         else begin
             if (gain_target_r < gain_smooth)
@@ -228,7 +228,7 @@ module fx_compressor #(
 
     logic signed [1:0][DATA_W-1:0] audio_lookahead [0:LOOKAHEAD_SAMPLES-1];
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) for (int i=0; i<LOOKAHEAD_SAMPLES-1; i++) audio_lookahead[i] <= '0;
         else if (sample_en) begin
             audio_lookahead[0] <= audio_pre;
@@ -257,7 +257,7 @@ module fx_compressor #(
     // bit-exact silent-state passthrough, set fx_input_gain = 64.
     // ----------------------------------------------------------------
 
-    always_ff @(posedge clk) begin : apply_gain_ff
+    always_ff @(posedge clk or negedge reset_n) begin : apply_gain_ff
         if (!reset_n) audio_out <= '0;
         else if (sample_en) begin
             // Dry: delayed pre-compression signal
