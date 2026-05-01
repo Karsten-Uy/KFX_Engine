@@ -21,7 +21,12 @@
  *   fx_knee      — soft-knee half-width  (0 = hard switch)
  *   fx_depth     — gain floor when closed  (0 = full mute, 255 = unity)
  *
- * Latency: 1 sample (gain_target register) + envelope slew.
+ * Latency: 0 samples on the audio path
+ *   audio_out is combinational (assign) from audio_in × gain.  The
+ *   "1 sample" you'll see referenced elsewhere is the gain-control
+ *   response delay (gain_target register settles 1 sample after a
+ *   threshold crossing) plus envelope slew — those affect *when* the
+ *   gate opens/closes, not how long an audio sample takes to traverse.
  *
  * Ports
  * -----
@@ -172,6 +177,17 @@ module fx_gate #(
     //
     // attack_step and release_step map the 8-bit params to a step size
     // where 0 → 256 (instant) and 255 → 1 (slowest).
+    //
+    // Note: linear amplitude ramping at low gain values is perceptually
+    // "rough" because a constant LSB step becomes a large dB jump near
+    // zero — this is unavoidable without an IIR-style approach.  An IIR
+    // tracker is incompatible here because gain_target_r already moves
+    // at audio rate inside the knee zone (knee_target is a function of
+    // the current sample's abs_in), and a fast IIR ends up amplitude-
+    // modulating the audio with itself, producing a constant crackle.
+    // The linear slew effectively low-passes those fluctuations because
+    // its rate is bounded.  For natural-sounding decay use higher
+    // fx_release values (smaller step → longer tail).
     // ----------------------------------------------------------------
 
     logic [15:0] gain;

@@ -49,6 +49,20 @@ set_multicycle_path -hold  -from [get_registers {fx_distortion:FX_DISTORTION|*}]
 set_multicycle_path -setup -from [get_registers {fx_*:*|*}] -to [get_registers {fx_*:*|*}] 2
 set_multicycle_path -hold  -from [get_registers {fx_*:*|*}] -to [get_registers {fx_*:*|*}] 1
 
+# Tuner display register paths into tuner_vals.
+#
+# tuner_vals only drives the six HEX displays at human-perceptible
+# refresh rates — all paths into it are display paths.  The BCD
+# divider chain (frequency_div → /1000, /100, /10 lpm_divide IPs)
+# Quartus infers includes internal pipeline registers (StageOut[*])
+# that aren't covered by a -from frequency_div[*] filter.  Targeting
+# tuner_vals as the destination — with no -from filter — catches
+# every internal register inside the divider as well.
+#
+# Allowing 2 cycles makes any display update lag by 20 ns — invisible.
+set_multicycle_path -setup -to [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|tuner_vals[*][*]}] 2
+set_multicycle_path -hold  -to [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|tuner_vals[*][*]}] 1
+
 #**************************************************************
 # False Paths
 #**************************************************************

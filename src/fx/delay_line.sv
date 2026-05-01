@@ -45,7 +45,17 @@ module delay_line #(
 
     logic [ADDR_W-1:0]        write_ptr;
     logic [ADDR_W-1:0]        read_ptr;
+    logic [ADDR_W-1:0]        clear_addr;
     logic signed [DATA_W-1:0] ram_out;
+
+    // BRAM port muxes — combinational selection of write address/data
+    // between the reset-time clear walk and normal sample_en writes.
+    // Splitting the write-mux out of the always_ff lets Quartus infer
+    // a clean simple-dual-port M10K (one write port + one read port)
+    // with the mux as a few LUTs in front of the write address/data.
+    logic [ADDR_W-1:0]        bram_wr_addr;
+    logic signed [DATA_W-1:0] bram_wr_data;
+    logic                     bram_we;
 
     // ----------------------------------------------------------------
     // Read Address Calculation
@@ -63,30 +73,64 @@ module delay_line #(
     end
 
     // ----------------------------------------------------------------
-    // Synchronous RAM Access  (one-cycle read latency)
+    // Write-Port Mux  (combinational)
+    //
+    // While reset_n is asserted, walk every address writing 0 — one
+    // address per clock, completing a full pass in MAX_DELAY_SAMPLES
+    // clocks (≤ 0.48 ms at 50 MHz).  ST_MUTED is held ~120 ms, so the
+    // walk always finishes before audio resumes.  This clears stale
+    // BRAM that would otherwise be picked up by read_ptr the instant
+    // fade-in begins (the post-bank-switch buzz in feedback effects).
+    //
+    // Outside reset, the write port behaves exactly as before:
+    // data_in is written at write_ptr on each sample_en pulse.
     // ----------------------------------------------------------------
 
-    always_ff @(posedge clk) begin
-        if (sample_en) begin
-            buffer[write_ptr] <= data_in;
-            ram_out           <= buffer[read_ptr];
+    always_comb begin
+        if (!reset_n) begin
+            bram_wr_addr = clear_addr;
+            bram_wr_data = '0;
+            bram_we      = 1'b1;
+        end else begin
+            bram_wr_addr = write_ptr;
+            bram_wr_data = data_in;
+            bram_we      = sample_en;
         end
     end
 
     // ----------------------------------------------------------------
-    // Write Pointer + Output Register
+    // BRAM Write Port  (clean inference target)
+    // ----------------------------------------------------------------
+
+    always_ff @(posedge clk) begin
+        if (bram_we) buffer[bram_wr_addr] <= bram_wr_data;
+    end
+
+    // ----------------------------------------------------------------
+    // BRAM Read Port  (registered, one-cycle latency)
+    // ----------------------------------------------------------------
+
+    always_ff @(posedge clk) begin
+        if (sample_en) ram_out <= buffer[read_ptr];
+    end
+
+    // ----------------------------------------------------------------
+    // Pointers + Output Register
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            write_ptr <= '0;
-            data_out  <= '0;
+            write_ptr  <= '0;
+            data_out   <= '0;
+            clear_addr <= (clear_addr == ADDR_W'(MAX_DELAY_SAMPLES - 1))
+                          ? '0
+                          : clear_addr + 1'b1;
         end else if (sample_en) begin
             // Zero delay: bypass the RAM and pass through immediately
             data_out <= (delay_samples == '0) ? data_in : ram_out;
 
-            write_ptr <= (write_ptr >= MAX_DELAY_SAMPLES - 1) ? '0
-                                                               : write_ptr + 1'b1;
+            write_ptr <= (write_ptr >= ADDR_W'(MAX_DELAY_SAMPLES - 1)) ? '0
+                                                                       : write_ptr + 1'b1;
         end
     end
 

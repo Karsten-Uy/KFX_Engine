@@ -27,6 +27,13 @@
  *   fx_makeup_gain — post-compression gain   (64 = unity)
  *   fx_mix        — dry/wet blend            (0 = dry, 255 = ~99.6% wet)
  *
+ * Latency: 10 samples
+ *   1 sample (input_gain register)
+ * + 8 samples (audio_lookahead shift register, LOOKAHEAD_SAMPLES = 8)
+ * + 1 sample (apply_gain_ff output register)
+ * The lookahead is intentional — it lets the compressor anticipate
+ * peaks and apply gain reduction in time for the same audio sample.
+ *
  * Ports
  * -----
  *   audio_in  — stereo signed 16-bit input
@@ -240,7 +247,14 @@ module fx_compressor #(
     //
     // dry = lookahead-delayed audio (pre-compression, post-input-gain)
     // wet = dry × gain_smooth (Q0.15) then scaled by makeup gain
-    // out = dry + (wet - dry) * mix / 256  (mix=0 → exact unity dry)
+    // out = dry + (wet - dry) * mix / 256
+    //
+    // At fx_mix == 0 the blend collapses to mixed = dry exactly, which
+    // gives a mathematical bypass (the wet term contributes 0).  No
+    // explicit bypass branch is needed and latency naturally matches
+    // every partial-mix value, since dry and wet share the same
+    // lookahead path.  Note this dry path includes input_gain — for
+    // bit-exact silent-state passthrough, set fx_input_gain = 64.
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk or negedge reset_n) begin : apply_gain_ff
@@ -259,7 +273,6 @@ module fx_compressor #(
             wet_r = (m_r >>> 6 > 32767)  ? 16'h7FFF : (m_r >>> 6 < -32768) ? 16'h8000 : m_r[15+6:6];
 
             // Blend: dry + (wet - dry) * mix / 256
-            // mix=0 → exact unity dry, mix=255 → ~99.6% wet
             mixed_l = $signed(dry_l) + ((($signed(wet_l) - $signed(dry_l)) * $signed({1'b0, fx_mix})) >>> 8);
             mixed_r = $signed(dry_r) + ((($signed(wet_r) - $signed(dry_r)) * $signed({1'b0, fx_mix})) >>> 8);
 

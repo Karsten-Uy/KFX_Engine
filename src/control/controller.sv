@@ -24,50 +24,33 @@
  *   first; if valid it overwrites params[][] from flash.  fsm_busy is asserted
  *   for the full duration so AudioFX can mute the DAC during the operation.
  *
- * Bank selection
- * --------------
- *   bank_toggle is debounced with a dedicated debounce_unit, and
- *   its `pulse` output (a single clean rising-edge pulse) is used directly
- *   to advance bank_sel.  No manual flip-flop edge detection is needed.
+ * Bank switching — two-phase design
+ * -----------------------------------
+ *   The bank switch is deliberately split into two timed phases to eliminate
+ *   the IIR filter buzz that occurs when FX parameters change while audio is
+ *   still audible:
  *
- *   Each clean press cycles:  bank 0 → 1 → 2 → 3 → 0.
- *   Bank switching is ignored while fsm_busy is high.
+ *   Phase 1  (0 → BANK_FADE_CYCLES):
+ *     bank_switching = 1, bank_sel = OLD bank.
+ *     The soft-mute ramp in AudioFX.sv fades the DAC output to zero.
+ *     The FX chain keeps running with old params so IIR states are
+ *     consistent — no coefficient/state mismatch, no ring.
  *
- * Power-on defaults
- * -----------------
- *   param_default(bank, fx, param) now takes a bank argument so each
- *   bank gets its own factory preset.  The reset block calls this for
- *   every (bank, fx, param) triple.
+ *   Phase 2  (BANK_FADE_CYCLES → BANK_MUTE_CYCLES):
+ *     bank_switching = 1, bank_sel = NEW bank (params[] switches here).
+ *     Audio is silent (ramp_vol = 0) so any IIR transient from the
+ *     parameter change is completely inaudible.  The hold window
+ *     (~14 ms) lets filter states decay toward the new operating point
+ *     before the fade-in begins.
  *
- * Ports
- * -----
- *   sw_fx_sel     — slide-switch FX index (combinational select, not registered)
- *   sw_param_sel  — slide-switch parameter index
- *   key_inc       — increment button (active-high, raw)
- *   key_dec       — decrement button (active-high, raw)
- *   save_button   — save-to-flash button (active-high, raw)
- *   load_button   — load-from-flash button (active-high, raw)
- *   mute_button   — footswitch: short = tap tempo, long = mute (active-high, raw)
- *   bank_toggle   — toggle to rotate through the FX banks
- *   params        — full parameter array exposed to the FX chain
- *   fx_sel        — registered copy of sw_fx_sel for display / value readback
- *   param_sel     — registered copy of sw_param_sel
- *   current_value — params[fx_sel][param_sel], for the display module
- *   is_mute       — high while audio is muted
- *   delay_pulse   — single-cycle tap-tempo pulse to tap_tempo_unit
- *   bank_sel      — output continaing the currently selected bank number
- *   LEDR          — diagnostic LED output
- *   fsm_busy      — high while save or load is in progress
- */
-
-/*
- * controller.sv
+ *   Phase 3  (BANK_MUTE_CYCLES):
+ *     bank_switching releases.  The AudioFX ramp FSM transitions from
+ *     ST_MUTED to ST_FADE_IN and smoothly restores volume.
  *
- * FX parameter controller for the AudioFX pedalboard.
- *
- * Owns the all_params[][][] array and handles all user interactions that
- * modify it: button-driven increment/decrement with auto-repeat, save to
- * flash, load from flash, and mute/tap-tempo via the footswitch.
+ *   Counter sizing (at 50 MHz):
+ *     BANK_FADE_CYCLES = 300_000  ≈ 6 ms  (covers 256-sample ramp + margin)
+ *     BANK_MUTE_CYCLES = 1_000_000 ≈ 20 ms (fade + 14 ms IIR hold)
+ *     Both require a 20-bit counter.
  *
  * params[] output — MUST be registered
  * --------------------------------------
@@ -85,13 +68,26 @@
  *   The one-cycle latency between all_params update and params[] update is
  *   20 ns — completely imperceptible in audio.
  *
- * Bank selection
- * --------------
- *   bank_toggle is debounced by DEBOUNCE_BANK; its pulse output is a
- *   guaranteed single-cycle rising-edge pulse used directly to advance
- *   bank_sel.  No manual edge-detect flip-flop is needed.
- *
- *   Bank switching is ignored while fsm_busy is high.
+ * Ports
+ * -----
+ *   sw_fx_sel     — slide-switch FX index (combinational select, not registered)
+ *   sw_param_sel  — slide-switch parameter index
+ *   key_inc       — increment button (active-high, raw)
+ *   key_dec       — decrement button (active-high, raw)
+ *   save_button   — save-to-flash button (active-high, raw)
+ *   load_button   — load-from-flash button (active-high, raw)
+ *   mute_button   — footswitch: short = tap tempo, long = mute (active-high, raw)
+ *   bank_toggle   — toggle to rotate through the FX banks
+ *   params        — full parameter array exposed to the FX chain
+ *   fx_sel        — registered copy of sw_fx_sel for display / value readback
+ *   param_sel     — registered copy of sw_param_sel
+ *   current_value — params[fx_sel][param_sel], for the display module
+ *   is_mute       — high while audio is muted
+ *   delay_pulse   — single-cycle tap-tempo pulse to tap_tempo_unit
+ *   bank_sel      — currently active bank driving the FX chain (lags button by Phase 1)
+ *   bank_switching — high for the full two-phase window; gates the DAC soft-mute
+ *   LEDR          — diagnostic LED output
+ *   fsm_busy      — high while save or load is in progress
  */
 
 module controller (
@@ -119,6 +115,7 @@ module controller (
 
     output logic [9:0] LEDR,
     output logic       fsm_busy,
+    output logic       bank_switching,
 
     output logic [21:0] flash_mem_address,
     output logic        flash_mem_read,
@@ -141,6 +138,29 @@ module controller (
     import lab_pkg::*;
 
     localparam logic [7:0] SENTINEL = 8'hA5;
+
+    // ----------------------------------------------------------------
+    // Bank-Switching Timing
+    //
+    //   BANK_FADE_CYCLES — end of Phase 1 / start of Phase 2.
+    //     Must be > (256 ramp steps × 50 MHz / 48 kHz) ≈ 266 752 cycles
+    //     so that ramp_vol has reached 0 (and fade_state == ST_MUTED) by
+    //     the time bank_sel flips.  300 000 gives ~12 % headroom = ~6 ms.
+    //
+    //   BANK_MUTE_CYCLES — end of Phase 2 / release of bank_switching.
+    //     Hold ST_MUTED long enough that:
+    //       (a) delay/reverb BRAM regions a write_ptr touches under reset
+    //           are filled with the silenced chain input, and
+    //       (b) any IIR state in the rest of the chain (now also reset)
+    //           settles before fade-in.
+    //     ~120 ms hold is overkill for biquads but covers the longest
+    //     comb-delay loops in the reverb.
+    //
+    // Counter is 27 bits (2^27 = 134M > 6_300_000).
+    // ----------------------------------------------------------------
+
+    localparam int BANK_FADE_CYCLES = 1_000_000;  // ~20 ms — comfortably past the 5.3 ms ramp
+    localparam int BANK_MUTE_CYCLES = 6_300_000;  // ~126 ms total — full mute window
 
     // ----------------------------------------------------------------
     // Internal Signals
@@ -173,16 +193,11 @@ module controller (
     // params[] Output — REGISTERED
     //
     // Clocked copy of the active bank slice.  Keeps the FX block timing
-    // paths as clean register-to-register paths, avoiding the buzzing
-    // that results from a 128-wide combinational mux on an output port.
-    //
-    // One-cycle latency after all_params updates is 20 ns — inaudible.
+    // paths as clean register-to-register paths.
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            // On reset, pre-load bank 0 defaults so the FX chain gets
-            // valid params on the very first audio sample.
             for (int fi = 0; fi < FX_COUNT; fi++)
                 for (int pi = 0; pi < PARAM_COUNT; pi++)
                     params[fi][pi] <= param_default(0, fi, pi);
@@ -202,24 +217,86 @@ module controller (
     assign current_value = all_params[bank_sel][fx_sel][param_sel];
 
     // ----------------------------------------------------------------
-    // Bank Select
+    // Two-Phase Bank Select
+    //
+    // pending_bank_sel captures the DESIRED new bank the moment the
+    // button fires.  bank_sel (which drives all_params → params[]) is
+    // only updated at the Phase 1/2 boundary, when the DAC is already
+    // at zero volume.  This guarantees the FX chain never processes a
+    // coefficient/state mismatch while the audio is audible.
+    //
+    // Timeline (bank button fires at t=0):
+    //   t = 0                  : pending_bank_sel latched, bank_switching = 1
+    //                            bank_sel = OLD  →  FX runs with old params
+    //                            AudioFX ramp FSM begins fade-out
+    //   t = BANK_FADE_CYCLES   : bank_sel ← pending_bank_sel
+    //                            params[] switches  →  IIR transient, but
+    //                            ramp_vol = 0 so DAC output is silent
+    //   t = BANK_MUTE_CYCLES   : bank_switching = 0
+    //                            AudioFX ramp FSM transitions to ST_FADE_IN
+    //
+    // Guard: a new button press during an in-progress switch is accepted —
+    // pending_bank_sel updates immediately (the ongoing fade-out is already
+    // running, so the audio won't glitch further) and the counter restarts.
     // ----------------------------------------------------------------
+
+    logic [$clog2(BANK_COUNT)-1:0] pending_bank_sel;
+    logic [26:0]                   bank_switch_ctr;   // 20-bit: max 1 048 575
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            bank_sel <= '0;
-        end else if (!fsm_busy) begin
-            // GPIO buttons — direct bank select (higher priority)
-            if      (bank_btn_pulse[0]) bank_sel <= 2'd0;
-            else if (bank_btn_pulse[1]) bank_sel <= 2'd1;
-            else if (bank_btn_pulse[2]) bank_sel <= 2'd2;
-            else if (bank_btn_pulse[3]) bank_sel <= 2'd3;
-            // SW2 toggle — cycles through banks (lower priority)
-            else if (bank_pulse) begin
-                if (bank_sel == BANK_COUNT - 1)
-                    bank_sel <= '0;
-                else
-                    bank_sel <= bank_sel + 1'b1;
+            bank_sel         <= '0;
+            pending_bank_sel <= '0;
+            bank_switching   <= 1'b0;
+            bank_switch_ctr  <= '0;
+
+        end else begin
+
+            // --- Detect a bank-change request ---
+            // Priority: direct GPIO buttons > SW2 toggle.
+            // A request is accepted even during an in-progress switch;
+            // the counter restarts so the full fade/hold window is observed.
+            if (!fsm_busy) begin
+                if (bank_btn_pulse[0]) begin
+                    pending_bank_sel <= 2'd0;
+                    bank_switching   <= 1'b1;
+                    bank_switch_ctr  <= '0;
+                end else if (bank_btn_pulse[1]) begin
+                    pending_bank_sel <= 2'd1;
+                    bank_switching   <= 1'b1;
+                    bank_switch_ctr  <= '0;
+                end else if (bank_btn_pulse[2]) begin
+                    pending_bank_sel <= 2'd2;
+                    bank_switching   <= 1'b1;
+                    bank_switch_ctr  <= '0;
+                end else if (bank_btn_pulse[3]) begin
+                    pending_bank_sel <= 2'd3;
+                    bank_switching   <= 1'b1;
+                    bank_switch_ctr  <= '0;
+                end else if (bank_pulse) begin
+                    pending_bank_sel <= (bank_sel == BANK_COUNT - 1)
+                                        ? '0
+                                        : bank_sel + 1'b1;
+                    bank_switching   <= 1'b1;
+                    bank_switch_ctr  <= '0;
+                end
+            end
+
+            // --- Two-phase counter ---
+            if (bank_switching) begin
+                if (bank_switch_ctr == 27'(BANK_MUTE_CYCLES)) begin
+                    // End of Phase 2: release the mute, let AudioFX fade in
+                    bank_switching  <= 1'b0;
+                    bank_switch_ctr <= '0;
+                end else begin
+                    bank_switch_ctr <= bank_switch_ctr + 1'b1;
+
+                    // Phase 1 → Phase 2 boundary: audio is silent, safe to
+                    // switch params.  bank_sel update propagates to params[]
+                    // on the very next clock via the registered always_ff above.
+                    if (bank_switch_ctr == 27'(BANK_FADE_CYCLES))
+                        bank_sel <= pending_bank_sel;
+                end
             end
         end
     end
@@ -314,29 +391,80 @@ module controller (
 
     int i, j, k;
 
+    logic [PARAM_W-1:0] pot_prev;
+    logic [PARAM_W-1:0] pot_scaled;
+    logic [8:0]         pot_diff;
+
+    assign pot_scaled = pot_value[11:12-PARAM_W];
+
+    always_comb begin
+        if (pot_scaled >= pot_prev)
+            pot_diff = 9'(pot_scaled) - 9'(pot_prev);
+        else
+            pot_diff = 9'(pot_prev)   - 9'(pot_scaled);
+    end
+
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             for (k = 0; k < BANK_COUNT; k++)
                 for (i = 0; i < FX_COUNT; i++)
                     for (j = 0; j < PARAM_COUNT; j++)
                         all_params[k][i][j] <= param_default(k, i, j);
+            pot_prev <= '0;
 
-        end else if (ld_mem && load_valid) begin
-            all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
+        end else begin
 
-        end else if (!fsm_busy) begin
-            if (inc_p || inc_r)
-                all_params[bank_sel][fx_sel][param_sel] <=
-                    (all_params[bank_sel][fx_sel][param_sel] < 8'd255)
-                        ? all_params[bank_sel][fx_sel][param_sel] + 1'b1
-                        : 8'd255;
-            if (dec_p || dec_r)
-                all_params[bank_sel][fx_sel][param_sel] <=
-                    (all_params[bank_sel][fx_sel][param_sel] > 8'd0)
-                        ? all_params[bank_sel][fx_sel][param_sel] - 1'b1
-                        : 8'd0;
-            if (pot_valid)
-                all_params[bank_sel][7][0] <= pot_value[11:12-PARAM_W];
+            // FX 15 is a "global" slot — its value is mirrored across all
+            // banks so it acts like a single chain-wide control regardless
+            // of which bank is active.  Edits and load-from-flash both
+            // write to every bank's FX 15 row to maintain the invariant.
+            // Save works for free: all four banks already store the same
+            // value, so the existing save FSM persists it correctly.
+            if (ld_mem && load_valid) begin
+                if (f_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX)) begin
+                    for (int b = 0; b < BANK_COUNT; b++)
+                        all_params[b][f_fx][f_p] <= latched_readdata[7:0];
+                end else begin
+                    all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
+                end
+
+            end else if (!fsm_busy) begin
+                if (inc_p || inc_r) begin
+                    automatic logic [PARAM_W-1:0] inc_val =
+                        (all_params[bank_sel][fx_sel][param_sel] < 8'd255)
+                            ? all_params[bank_sel][fx_sel][param_sel] + 1'b1
+                            : 8'd255;
+                    if (fx_sel == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX)) begin
+                        for (int b = 0; b < BANK_COUNT; b++)
+                            all_params[b][fx_sel][param_sel] <= inc_val;
+                    end else begin
+                        all_params[bank_sel][fx_sel][param_sel] <= inc_val;
+                    end
+                end
+                if (dec_p || dec_r) begin
+                    automatic logic [PARAM_W-1:0] dec_val =
+                        (all_params[bank_sel][fx_sel][param_sel] > 8'd0)
+                            ? all_params[bank_sel][fx_sel][param_sel] - 1'b1
+                            : 8'd0;
+                    if (fx_sel == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX)) begin
+                        for (int b = 0; b < BANK_COUNT; b++)
+                            all_params[b][fx_sel][param_sel] <= dec_val;
+                    end else begin
+                        all_params[bank_sel][fx_sel][param_sel] <= dec_val;
+                    end
+                end
+
+                // Pot: only write when change exceeds 1 LSB hysteresis.
+                if (pot_diff > 9'd1) begin
+                    all_params[bank_sel][7][0] <= pot_scaled;
+                    pot_prev <= pot_scaled;
+                end                
+
+                // Ensure expression value is kept across bank switches
+                if (bank_switching && (bank_switch_ctr == 27'(BANK_FADE_CYCLES))) begin
+                    all_params[pending_bank_sel][7][0] <= pot_scaled;
+                end
+            end
         end
     end
 

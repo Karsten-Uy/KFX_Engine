@@ -47,7 +47,7 @@ module display #(
     input logic                           fsm_busy,
     input logic                           is_mute,
     input logic [$clog2(BANK_COUNT)-1:0]  bank_sel,
-    input logic [11:0]                    tuner_best_lag,
+    input logic [15:0]                    tuner_best_lag,   // Q12.4 lag
     input logic                           tuner_valid,
     input  logic                          beat_pulse,
     input logic [9:0]                     SW,
@@ -75,12 +75,12 @@ module display #(
 
     localparam int TIMEOUT_CYCLES = 25_000_000;  // 500 ms @ 50 MHz
 
-    logic [11:0] tuner_lag_latch;
-    logic [24:0] silence_cnt;  // 25 bits covers 33 M cycles
+    logic [15:0] tuner_lag_latch;   // Q12.4
+    logic [24:0] silence_cnt;       // 25 bits covers 33 M cycles
 
     always_ff @(posedge clk or negedge reset_n) begin
         if (!reset_n) begin
-            tuner_lag_latch <= 12'd0;
+            tuner_lag_latch <= 16'd0;
             silence_cnt     <= '0;
         end else if (tuner_valid) begin
             tuner_lag_latch <= tuner_best_lag;
@@ -88,7 +88,7 @@ module display #(
         end else if (silence_cnt < 25'(TIMEOUT_CYCLES)) begin
             silence_cnt <= silence_cnt + 1'b1;
         end else begin
-            tuner_lag_latch <= 12'd0;  // clear once on timeout; counter stays saturated
+            tuner_lag_latch <= 16'd0;  // clear once on timeout; counter stays saturated
         end
     end
 
@@ -113,9 +113,11 @@ module display #(
     logic [4:0] tuner_HEX [5:0];
 
     tuner_display TUNER_DISPLAY (
-        .best_lag  (tuner_lag_latch),  // 0 when silent → shows dashes
-        .mode_sel  (SW[9]),
-        .tuner_vals(tuner_HEX)
+        .clk        (clk),
+        .reset_n    (reset_n),
+        .best_lag_q4(tuner_lag_latch),  // 0 when silent → shows dashes
+        .mode_sel   (SW[9]),
+        .tuner_vals (tuner_HEX)
     );
 
     // ----------------------------------------------------------------

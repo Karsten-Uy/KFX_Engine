@@ -22,7 +22,7 @@
  *     Cycle N  : LP state update  → comb*_lp   (Q16 register)
  *     Cycle N+1: lp_out capture   → lp_out_*   (integer, Q16 >> LP_FRAC_BITS)
  *     Cycle N+1: DC blocker update→ dc*_x, dc*_y
- *     Cycle N+1: feedback         → dc*_y * FIXED_FB_GAIN >> 8
+ *     Cycle N+1: feedback         → dc*_y * fb_gain >> 8
  *
  *   The one-cycle pipeline gap between LP and DC blocker is inaudible
  *   (20 µs at 48 kHz) and eliminates the combinational loop that would
@@ -33,7 +33,13 @@
  *     fx_damping = 0   → lp_coef = 256 → LP fully open  (bright)
  *     fx_damping = 240 → lp_coef = 16  → LP narrow      (dark, clamped)
  *
- *   FIXED_FB_GAIN = 236 / 256 ≈ 0.922 → RT60 ≈ 7–8 s at max delay.
+ *   Comb feedback gain (fb_gain) is selected from four discrete constants
+ *   by fx_decay[7:6] and registered once per audio sample.  The 8 comb
+ *   multipliers share this registered runtime input — stable edge-to-
+ *   edge so the math is correct, and forced into ALUTs via the
+ *   multstyle="logic" attribute on the comb_fb signal declarations so
+ *   they don't consume DSP blocks (the device has 87 DSPs and the rest
+ *   of the design needs most of them).
  *
  * Stage 2 — Three series all-pass filters per channel.
  *   g = 0.5 (ALLPASS_COEF = 128):  y[n] = −g·x[n] + x[n−d] + g·y[n−d]
@@ -51,11 +57,25 @@
  *   Allpass 2: 441 samples (~9 ms)
  *   Allpass 3: 341 samples (~7 ms)
  *
+ * Decay mapping  (fx_decay[7:6] selects the comb feedback gain)
+ * -------------------------------------------------------------
+ *   00 → fb = 200/256 ≈ 0.781   short tail   (~1–2 s at max delay)
+ *   01 → fb = 220/256 ≈ 0.859   medium       (~3 s)
+ *   10 → fb = 236/256 ≈ 0.922   original     (~7–8 s, default behaviour)
+ *   11 → fb = 248/256 ≈ 0.969   long         (~15+ s)
+ *
  * Parameter mapping  (all 8-bit, 0–255)
  * --------------------------------------
- *   fx_size    — room size / decay time  (scales all comb delays)
+ *   fx_size    — room size               (scales all comb delays)
  *   fx_damping — HF damping              (0 = bright, 255 = dark)
+ *   fx_decay   — tail length / RT60      (4 discrete steps via [7:6])
  *   fx_mix     — dry/wet blend           (0 = dry, 255 = full wet)
+ *
+ * Latency: 1 sample (dry path)
+ *   audio_in → mixed_L combinational → audio_out register.
+ *   The wet branch (combs + allpass + LP/DC chain) adds its own
+ *   intentional reverb tail group delay but contributes no extra
+ *   register stages on the dry signal that's blended in at fx_mix=0.
  *
  * Ports
  * -----
@@ -72,8 +92,10 @@ module fx_reverb #(
     input  logic                          reset_n,
     input  logic signed [1:0][DATA_W-1:0] audio_in,
     output logic signed [1:0][DATA_W-1:0] audio_out,
+    input  logic                          flush,
     input  logic [PARAM_W-1:0]            fx_size,
     input  logic [PARAM_W-1:0]            fx_damping,
+    input  logic [PARAM_W-1:0]            fx_decay,
     input  logic [PARAM_W-1:0]            fx_mix,
     input  logic                          sample_en
 );
@@ -98,8 +120,17 @@ module fx_reverb #(
     localparam ALLPASS_ADDR_W = $clog2(ALLPASS1_DELAY);
 
     localparam ALLPASS_COEF  = 8'd128;
-    localparam FIXED_FB_GAIN = 9'sd236;
     localparam LP_FRAC_BITS  = 16;
+
+    // Four discrete feedback-gain constants selected by fx_decay[7:6].
+    // The selection happens once per audio sample (see fb_gain register
+    // below) so the comb multipliers see a stable runtime input edge-to-
+    // edge.  Combined with multstyle="logic" on the comb_fb signals, this
+    // keeps the 8 multipliers out of DSP blocks (they fold into ALUTs).
+    localparam logic signed [8:0] FB_GAIN_SHORT  = 9'sd200;  // ~0.781
+    localparam logic signed [8:0] FB_GAIN_MEDIUM = 9'sd220;  // ~0.859
+    localparam logic signed [8:0] FB_GAIN_LONG   = 9'sd236;  // ~0.922 (original)
+    localparam logic signed [8:0] FB_GAIN_HUGE   = 9'sd248;  // ~0.969
 
     // DC blocker: R = 32764/32768 ≈ 0.99988 → fc ≈ 5.5 Hz @ 48 kHz, τ ≈ 170 ms.
     // Increase R toward 32767 for slower/gentler DC clearance if needed.
@@ -127,6 +158,29 @@ module fx_reverb #(
     end
 
     // ----------------------------------------------------------------
+    // Comb Feedback Gain  (registered once per sample)
+    //
+    // Updates only on sample_en, so the 8 comb multipliers see a stable
+    // 9-bit signed runtime value edge-to-edge.  Resets to FB_GAIN_LONG
+    // (= 9'sd236) so on power-up before any param load the reverb has
+    // the same character as the previous fixed-gain build.
+    // ----------------------------------------------------------------
+
+    logic signed [8:0] fb_gain;
+
+    always_ff @(posedge clk or negedge reset_n) begin
+        if (!reset_n) fb_gain <= FB_GAIN_LONG;
+        else if (sample_en) begin
+            case (fx_decay[7:6])
+                2'b00: fb_gain <= FB_GAIN_SHORT;
+                2'b01: fb_gain <= FB_GAIN_MEDIUM;
+                2'b10: fb_gain <= FB_GAIN_LONG;
+                2'b11: fb_gain <= FB_GAIN_HUGE;
+            endcase
+        end
+    end
+
+    // ----------------------------------------------------------------
     // Comb Filter Signals
     // ----------------------------------------------------------------
 
@@ -134,7 +188,10 @@ module fx_reverb #(
     logic signed [DATA_W-1:0]   comb1L_delayed, comb2L_delayed, comb3L_delayed, comb4L_delayed;
     logic signed [DATA_W-1:0]   comb1L_in,      comb2L_in,      comb3L_in,      comb4L_in;
     logic signed [DATA_W-1:0]   comb1L_out,     comb2L_out,     comb3L_out,     comb4L_out;
-    logic signed [31:0]         comb1L_fb,      comb2L_fb,      comb3L_fb,      comb4L_fb;
+    // multstyle="logic" forces constant feedback multiplies into ALUTs
+    // instead of DSP blocks — the four-case decay structure produces 32
+    // constant multipliers and the device only has 87 DSPs total.
+    (* multstyle = "logic" *) logic signed [31:0] comb1L_fb, comb2L_fb, comb3L_fb, comb4L_fb;
     logic signed [DATA_W+1:0]   comb_sum_L;
     logic signed [31:0]         comb1L_lp, comb2L_lp, comb3L_lp, comb4L_lp;  // Q16
 
@@ -142,7 +199,7 @@ module fx_reverb #(
     logic signed [DATA_W-1:0]   comb1R_delayed, comb2R_delayed, comb3R_delayed, comb4R_delayed;
     logic signed [DATA_W-1:0]   comb1R_in,      comb2R_in,      comb3R_in,      comb4R_in;
     logic signed [DATA_W-1:0]   comb1R_out,     comb2R_out,     comb3R_out,     comb4R_out;
-    logic signed [31:0]         comb1R_fb,      comb2R_fb,      comb3R_fb,      comb4R_fb;
+    (* multstyle = "logic" *) logic signed [31:0] comb1R_fb, comb2R_fb, comb3R_fb, comb4R_fb;
     logic signed [DATA_W+1:0]   comb_sum_R;
     logic signed [31:0]         comb1R_lp, comb2R_lp, comb3R_lp, comb4R_lp;  // Q16
 
@@ -282,7 +339,7 @@ module fx_reverb #(
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
-        if (!reset_n) begin
+        if (!reset_n || flush) begin
             comb1L_lp <= '0;  comb2L_lp <= '0;  comb3L_lp <= '0;  comb4L_lp <= '0;
             comb1R_lp <= '0;  comb2R_lp <= '0;  comb3R_lp <= '0;  comb4R_lp <= '0;
         end else if (sample_en) begin
@@ -332,7 +389,7 @@ module fx_reverb #(
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
-        if (!reset_n) begin
+        if (!reset_n || flush) begin
             dc1L_x <= '0;  dc2L_x <= '0;  dc3L_x <= '0;  dc4L_x <= '0;
             dc1R_x <= '0;  dc2R_x <= '0;  dc3R_x <= '0;  dc4R_x <= '0;
             dc1L_y <= '0;  dc2L_y <= '0;  dc3L_y <= '0;  dc4L_y <= '0;
@@ -363,19 +420,30 @@ module fx_reverb #(
     // Comb Filter Combinational Logic  (feedback from dc*_y)
     //
     // dc*_y is already in the ±32767 integer range (LP_FRAC_BITS stripped
-    // in Stage B), so apply FIXED_FB_GAIN directly.
+    // in Stage B), so apply fb_gain directly.
     // ----------------------------------------------------------------
+
+    // Comb feedback — 8 multiplies sharing the registered fb_gain.
+    // multstyle="logic" on the comb_fb signal declarations forces these
+    // into ALUTs instead of DSP blocks (Cyclone V only has 87 DSPs and
+    // the rest of the design uses most of them).
+    always_comb begin
+        comb1L_fb = (dc1L_y * fb_gain) >>> 8;
+        comb2L_fb = (dc2L_y * fb_gain) >>> 8;
+        comb3L_fb = (dc3L_y * fb_gain) >>> 8;
+        comb4L_fb = (dc4L_y * fb_gain) >>> 8;
+        comb1R_fb = (dc1R_y * fb_gain) >>> 8;
+        comb2R_fb = (dc2R_y * fb_gain) >>> 8;
+        comb3R_fb = (dc3R_y * fb_gain) >>> 8;
+        comb4R_fb = (dc4R_y * fb_gain) >>> 8;
+    end
 
     always_comb begin
         // LEFT
-        comb1L_fb  = (dc1L_y * FIXED_FB_GAIN) >>> 8;
-        comb2L_fb  = (dc2L_y * FIXED_FB_GAIN) >>> 8;
-        comb3L_fb  = (dc3L_y * FIXED_FB_GAIN) >>> 8;
-        comb4L_fb  = (dc4L_y * FIXED_FB_GAIN) >>> 8;
-        comb1L_in  = sat16($signed(audio_in[0]) + comb1L_fb);
-        comb2L_in  = sat16($signed(audio_in[0]) + comb2L_fb);
-        comb3L_in  = sat16($signed(audio_in[0]) + comb3L_fb);
-        comb4L_in  = sat16($signed(audio_in[0]) + comb4L_fb);
+        comb1L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb1L_fb);
+        comb2L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb2L_fb);
+        comb3L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb3L_fb);
+        comb4L_in  = flush ? '0 : sat16($signed(audio_in[0]) + comb4L_fb);
         comb1L_out = comb1L_delayed;
         comb2L_out = comb2L_delayed;
         comb3L_out = comb3L_delayed;
@@ -384,14 +452,10 @@ module fx_reverb #(
                      $signed(comb3L_out) + $signed(comb4L_out);
 
         // RIGHT
-        comb1R_fb  = (dc1R_y * FIXED_FB_GAIN) >>> 8;
-        comb2R_fb  = (dc2R_y * FIXED_FB_GAIN) >>> 8;
-        comb3R_fb  = (dc3R_y * FIXED_FB_GAIN) >>> 8;
-        comb4R_fb  = (dc4R_y * FIXED_FB_GAIN) >>> 8;
-        comb1R_in  = sat16($signed(audio_in[1]) + comb1R_fb);
-        comb2R_in  = sat16($signed(audio_in[1]) + comb2R_fb);
-        comb3R_in  = sat16($signed(audio_in[1]) + comb3R_fb);
-        comb4R_in  = sat16($signed(audio_in[1]) + comb4R_fb);
+        comb1R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb1R_fb);
+        comb2R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb2R_fb);
+        comb3R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb3R_fb);
+        comb4R_in  = flush ? '0 : sat16($signed(audio_in[1]) + comb4R_fb);
         comb1R_out = comb1R_delayed;
         comb2R_out = comb2R_delayed;
         comb3R_out = comb3R_delayed;
@@ -455,8 +519,8 @@ module fx_reverb #(
         wet_R        = allpass3R_out;
         wet_scaled_L = $signed(wet_L) - $signed(audio_in[0]);
         wet_scaled_R = $signed(wet_R) - $signed(audio_in[1]);
-        mixed_L      = $signed(audio_in[0]) + ((wet_scaled_L * $signed({1'b0, fx_mix})) >>> 8);
-        mixed_R      = $signed(audio_in[1]) + ((wet_scaled_R * $signed({1'b0, fx_mix})) >>> 8);
+        mixed_L = $signed(audio_in[0]) + ((wet_scaled_L * $signed({1'b0, fx_mix})) >>> 8);
+        mixed_R = $signed(audio_in[1]) + ((wet_scaled_R * $signed({1'b0, fx_mix})) >>> 8);
     end
 
     // ----------------------------------------------------------------

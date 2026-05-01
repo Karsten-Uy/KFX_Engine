@@ -59,26 +59,8 @@ package lab_pkg;
     // 2. Default Parameter Table
     //
     // Public entry-point:  param_default(bank, fx, param)
-    //
-    // FX index map (shared across all banks)
-    //   0  Input Gain       [0]=gain
-    //   1  Noise Gate       [0]=threshold [1]=attack [2]=release [3]=knee [4]=depth
-    //   2  EQ 1 (pre-dist)  [0]=sub [1]=low [2]=mid [3]=high
-    //   3  Compressor        [0]=thresh [1]=ratio [2]=attack [3]=release
-    //                        [4]=input_gain [5]=makeup_gain [7]=mix
-    //   4  Distortion        [0]=drive [1]=makeup_gain [7]=mix
-    //   5  EQ 2 (post-dist)  [0]=sub [1]=low [2]=mid [3]=high
-    //   6  Chorus            [0]=rate [1]=depth [7]=mix
-    //   7  Expression Gain   [0]=gain
-    //   8  Delay             [0]=time [1]=feedback [7]=mix
-    //   9  Reverb            [0]=size [1]=damping [7]=mix
-    //  10  Output Gain       [0]=gain
-    //
-    // Encoding convention (8-bit, 0-255):
-    //   Gain / level  128 = unity  (x1.0)
-    //   Mix           0   = dry    255 = fully wet
-    //   Off           mix = 0
-    // ----------------------------------------------------------------
+
+    parameter DEFAULT_MASTER_OUT_GAIN  = 8'd14;
 
     // ---- Bank 0 : CLEAN ----------------------------------------
     // Transparent signal path: unity gain everywhere, no distortion,
@@ -89,9 +71,9 @@ package lab_pkg;
         case (fx)
             0:  if (param==0) bank0_default = 8'd128;           // input gain unity
             1:  case (param)
-                    0: bank0_default = 8'd1;                     // gate off
+                    0: bank0_default = 8'd1;                     // very light gate
                     1: bank0_default = 8'd40;
-                    2: bank0_default = 8'd128;
+                    2: bank0_default = 8'd240;
                 endcase
             2:  case (param)
                     0: bank0_default = 8'd0;
@@ -101,11 +83,12 @@ package lab_pkg;
                 endcase
             3:  case (param)
                     0: bank0_default = 8'd32;
-                    1: bank0_default = 8'd0;                     // comp off
+                    1: bank0_default = 8'd0;
                     2: bank0_default = 8'd64;
                     3: bank0_default = 8'd128;
-                    4: bank0_default = 8'd64;
-                    5: bank0_default = 8'd64;
+                    4: bank0_default = 8'd64;                    // Unity Input gain
+                    5: bank0_default = 8'd64; 
+                    7: bank0_default = 8'd0;                     // Compressor Off
                 endcase
             4:  case (param)
                     0: bank0_default = 8'd128;
@@ -134,7 +117,8 @@ package lab_pkg;
                     1: bank0_default = 8'd160;
                     7: bank0_default = 8'd40;                    // light reverb
                 endcase
-            10: if (param==0) bank0_default = 8'd128;
+            10: if (param==0) bank0_default = 8'd32;             // Output Unity Gain
+            15: if (param==0) bank0_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 
@@ -190,73 +174,80 @@ package lab_pkg;
             8:  case (param)
                     0: bank1_default = 8'd100;     
                     1: bank1_default = 8'd60;
-                    7: bank1_default = 8'd60;
+                    7: bank1_default = 8'd0;
                 endcase
             9:  case (param)
                     0: bank1_default = 8'd80;
                     1: bank1_default = 8'd150;
-                    7: bank1_default = 8'd0;
+                    7: bank1_default = 8'd20;
                 endcase
-            10: if (param==0) bank1_default = 8'd1;
+            10: if (param==0) bank1_default = 8'd10;
+            15: if (param==0) bank1_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 
-    // ---- Bank 2 : LEAD ----------------------------------------
-    // High-gain lead tone — hard compression, heavy saturation,
+    // ---- Bank 2 : LIGHT DRIVE ----------------------------------------
     // long dotted-eighth delay, lush reverb.
     function automatic logic [PARAM_W-1:0]
             bank2_default(input int fx, input int param);
         bank2_default = '0;
         case (fx)
-            0:  if (param==0) bank2_default = 8'd150;
+            0:  if (param==0) bank2_default = 8'd140;
             1:  case (param)
                     0: bank2_default = 8'd1;
-                    1: bank2_default = 8'd30;
-                    2: bank2_default = 8'd80;
+                    1: bank2_default = 8'd40;
+                    2: bank2_default = 8'd100;
                 endcase
             2:  case (param)
                     0: bank2_default = 8'd0;
-                    1: bank2_default = 8'd60;                    // low cut
-                    2: bank2_default = 8'd150;
-                    3: bank2_default = 8'd130;
+                    1: bank2_default = 8'd40;
+                    2: bank2_default = 8'd160;   
+                    3: bank2_default = 8'd140;
                 endcase
             3:  case (param)
-                    0: bank2_default = 8'd80;
-                    1: bank2_default = 8'd140;                   // ratio ~4:1
-                    2: bank2_default = 8'd30;                    // fast attack
-                    3: bank2_default = 8'd100;
-                    4: bank2_default = 8'd100;
-                    5: bank2_default = 8'd100;
-                    7: bank2_default = 8'd220;
+                    0: bank2_default = 8'd60;
+                    1: bank2_default = 8'd128;
+                    2: bank2_default = 8'd50;
+                    3: bank2_default = 8'd110;
+                    4: bank2_default = 8'd64;
+                    5: bank2_default = 8'd64;
+                    7: bank2_default = 8'd255;
                 endcase
             4:  case (param)
-                    0: bank2_default = 8'd220;                   // high gain
-                    1: bank2_default = 8'd90;
-                    7: bank2_default = 8'd240;
+                    0: bank2_default = 8'd80;       
+                    1: bank2_default = 8'd50;
+                    2: bank2_default = 8'd255;
+                    3: bank2_default = 8'd0;
+                    4: bank2_default = 8'd128;
+                    5: bank2_default = 8'd30;
+                    6: bank2_default = 8'd230;
+                    7: bank2_default = 8'd210;
                 endcase
             5:  case (param)
                     0: bank2_default = 8'd0;
-                    1: bank2_default = 8'd70;
-                    2: bank2_default = 8'd160;
-                    3: bank2_default = 8'd180;
+                    1: bank2_default = 8'd90;
+                    2: bank2_default = 8'd140;
+                    3: bank2_default = 8'd170;     
                 endcase
             6:  case (param)
                     0: bank2_default = 8'd128;
                     1: bank2_default = 8'd128;
-                    7: bank2_default = 8'd0;                     // no chorus on lead
+                    7: bank2_default = 8'd60;
                 endcase
             7:  if (param==0) bank2_default = 8'd128;
             8:  case (param)
-                    0: bank2_default = 8'd170;                   // dotted-eighth
-                    1: bank2_default = 8'd120;
-                    7: bank2_default = 8'd80;
+                    0: bank2_default = 8'd100;     
+                    1: bank2_default = 8'd60;
+                    7: bank2_default = 8'd20;
                 endcase
             9:  case (param)
-                    0: bank2_default = 8'd190;
-                    1: bank2_default = 8'd100;
-                    7: bank2_default = 8'd90;
+                    0: bank2_default = 8'd80;
+                    1: bank2_default = 8'd150;
+                    2: bank2_default = 8'd0;
+                    7: bank2_default = 8'd0;
                 endcase
-            10: if (param==0) bank2_default = 8'd64;
+            10: if (param==0) bank2_default = 8'd32;
+            15: if (param==0) bank2_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 
@@ -267,26 +258,26 @@ package lab_pkg;
             bank3_default(input int fx, input int param);
         bank3_default = '0;
         case (fx)
-            0:  if (param==0) bank3_default = 8'd128;
+            0:  if (param==0) bank3_default = 8'd32;           // input gain unity
             1:  case (param)
-                    0: bank3_default = 8'd0; 
+                    0: bank3_default = 8'd1;                     // gate off
                     1: bank3_default = 8'd40;
-                    2: bank3_default = 8'd200;
+                    2: bank3_default = 8'd128;
                 endcase
             2:  case (param)
-                    0: bank3_default = 8'd30;
-                    1: bank3_default = 8'd120;
-                    2: bank3_default = 8'd110;
-                    3: bank3_default = 8'd100;
+                    0: bank3_default = 8'd0;
+                    1: bank3_default = 8'd4;                     // slight low cut
+                    2: bank3_default = 8'd128;
+                    3: bank3_default = 8'd128;
                 endcase
             3:  case (param)
                     0: bank3_default = 8'd32;
-                    1: bank3_default = 8'd0;                     // comp off
+                    1: bank3_default = 8'd0;
                     2: bank3_default = 8'd64;
                     3: bank3_default = 8'd128;
-                    4: bank3_default = 8'd64;
-                    5: bank3_default = 8'd64;
-                    7: bank3_default = 8'd0;
+                    4: bank3_default = 8'd200;                    // Unity Input gain
+                    5: bank3_default = 8'd64; 
+                    7: bank3_default = 8'd255;                     // Compressor Off
                 endcase
             4:  case (param)
                     0: bank3_default = 8'd128;
@@ -294,28 +285,30 @@ package lab_pkg;
                     7: bank3_default = 8'd0;                     // distortion off
                 endcase
             5:  case (param)
-                    0: bank3_default = 8'd20;
-                    1: bank3_default = 8'd110;
-                    2: bank3_default = 8'd120;
-                    3: bank3_default = 8'd90;                    // roll off highs
+                    0: bank3_default = 8'd0;
+                    1: bank3_default = 8'd30;
+                    2: bank3_default = 8'd128;
+                    3: bank3_default = 8'd150;
                 endcase
             6:  case (param)
                     0: bank3_default = 8'd90;                    // slow rate
                     1: bank3_default = 8'd180;                   // deep
-                    7: bank3_default = 8'd0;                   // mostly wet
+                    7: bank3_default = 8'd100;                   // wetish
                 endcase
             7:  if (param==0) bank3_default = 8'd128;
             8:  case (param)
                     0: bank3_default = 8'd200;
                     1: bank3_default = 8'd140;
-                    7: bank3_default = 8'd100;
+                    7: bank3_default = 8'd40;                    // decent amount of delay
                 endcase
             9:  case (param)
                     0: bank3_default = 8'd230;                   // huge room
                     1: bank3_default = 8'd80;                    // low damping
-                    7: bank3_default = 8'd0;
+                    2: bank3_default = 8'd200;                   // super long tail
+                    7: bank3_default = 8'd60;                    // decent amount of reverb
                 endcase
-            10: if (param==0) bank3_default = 8'd120;
+            10: if (param==0) bank3_default = 8'd128;
+            15: if (param==0) bank3_default = DEFAULT_MASTER_OUT_GAIN;
         endcase
     endfunction
 
@@ -378,7 +371,12 @@ package lab_pkg;
     // 4. FX Constants
     // ----------------------------------------------------------------
 
-    parameter FX_STAGES = 11;
+    parameter FX_STAGES = 12;
+
+    // FX 15 — global gain slot, mirrored across all banks.  Controller
+    // writes propagate to every bank when fx_sel == GLOBAL_GAIN_FX so
+    // the value is identical regardless of which bank is active.
+    parameter GLOBAL_GAIN_FX = 15;
 
     parameter COMP_LOOKAHEAD         = 16;
     parameter logic [15:0] UNITY_Q15 = 16'h7FFF;

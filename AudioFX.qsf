@@ -991,7 +991,7 @@ set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING OFF
 set_global_assignment -name OPTIMIZE_TIMING "NORMAL COMPILATION"
 set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT NORMAL
 set_global_assignment -name ALM_REGISTER_PACKING_EFFORT LOW
-set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
+set_global_assignment -name OPTIMIZATION_MODE BALANCED
 set_global_assignment -name ENABLE_OCT_DONE OFF
 set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
 set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
@@ -1059,6 +1059,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_location_assignment PIN_AE23 -to GPIO_1_LED
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to GPIO_1_LED
 set_global_assignment -name FINAL_PLACEMENT_OPTIMIZATION AUTOMATICALLY
+set_global_assignment -name SYSTEMVERILOG_FILE src/control/fade_fsm.sv
 set_global_assignment -name VERILOG_FILE src/ip/adc/altera_up_avalon_adv_adc.v
 set_global_assignment -name VERILOG_FILE src/ip/adc/altera_up_avalon_adc_mega.v
 set_global_assignment -name VERILOG_FILE src/ip/adc/altera_up_avalon_adc.v

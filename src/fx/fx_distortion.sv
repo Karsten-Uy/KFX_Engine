@@ -1,8 +1,53 @@
 /*
-    Distortion with Amp Dynamics (Sag, Variable Bias, Tone, and DC Blocking)
-    (Bit-width stable and phase-aligned)
-    NEW: Anti-aliasing Amp Sandwich with safe transient handling.
-*/
+ * fx_distortion.sv
+ *
+ * Stereo amp-style distortion modelling the full overdriven-guitar-amp
+ * signal chain.  Bit-width stable and phase-aligned across both channels,
+ * with safe transient handling and an anti-aliasing amp sandwich (pre-
+ * emphasis filter → drive/clip → post low-pass) around the clipping core.
+ *
+ * Signal flow
+ * -----------
+ *   1. Envelope follower + power-supply sag — the per-channel drive is
+ *      reduced briefly during loud transients, mimicking tube-amp
+ *      compression.
+ *   2. Pre-emphasis (first-difference high-shelf) — boosts the presence
+ *      band before clipping, adding bite and pick attack.
+ *   3. Drive — multiplies by 1×..32.875× (256 + fx_drive·32).
+ *   4. Asymmetric DC bias — shifts clipping threshold so the half-cycles
+ *      clip at different levels, generating even-order harmonics.
+ *   5. Soft-clip — 3rd-order polynomial approximation of tanh(x).
+ *   6. DC blocker (one-pole high-pass).
+ *   7. Post low-pass — tames clipping fizz / aliasing.
+ *   8. Wet/dry mix with fx_mix.
+ *   9. Makeup gain (128 = unity).
+ *  10. Cabinet simulation — two cascaded one-pole IIR low-pass stages
+ *      modelling speaker-cabinet rolloff; the pole coefficient
+ *      safe_tone/256 is clamped at 1.0 (fx_tone ≥ 246 → safe_tone = 256)
+ *      so the cabinet stays stable at any tone setting.
+ *
+ * True bypass at fx_mix == 0 — the entire wet chain plus the cabinet IIR
+ * is taken out of the audio path so banks that don't use distortion are
+ * bit-exact pass-through with no per-pole truncation noise.
+ *
+ * Latency: 6 samples (pipeline registers in the drive/clip/post chain).
+ *
+ * Parameters
+ * ----------
+ *   fx_drive       — clipping-stage gain (0 → 1×, 255 → ~32.875×)
+ *   fx_makeup_gain — post-clip output level (128 = unity)
+ *   fx_mix         — dry/wet blend (0 → true bypass, 255 → ~99.6 % wet)
+ *   fx_bias        — asymmetric DC offset (harmonic balance / tube warmth)
+ *   fx_sag         — supply-sag depth (transient compression)
+ *   fx_tone        — cabinet brightness (0 → darkest, ≥ 246 → fully open)
+ *   fx_tightness   — pre-clip high-pass amount
+ *   fx_smooth      — post-clip low-pass amount
+ *
+ * Ports
+ * -----
+ *   audio_in/out  — stereo signed 16-bit
+ *   sample_en     — single-cycle sample strobe
+ */
 
 module fx_distortion #(
     parameter DATA_W  = 16,
@@ -205,8 +250,13 @@ module fx_distortion #(
     logic signed [15:0] cab1[1:0], cab2[1:0], cab1_n[1:0], cab2_n[1:0];
     logic signed [16:0] d1[1:0],   d2[1:0];
     logic signed [26:0] cab1_mult[1:0], cab2_mult[1:0]; 
+    // Clamp to 256 so the cabinet IIR coefficient (safe_tone/256) never
+    // exceeds 1.0 — anything > 1.0 makes the cabinet IIR unstable and it
+    // rings into wrap-around.  For fx_tone in [246..255] we'd otherwise
+    // produce safe_tone in [256..265]; floor everything in that band to
+    // exactly 256 (coefficient = 1.0, all-pass).
     logic [8:0] safe_tone;
-    assign safe_tone = {1'b0, fx_tone} + 9'd10; 
+    assign safe_tone = (fx_tone >= 8'd246) ? 9'd256 : ({1'b0, fx_tone} + 9'd10);
 
     always_comb begin
         for (int i = 0; i < 2; i++) begin
@@ -274,13 +324,18 @@ module fx_distortion #(
 
     // -----------------------------------------------------------------------
     // OUTPUT
+    //
+    // True bypass when fx_mix == 0.  Without this the cabinet IIR (cab1/cab2)
+    // runs continuously and accumulates per-pole truncation noise even on
+    // banks that don't use distortion — and at high fx_tone the cabinet
+    // coefficient (safe_tone/256) exceeds 1.0 and amplifies upstream noise.
     // -----------------------------------------------------------------------
     always_ff @(posedge clk) begin
         if (!reset_n) begin
             audio_out <= '0;
         end else if (sample_en) begin
             for (int i = 0; i < 2; i++)
-                audio_out[i] <= cab2_n[i];
+                audio_out[i] <= (fx_mix == '0) ? audio_in[i] : cab2_n[i];
         end
     end
 
