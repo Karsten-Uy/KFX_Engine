@@ -152,7 +152,7 @@ module tuner_display (
     logic [11:0] best_lag_int_s1;
     logic        signal_ok_s1;
 
-    always_ff @(posedge clk or negedge reset_n) begin
+    always_ff @(posedge clk) begin
         if (!reset_n) begin
             candidate_s1    <= '0;
             best_lag_q4_s1  <= '0;
@@ -207,7 +207,7 @@ module tuner_display (
     logic        div_busy;
     logic [16:0] frequency_div;       // last completed quotient
 
-    always_ff @(posedge clk or negedge reset_n) begin
+    always_ff @(posedge clk) begin
         if (!reset_n) begin
             div_busy      <= 1'b0;
             div_count     <= '0;
@@ -265,7 +265,7 @@ module tuner_display (
     logic        mode_sel_s2;
     logic [4:0]  indicator_s2;
 
-    always_ff @(posedge clk or negedge reset_n) begin
+    always_ff @(posedge clk) begin
         if (!reset_n) begin
             held_note         <= '0;
             held_valid        <= 1'b0;
@@ -341,7 +341,7 @@ module tuner_display (
         end
     end
 
-    always_ff @(posedge clk or negedge reset_n) begin
+    always_ff @(posedge clk) begin
         if (!reset_n) begin
             for (int i = 0; i < 6; i++) tuner_vals[i] <= SEVSEG_BLANK_INDEX;
         end else begin

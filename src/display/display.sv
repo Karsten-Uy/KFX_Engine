@@ -78,7 +78,7 @@ module display #(
     logic [15:0] tuner_lag_latch;   // Q12.4
     logic [24:0] silence_cnt;       // 25 bits covers 33 M cycles
 
-    always_ff @(posedge clk or negedge reset_n) begin
+    always_ff @(posedge clk) begin
         if (!reset_n) begin
             tuner_lag_latch <= 16'd0;
             silence_cnt     <= '0;

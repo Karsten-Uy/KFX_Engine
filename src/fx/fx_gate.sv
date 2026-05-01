@@ -167,7 +167,7 @@ module fx_gate #(
 
     logic [15:0] gain_target_r;
 
-    always_ff @(posedge clk or negedge reset_n) begin
+    always_ff @(posedge clk) begin
         if (!reset_n) gain_target_r <= 16'hFFFF;
         else if (sample_en) gain_target_r <= gain_target;
     end
@@ -197,7 +197,7 @@ module fx_gate #(
     assign attack_step  = 9'd256 - {1'b0, fx_attack};
     assign release_step = 9'd256 - {1'b0, fx_release};
 
-    always_ff @(posedge clk or negedge reset_n) begin
+    always_ff @(posedge clk) begin
         if (!reset_n) begin
             gain <= 16'hFFFF;
         end else if (sample_en) begin
