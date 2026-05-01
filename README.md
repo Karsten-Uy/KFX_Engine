@@ -87,7 +87,7 @@ The compressor's lookahead is the largest contributor (one third of the chain). 
 ---
 ## Block Diagram
 
-![AudioFX Processor Block Diagram](./HaH%20Processor%20Block%20Diagram.drawio.png)
+![Block Diagram](./KFX%20Engine%20Block%20Diagram.png)
 
 ---
 
@@ -120,7 +120,9 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 5. Connect the other AUX cable to the blue "LINE OUT" port at the top left of the board and then connect it to the output device
 6. PLAY
 
-#### How to create .jic file for power persistant design
+*NOTE: if the tcl script doesn't work, you need to use the programmer and program the `build_outputs/AudioFX.sof` bitstream file into the board.
+
+#### How to create .jic file for power-cycle persistant design
 1. Compile via quartus to generate the .sof file normally
 2. Go to `File` > `Convert Programming File` in Quartus and then create the .jic file with the following settings and then click `Generate`
     - Configuration device: `EPCQ128A`
