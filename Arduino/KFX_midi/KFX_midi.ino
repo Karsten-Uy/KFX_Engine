@@ -76,6 +76,13 @@ void loop() {
       for (int j = 0; j < NUM_BANKS; j++) {
         controlChange(MIDI_CHANNEL, ccValues_KB[j], (j == i) ? MIDI_HIGH : MIDI_LOW);
       }
+
+      // Send the current pedal position on the new bank's CC right away
+      int potValueBank = analogRead(POT_EX);
+      int ccValueBank  = map(potValueBank, POT_EX_START_VAL, POT_EX_END_VAL, 0, 127);
+      ccValueBank = constrain(ccValueBank, 0, 127);
+      controlChange(MIDI_CHANNEL, POT_CC_BANK[currentBank], ccValueBank);
+      lastPotValueEx = potValueBank; // avoid an immediate duplicate send below
       break;
     }
   }
@@ -97,12 +104,11 @@ void loop() {
       // If already muted, a quick tap-and-release will unmute
       if (isMute && !holding) {
         unmuteReady = true;
+      } else {
+        // Only send a delay tap when this press isn't an unmute
+        Serial.println("Delay Tapped");
+        controlChange(MIDI_CHANNEL, DEL_TAP_CC, MIDI_HIGH);
       }
-
-      Serial.println("Delay Tapped");
-      controlChange(MIDI_CHANNEL, DEL_TAP_CC, MIDI_HIGH);
-      delay(DELAY_TAP_LED_TIME);
-      controlChange(MIDI_CHANNEL, DEL_TAP_CC, MIDI_LOW);
 
       // Start hold timer for this press
       pressStartTime = millis();

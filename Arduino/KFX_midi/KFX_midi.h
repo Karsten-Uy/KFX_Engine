@@ -5,6 +5,9 @@
 // The expression pedal sends a DIFFERENT MIDI CC depending on which
 // bank is currently selected (see POT_CC_BANK below).
 // The tap/mute button: a TAP sends a delay-tap CC; HOLDING it ~1s toggles mute.
+//
+// See MIDI assignments here:
+// - https://studiocode.dev/resources/midi-cc/
 //-----------------------
 
 // MIDI
@@ -16,7 +19,7 @@ const byte MIDI_LOW     = 0;
 const int NUM_BANKS = 4;
 
 // CC sent when a bank is selected (one per bank)
-const byte ccValues_KB[NUM_BANKS] = { 70, 71, 72, 73 };
+const byte ccValues_KB[NUM_BANKS] = { 80, 81, 82, 83 };
 
 // Expression-pedal CC, one per bank.
 // When bank i is active, the pedal's value is sent on POT_CC_BANK[i].
@@ -31,10 +34,10 @@ const byte MUTE_CC    = 120;   // sent when mute toggles on/off
 //-----------------------
 
 // Bank buttons: INPUT_PULLUP, wired button -> GND, pressed reads LOW
-const int BUT_BIN[NUM_BANKS] = { 2, 3, 4, 5 };
+const int BUT_BIN[NUM_BANKS] = { 9, 8, 7, 6 };
 
 // Tap/mute button: INPUT_PULLUP, wired button -> GND, pressed reads LOW
-const int BUT_TM = 6;
+const int BUT_TM = 5;
 
 // Expression pedal (analog)
 const int POT_EX = A0;
@@ -44,10 +47,11 @@ const int POT_EX = A0;
 //-----------------------
 
 // Expression pedal range (raw analogRead values at heel / toe)
-const int POT_EX_START_VAL = 375;
-const int POT_EX_END_VAL   = 840;
+const int POT_EX_START_VAL = 5;
+const int POT_EX_END_VAL   = 630;
 
-const int DEBOUNCETIME      = 5;
-const int POT_THRESHOLD     = 5;
+const int DEBOUNCETIME      = 10;
+const int POT_THRESHOLD     = 15;     // minimum change in raw value to send a new CC
 const int DELAY_TAP_LED_TIME = 5;     // how long the tap CC is held high
-const int MUTE_HOLD_TIME     = 1000;  // hold this long to toggle mute (ms)
+const int MUTE_HOLD_TIME     = 1000;  // hold this long to toggle mute (ms), 
+                                      // should match DEBOUNCE_CNT_MAX in lab_pkg.sv
