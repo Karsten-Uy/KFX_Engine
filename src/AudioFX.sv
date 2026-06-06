@@ -659,16 +659,20 @@ module AudioFX (
 
         // ---- FX 9: Reverb --------------------------------------------
         fx_reverb #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_REVERB (
-            .clk       (CLOCK_50),
-            .reset_n   (fx_reset_n),      
-            .audio_in  (delay_out),
-            .audio_out (reverb_out),
-            .flush     (fx_flush),
-            .fx_size   (params[9][0]),
-            .fx_damping(params[9][1]),
-            .fx_decay  (params[9][2]),
-            .fx_mix    (params[9][7]),
-            .sample_en (sample_en_pipe[9])
+            .clk        (CLOCK_50),
+            .reset_n    (fx_reset_n),
+            .audio_in   (delay_out),
+            .audio_out  (reverb_out),
+            .flush      (fx_flush),
+            .fx_size    (params[9][0]),
+            .fx_damping (params[9][1]),
+            .fx_decay   (params[9][2]),
+            .fx_moddepth(params[9][3]),
+            .fx_diffusion(params[9][4]),
+            .fx_predelay(params[9][5]),
+            .fx_width   (params[9][6]),
+            .fx_mix     (params[9][7]),
+            .sample_en  (sample_en_pipe[9])
         );
 
         // ---- FX 10: Output Gain -------------------------------------

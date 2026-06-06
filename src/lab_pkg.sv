@@ -115,6 +115,10 @@ package lab_pkg;
             9:  case (param)
                     0: bank0_default = 8'd100;
                     1: bank0_default = 8'd160;
+                    3: bank0_default = 8'd50;                    // gentle modulation
+                    4: bank0_default = 8'd110;                   // moderate diffusion
+                    5: bank0_default = 8'd10;                    // short pre-delay
+                    6: bank0_default = 8'd170;                   // fairly wide
                     7: bank0_default = 8'd40;                    // light reverb
                 endcase
             10: if (param==0) bank0_default = 8'd32;             // Output Unity Gain
@@ -179,6 +183,10 @@ package lab_pkg;
             9:  case (param)
                     0: bank1_default = 8'd80;
                     1: bank1_default = 8'd150;
+                    3: bank1_default = 8'd40;                    // subtle modulation
+                    4: bank1_default = 8'd90;                    // light diffusion
+                    5: bank1_default = 8'd0;                     // no pre-delay (tight)
+                    6: bank1_default = 8'd140;                   // moderate width
                     7: bank1_default = 8'd20;
                 endcase
             10: if (param==0) bank1_default = 8'd10;
@@ -244,6 +252,10 @@ package lab_pkg;
                     0: bank2_default = 8'd80;
                     1: bank2_default = 8'd150;
                     2: bank2_default = 8'd0;
+                    3: bank2_default = 8'd70;                    // lush modulation
+                    4: bank2_default = 8'd140;                   // good diffusion
+                    5: bank2_default = 8'd30;                    // some pre-delay
+                    6: bank2_default = 8'd190;                   // wide
                     7: bank2_default = 8'd0;
                 endcase
             10: if (param==0) bank2_default = 8'd32;
@@ -305,6 +317,10 @@ package lab_pkg;
                     0: bank3_default = 8'd230;                   // huge room
                     1: bank3_default = 8'd80;                    // low damping
                     2: bank3_default = 8'd200;                   // super long tail
+                    3: bank3_default = 8'd110;                   // rich modulation (anti-metallic)
+                    4: bank3_default = 8'd190;                   // heavy diffusion
+                    5: bank3_default = 8'd50;                    // cathedral pre-delay
+                    6: bank3_default = 8'd210;                   // very wide
                     7: bank3_default = 8'd60;                    // decent amount of reverb
                 endcase
             10: if (param==0) bank3_default = 8'd128;
