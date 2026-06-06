@@ -272,7 +272,7 @@ NOTE* The periferals only add live stage accessable controls and do not change t
 | Tap / mute LED          | `GPIO_1_LED` | Solid ON while muted; pulses at the current tap-tempo when unmuted           |
 | Expression pedal        | ADC channel 0 (`ADC_DOUT`) | Drives FX 7 (Expression Gain); sweep adjusts overall chain volume |
 
-All footswitches are momentary (active-low) - wire one terminal to the `GPIO_1` pin and through a 10K resistor then to ground; an internal pull-up on the FPGA holds the line high when not pressed. For the Expression pedal, the wiper is connected to the ADC channel and the other 2 pins are connect 2 ground and the 3.3V pin on the `GPIO` pins. The LED is connected to a `GPIO_1_LED`, which is `GPIO_5` through a 1k resistor into ground.
+All footswitches are momentary (active-low) - wire one terminal to the `GPIO_1` pin and through a 10K resistor then to ground; an internal pull-up on the FPGA holds the line high when not pressed. For the Expression pedal, the wiper is connected to the ADC channel and the other 2 pins are connect 2 ground and the 3.3V pin on the `GPIO` pins. The LED is connected to a `GPIO_1_LED`, which is `GPIO_5` through a 1k resistor into ground. See the `WIRING.md` for a more detailed diagram + how it connects to the Arduino.
 
 ### Tuner
 
@@ -301,6 +301,27 @@ While unmuted, repeatedly tap the mute footswitch (or `KEY[1]`) on the beat. The
 ### Expression Pedal
 
 The expression pedal at FX 7 is a wet-only volume control inserted between the chorus and delay stages. With the pedal heel-down, the chain is silent at that point; Useful for swells and volume-controlled feedback into delay and reverb.
+
+## Arduino USB-MIDI Controller
+
+The same footswitches and expression pedal are also wired in parallel to an **Arduino** running the sketch in [`Arduino/KFX_midi/`](./Arduino/KFX_midi/KFX_midi.ino). This turns the pedalboard into a class-compliant **USB-MIDI controller** so the controls can drive a DAW or any MIDI software in addition to the on-board FPGA DSP. The FPGA and Arduino read the same active-low switches and pedal wiper independently — see [`docs/WIRING.md`](./docs/WIRING.md) for the full shared-control wiring (per-device pull-ups, series resistors, common ground, and the ¼" TRS pedal connection). See `Arduino/KFX_midi/README.md` for more details
+
+The sketch uses the [MIDIUSB](https://github.com/arduino-libraries/MIDIUSB) library and sends all messages on **MIDI channel 1** (channel index 0). Configuration lives in [`Arduino/KFX_midi/KFX_midi.h`](./Arduino/KFX_midi/KFX_midi.h).
+
+**Behavior**
+
+* **Bank footswitches** — selecting a bank mutes the other three bank CCs and sends the active bank last (so DAWs like Studio One 5 that map to the most recent event register it correctly). On a bank switch the current pedal value is re-sent on the new bank's CC so the parameter doesn't jump.
+* **Tap / mute footswitch** — a tap sends a short delay-tap CC pulse; holding ~1 s toggles mute. Pressing to unmute does not emit a tap.
+* **Expression pedal** — the wiper is mapped to `0–127` and sent on a per-bank CC, with hysteresis to avoid CC spam.
+
+**Default MIDI CC map** (all on channel 1):
+
+| Control          | CC (per bank)                  |
+| ---------------- | ------------------------------ |
+| Bank select 1–4  | `80`, `81`, `82`, `83`         |
+| Expression pedal | `4`, `66`, `67`, `68` (by active bank) |
+| Delay tap        | `96`                           |
+| Mute             | `120`                          |
 
 ## Implemented Effects & Parameters
 
@@ -456,6 +477,7 @@ Implements a **Schroeder Reverberator** using parallel damped feedback comb filt
 ## Tools, Technologies & Platform
 
 * **FPGA Board:** DE1-SoC
+* **Arduino:** Arduino Pro Micro
 * **HDL:** SystemVerilog
 * **Algorithmic Prototyping:** Python
 * **Audio Codec:** DE1-SoC on-board codec

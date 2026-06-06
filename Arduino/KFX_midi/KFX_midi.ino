@@ -51,7 +51,7 @@ void setup() {
 //-----------------------------------------
 void loop() {
 
-  delay(DEBOUNCETIME); // simple debounce
+  delay(DEBOUNCE_TIME); // simple debounce
 
   /************************/
   // BANK SELECT BUTTONS
@@ -72,17 +72,26 @@ void loop() {
       Serial.print(i);
       Serial.println(" selected");
 
-      // Tell the host which bank is active
+      // Mute all other banks
       for (int j = 0; j < NUM_BANKS; j++) {
-        controlChange(MIDI_CHANNEL, ccValues_KB[j], (j == i) ? MIDI_HIGH : MIDI_LOW);
+        if (i != j) {
+          controlChange(MIDI_CHANNEL, ccValues_KB[j], MIDI_HIGH);
+        }
       }
 
-      // Send the current pedal position on the new bank's CC right away
-      int potValueBank = analogRead(POT_EX);
-      int ccValueBank  = map(potValueBank, POT_EX_START_VAL, POT_EX_END_VAL, 0, 127);
-      ccValueBank = constrain(ccValueBank, 0, 127);
-      controlChange(MIDI_CHANNEL, POT_CC_BANK[currentBank], ccValueBank);
-      lastPotValueEx = potValueBank; // avoid an immediate duplicate send below
+      // On Change set the expression pedal to the current value for the newly selected
+      // bank so that it doesn't jump when you move it
+      int potValueEx = analogRead(POT_EX);
+      int ccValueEx  = map(potValueEx, POT_EX_START_VAL, POT_EX_END_VAL, 0, 127);
+      ccValueEx = constrain(ccValueEx, 0, 127);
+      controlChange(MIDI_CHANNEL, POT_CC_BANK[currentBank], ccValueEx);
+
+      // Unmute the selected bank last, after muting the others. Some DAWs
+      // (e.g. Studio One 5) only map a control to the most recent MIDI
+      // event, so the active bank must be sent last to properly assign
+      // parameters to the event
+      controlChange(MIDI_CHANNEL, ccValues_KB[currentBank], MIDI_LOW);
+
       break;
     }
   }
@@ -108,6 +117,8 @@ void loop() {
         // Only send a delay tap when this press isn't an unmute
         Serial.println("Delay Tapped");
         controlChange(MIDI_CHANNEL, DEL_TAP_CC, MIDI_HIGH);
+        delay(TAP_PULSE_TIME);
+        controlChange(MIDI_CHANNEL, DEL_TAP_CC, MIDI_LOW);
       }
 
       // Start hold timer for this press
@@ -146,17 +157,15 @@ void loop() {
   int potValueEx = analogRead(POT_EX);
   int ccValueEx  = map(potValueEx, POT_EX_START_VAL, POT_EX_END_VAL, 0, 127);
   ccValueEx = constrain(ccValueEx, 0, 127);
-
-  if (abs(potValueEx - lastPotValueEx) > POT_THRESHOLD) {
-    controlChange(MIDI_CHANNEL, POT_CC_BANK[currentBank], ccValueEx);
-
-    Serial.print("Pedal (bank ");
+  
+  // Send the expression pedal signal to selected bank
+  if (abs(lastPotValueEx - ccValueEx) >= POT_HYSTERSIS) {
+      
+    Serial.print("Pedal (Bank ");
     Serial.print(currentBank);
-    Serial.print(") -> CC ");
-    Serial.print(POT_CC_BANK[currentBank]);
-    Serial.print(" = ");
+    Serial.print(") = ");
     Serial.println(ccValueEx);
-
-    lastPotValueEx = potValueEx;
+    controlChange(MIDI_CHANNEL, POT_CC_BANK[currentBank], ccValueEx);
   }
+  lastPotValueEx = ccValueEx;
 }

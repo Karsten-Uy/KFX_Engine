@@ -50,8 +50,9 @@ const int POT_EX = A0;
 const int POT_EX_START_VAL = 5;
 const int POT_EX_END_VAL   = 630;
 
-const int DEBOUNCETIME      = 10;
-const int POT_THRESHOLD     = 15;     // minimum change in raw value to send a new CC
-const int DELAY_TAP_LED_TIME = 5;     // how long the tap CC is held high
-const int MUTE_HOLD_TIME     = 1000;  // hold this long to toggle mute (ms), 
-                                      // should match DEBOUNCE_CNT_MAX in lab_pkg.sv
+const int DEBOUNCE_TIME            = 10;
+const int TAP_PULSE_TIME           = 5;
+const int POT_HYSTERSIS            = 2;
+const int DELAY_TAP_LED_TIME       = 5;     // how long the tap CC is held high
+const int MUTE_HOLD_TIME           = 1000;  // hold this long to toggle mute (ms), 
+                                             // should match DEBOUNCE_CNT_MAX in lab_pkg.sv
