@@ -132,7 +132,20 @@ module controller (
     output logic [31:0] flash_csr_writedata,
     input  logic [31:0] flash_csr_readdata,
     input  logic        flash_csr_waitrequest,
-    input  logic        flash_csr_readdatavalid
+    input  logic        flash_csr_readdatavalid,
+
+    // ---- Host (PC) parameter interface (UART/JTAG, transport-agnostic) ----
+    input  logic                           host_wr_en,
+    input  logic [$clog2(BANK_COUNT)-1:0]  host_bank,
+    input  logic [$clog2(FX_COUNT)-1:0]    host_fx,
+    input  logic [$clog2(PARAM_COUNT)-1:0] host_param,
+    input  logic [PARAM_W-1:0]             host_data,
+    input  logic                           host_rst_en,
+    input  logic [1:0]                     host_rst_scope,   // 0=param 1=fx 2=bank 3=all
+    input  logic                           host_save_pulse,
+    input  logic                           host_load_pulse,
+    output logic [PARAM_W-1:0]             host_rd_value,    // all_params[host_bank][host_fx][host_param]
+    output logic [PARAM_W-1:0]             host_default_value // param_default(host_bank,host_fx,host_param)
 );
 
     import lab_pkg::*;
@@ -215,6 +228,10 @@ module controller (
     assign fx_sel        = sw_fx_sel;
     assign param_sel     = sw_param_sel;
     assign current_value = all_params[bank_sel][fx_sel][param_sel];
+
+    // Host readback: current value and factory default at the host's address.
+    assign host_rd_value      = all_params[host_bank][host_fx][host_param];
+    assign host_default_value = param_default(host_bank, host_fx, host_param);
 
     // ----------------------------------------------------------------
     // Two-Phase Bank Select
@@ -428,6 +445,48 @@ module controller (
                     all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
                 end
 
+            // ---- Host reset-to-default (scope-aware); reuses param_default ----
+            // Priority: flash-load > host_rst > host_wr > buttons/pot.  Host
+            // pulses are gated on !fsm_busy inside host_if, so they never race
+            // the flash-load branch.  FX15 stays mirrored across all banks.
+            end else if (host_rst_en) begin
+                case (host_rst_scope)
+                    2'd0: begin  // single parameter
+                        if (host_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX))
+                            for (int b = 0; b < BANK_COUNT; b++)
+                                all_params[b][host_fx][host_param] <= param_default(b, host_fx, host_param);
+                        else
+                            all_params[host_bank][host_fx][host_param] <= param_default(host_bank, host_fx, host_param);
+                    end
+                    2'd1: begin  // whole FX row
+                        for (int p = 0; p < PARAM_COUNT; p++)
+                            if (host_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX))
+                                for (int b = 0; b < BANK_COUNT; b++)
+                                    all_params[b][host_fx][p] <= param_default(b, host_fx, p);
+                            else
+                                all_params[host_bank][host_fx][p] <= param_default(host_bank, host_fx, p);
+                    end
+                    2'd2: begin  // whole bank
+                        for (int fi = 0; fi < FX_COUNT; fi++)
+                            for (int p = 0; p < PARAM_COUNT; p++)
+                                all_params[host_bank][fi][p] <= param_default(host_bank, fi, p);
+                    end
+                    default: begin  // everything
+                        for (int bk = 0; bk < BANK_COUNT; bk++)
+                            for (int fi = 0; fi < FX_COUNT; fi++)
+                                for (int p = 0; p < PARAM_COUNT; p++)
+                                    all_params[bk][fi][p] <= param_default(bk, fi, p);
+                    end
+                endcase
+
+            // ---- Host write one parameter (FX15 mirrored across banks) ----
+            end else if (host_wr_en) begin
+                if (host_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX))
+                    for (int b = 0; b < BANK_COUNT; b++)
+                        all_params[b][host_fx][host_param] <= host_data;
+                else
+                    all_params[host_bank][host_fx][host_param] <= host_data;
+
             end else if (!fsm_busy) begin
                 if (inc_p || inc_r) begin
                     automatic logic [PARAM_W-1:0] inc_val =
@@ -527,8 +586,8 @@ module controller (
     controller_fsm CONTROLLER_FSM (
         .clk      (clk),
         .rst_n    (reset_n),
-        .save_en  (sav_p),
-        .load_en  (ld_p),
+        .save_en  (sav_p | host_save_pulse),
+        .load_en  (ld_p  | host_load_pulse),
         .curr_bank(f_bank),
         .curr_fx  (f_fx),
         .curr_p   (f_p),

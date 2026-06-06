@@ -36,6 +36,7 @@ AudioCodec/
 AudioPLL/
 FlashMemInterface/
 expressionPedalADC/
+JtagUart/
 pcie_reconfig_test/
 *.sopcinfo
 *.map

@@ -385,6 +385,21 @@ module AudioFX (
     // FX Parameter Controller
     // ----------------------------------------------------------------
 
+    // Host (PC) parameter-interface signals (JTAG-UART transport)
+    logic                           host_wr_en, host_rst_en;
+    logic                           host_save_pulse, host_load_pulse;
+    logic [$clog2(BANK_COUNT)-1:0]  host_bank;
+    logic [$clog2(FX_COUNT)-1:0]    host_fx;
+    logic [$clog2(PARAM_COUNT)-1:0] host_param;
+    logic [PARAM_W-1:0]             host_data, host_rd_value, host_default_value;
+    logic [1:0]                     host_rst_scope;
+
+    logic [7:0]  hu_rx_data, hu_tx_data;          // host_if <-> adapter byte stream
+    logic        hu_rx_valid, hu_rx_ready, hu_tx_valid, hu_tx_ready;
+
+    logic        ju_chipselect, ju_address, ju_read_n, ju_write_n, ju_waitrequest;
+    logic [31:0] ju_readdata, ju_writedata;       // adapter <-> JtagUart Avalon-MM
+
     controller CONTROL (
         .clk               (CLOCK_50),
         .reset_n           (KEY[0]),
@@ -428,7 +443,80 @@ module AudioFX (
         .flash_csr_writedata     (flash_csr_writedata),
         .flash_csr_readdata      (flash_csr_readdata),
         .flash_csr_waitrequest   (flash_csr_waitrequest),
-        .flash_csr_readdatavalid (flash_csr_readdatavalid)
+        .flash_csr_readdatavalid (flash_csr_readdatavalid),
+
+        .host_wr_en         (host_wr_en),
+        .host_bank          (host_bank),
+        .host_fx            (host_fx),
+        .host_param         (host_param),
+        .host_data          (host_data),
+        .host_rst_en        (host_rst_en),
+        .host_rst_scope     (host_rst_scope),
+        .host_save_pulse    (host_save_pulse),
+        .host_load_pulse    (host_load_pulse),
+        .host_rd_value      (host_rd_value),
+        .host_default_value (host_default_value)
+    );
+
+    // ----------------------------------------------------------------
+    // Host (PC) Parameter Interface — JTAG-UART transport
+    //
+    //   JtagUart (Qsys IP)  <-Avalon->  jtag_uart_adapter  <-bytes->  host_if
+    //   host_if drives the controller's host_* ports.  No top-level pins:
+    //   the JTAG side rides the on-board USB-Blaster cable.
+    // ----------------------------------------------------------------
+
+    JtagUart JTAG_UART (
+        .clk_clk                     (CLOCK_50),
+        .reset_reset_n               (KEY[0]),
+        .jtag_uart_slave_chipselect  (ju_chipselect),
+        .jtag_uart_slave_address     (ju_address),
+        .jtag_uart_slave_read_n      (ju_read_n),
+        .jtag_uart_slave_readdata    (ju_readdata),
+        .jtag_uart_slave_write_n     (ju_write_n),
+        .jtag_uart_slave_writedata   (ju_writedata),
+        .jtag_uart_slave_waitrequest (ju_waitrequest)
+    );
+
+    jtag_uart_adapter JTAG_ADAPTER (
+        .clk            (CLOCK_50),
+        .reset_n        (KEY[0]),
+        .av_chipselect  (ju_chipselect),
+        .av_address     (ju_address),
+        .av_read_n      (ju_read_n),
+        .av_readdata    (ju_readdata),
+        .av_write_n     (ju_write_n),
+        .av_writedata   (ju_writedata),
+        .av_waitrequest (ju_waitrequest),
+        .rx_data        (hu_rx_data),
+        .rx_valid       (hu_rx_valid),
+        .rx_ready       (hu_rx_ready),
+        .tx_data        (hu_tx_data),
+        .tx_valid       (hu_tx_valid),
+        .tx_ready       (hu_tx_ready)
+    );
+
+    host_if HOST_IF (
+        .clk                (CLOCK_50),
+        .reset_n            (KEY[0]),
+        .rx_data            (hu_rx_data),
+        .rx_valid           (hu_rx_valid),
+        .rx_ready           (hu_rx_ready),
+        .tx_data            (hu_tx_data),
+        .tx_valid           (hu_tx_valid),
+        .tx_ready           (hu_tx_ready),
+        .host_wr_en         (host_wr_en),
+        .host_bank          (host_bank),
+        .host_fx            (host_fx),
+        .host_param         (host_param),
+        .host_data          (host_data),
+        .host_rst_en        (host_rst_en),
+        .host_rst_scope     (host_rst_scope),
+        .host_save_pulse    (host_save_pulse),
+        .host_load_pulse    (host_load_pulse),
+        .host_rd_value      (host_rd_value),
+        .host_default_value (host_default_value),
+        .fsm_busy           (fsm_busy)
     );
 
     // ----------------------------------------------------------------
