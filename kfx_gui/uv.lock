@@ -1,0 +1,23 @@
+version = 1
+revision = 3
+requires-python = ">=3.11"
+
+[[package]]
+name = "intel-jtag-uart"
+version = "0.0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/d2/e03ba347fe63b5557d052b0bc7735023a6cdd6f70c2a52f46af33947a8f9/intel_jtag_uart-0.0.3.tar.gz", hash = "sha256:a7d1594f34763d78aa009db4af9adb82fafd51e5d9b4c99cc71a592e825501d6", size = 6375, upload-time = "2021-05-08T06:05:11.074Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/60/48b75e4bc69b19467dd96fe907565868dd1175c94a04d669b6402c86f9ca/intel_jtag_uart-0.0.3-py3-none-any.whl", hash = "sha256:ce6aefd5986c61d46b04fcf3bccf4da8cc0f65390a05f1bf10d71666d2464a9a", size = 6999, upload-time = "2021-05-08T06:05:09.604Z" },
+]
+
+[[package]]
+name = "kfx-gui"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "intel-jtag-uart" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "intel-jtag-uart", specifier = ">=0.0.3" }]
