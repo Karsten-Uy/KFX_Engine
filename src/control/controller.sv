@@ -408,11 +408,39 @@ module controller (
 
     int i, j, k;
 
+    // ----------------------------------------------------------------
+    // Expression-pedal calibration: raw ADC heel/toe → full 0..255
+    //
+    // A plain bit-slice (pot_value[11:4]) only reaches full scale if the ADC
+    // sees its full reference.  It can't here: the pot is driven from 3.3 V but
+    // the LTC2308 reference is higher (~4 V), so the wiper tops out at ~3.08 V
+    // and the raw value never reaches 4095 — the slice would cap around ~190.
+    // Instead, linearly rescale the *measured* raw range to 0..255 (mirrors the
+    // Arduino's map(pot, 5, 630, 0, 127) in KFX_midi.ino).
+    //
+    // TODO(calibrate): set POT_RAW_MIN / POT_RAW_MAX from a SignalTap capture of
+    // `pot_value` at the pedal heel (min) and toe (max), taken AFTER the wiper
+    // op-amp buffer is installed (see WIRING.md).  The values below are
+    // placeholders of the expected magnitude — measure before trusting them.
+    localparam int POT_RAW_MIN  = 30;
+    localparam int POT_RAW_MAX  = 3100;
+    localparam int POT_RAW_SPAN = POT_RAW_MAX - POT_RAW_MIN;   // compile-time const
+
     logic [PARAM_W-1:0] pot_prev;
     logic [PARAM_W-1:0] pot_scaled;
     logic [8:0]         pot_diff;
+    logic [20:0]        pot_num;     // (pot_value-min)*255, max ~1.04M < 2^21
 
-    assign pot_scaled = pot_value[11:12-PARAM_W];
+    always_comb begin
+        // Assigned unconditionally first so no latch is inferred.
+        pot_num = (pot_value > 12'(POT_RAW_MIN))
+                ? (21'(pot_value) - 21'(POT_RAW_MIN)) * 21'd255
+                : 21'd0;
+
+        if      (pot_value <= 12'(POT_RAW_MIN)) pot_scaled = 8'd0;
+        else if (pot_value >= 12'(POT_RAW_MAX)) pot_scaled = 8'd255;
+        else                                    pot_scaled = 8'(pot_num / POT_RAW_SPAN);
+    end
 
     always_comb begin
         if (pot_scaled >= pot_prev)
