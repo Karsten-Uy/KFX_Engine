@@ -14,12 +14,14 @@
  *     ACK  : [0xA5][0x00]
  *     NACK : [0xA5][err]          err 01=checksum 02=opcode 03=busy 04=read-only
  *     READ : [0xA5][0x10][bank][fx][param][value][chk]
+ *     BANK : [0xA5][0x11][bank][chk]                    chk = 0x11 ^ bank
  *     DUMP : [0xA5][0x20][0x02][0x00] + 512 value bytes + [chk]
  *     PONG : [0xA5][0xF0][VER_MAJ][VER_MIN][chk]
  *
  * Opcodes:
  *   0x01 WRITE  A0=bank A1=fx A2=param A3=value
  *   0x10 READ   A0=bank A1=fx A2=param
+ *   0x11 GBNK   (no args)                           (get current/live bank -> BANK)
  *   0x20 DUMP   (no args)
  *   0x30 RESET  A0=scope(0=param 1=fx 2=bank 3=all) A1=bank A2=fx A3=param
  *   0x40 RDEF   A0=bank A1=fx A2=param            (read factory default, no write)
@@ -58,6 +60,9 @@ module host_if import lab_pkg::*; (
     input  logic [PARAM_W-1:0]             host_rd_value,       // all_params[host_bank][host_fx][host_param]
     input  logic [PARAM_W-1:0]             host_default_value,  // param_default(host_bank,host_fx,host_param)
 
+    // ---- Live bank from the controller (for the GBNK query) ----
+    input  logic [$clog2(BANK_COUNT)-1:0]  bank_sel,
+
     input  logic                           fsm_busy
 );
 
@@ -70,6 +75,7 @@ module host_if import lab_pkg::*; (
     localparam logic [7:0] RSP_SYNC = 8'hA5;
     localparam logic [7:0] OP_WRITE = 8'h01,
                            OP_READ  = 8'h10,
+                           OP_GBNK  = 8'h11,
                            OP_DUMP  = 8'h20,
                            OP_RESET = 8'h30,
                            OP_RDEF  = 8'h40,
@@ -227,6 +233,14 @@ module host_if import lab_pkg::*; (
                             host_param  <= arg[2][PW-1:0];
                             use_default <= (opcode == OP_RDEF);
                             st          <= S_RWAIT;
+                        end
+
+                        OP_GBNK: begin
+                            rsp[0] <= RSP_SYNC;
+                            rsp[1] <= OP_GBNK;
+                            rsp[2] <= 8'(bank_sel);
+                            rsp[3] <= OP_GBNK ^ 8'(bank_sel);
+                            rsp_len <= 3'd4; rsp_idx <= 3'd0; st <= S_BUF;
                         end
 
                         OP_DUMP: begin

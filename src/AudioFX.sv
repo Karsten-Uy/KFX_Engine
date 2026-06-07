@@ -516,6 +516,7 @@ module AudioFX (
         .host_load_pulse    (host_load_pulse),
         .host_rd_value      (host_rd_value),
         .host_default_value (host_default_value),
+        .bank_sel           (bank_sel),
         .fsm_busy           (fsm_busy)
     );
 
