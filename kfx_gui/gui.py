@@ -61,10 +61,27 @@ READOUT   = "#f2f3f6"
 WELL      = "#0e0f12"
 HEADER_INK = "#12130f"  # dark text on colored name plate
 
-# per-strip height floor: header(46) + body(270) + fader zone(~250). Strips grow
-# beyond this to fill a larger window; below it they keep this much so they never
-# collapse (a Tk frame with pack_propagate(False) and no height shrinks to ~0).
-STRIP_H = 568
+# Global UI scale. The whole console (knobs, faders, EQ sliders, fonts, the
+# strip widths derived from them) shrinks/grows with this one number so the full
+# channel set — including the Master strip — fits the screen. Lower = smaller.
+# Bump down toward ~0.7 on small / high-DPI laptops, up to 1.0 on big monitors.
+SCALE = 0.85
+
+
+def sc(x):
+    """Scale a pixel dimension by SCALE (min 1)."""
+    return max(1, int(round(x * SCALE)))
+
+
+def fsz(pt):
+    """Scale a font point size by SCALE (min 6 so text stays legible)."""
+    return max(6, int(round(pt * SCALE)))
+
+
+# per-strip height floor: header + body + fader zone. Strips grow beyond this to
+# fill a larger window; below it they keep this much so they never collapse (a Tk
+# frame with pack_propagate(False) and no height shrinks to ~0).
+STRIP_H = sc(568)
 
 # per-category accents (headers + fader caps)
 ACCENT = {
@@ -83,7 +100,12 @@ CAT_LABEL = {
 
 # the four EQ band names (real model uses short names, not fx_*_gain)
 EQ_BANDS = {"sub", "low", "mid", "high"}
-EQ_SLIDER_W = 26   # graphic-EQ band slider width (EQ strips are widened to fit 4)
+EQ_SLIDER_W = sc(28)    # graphic-EQ band slider width
+EQ_SLIDER_H = sc(184)   # graphic-EQ band slider height (tall, like a real graphic EQ)
+EQ_AXIS_W = sc(34)      # width of the shared dB scale on the left of an EQ strip
+# dB gridlines / axis ticks, as (raw byte, label).  Byte positions are linear in
+# travel; the labels are the dB they map to (ref 128): +6 / 0 / -6 / -12.
+EQ_TICKS = ((255, "+6"), (128, "0"), (64, "-6"), (32, "-12"))
 
 # short uppercase labels per parameter (keyed by this model's short names)
 PLAB = {
@@ -239,23 +261,44 @@ def draw_fader(cv, value, accent, enabled, unity=None, w=46, h=200):
                    fill="#52535e")
 
 
-def draw_eq(cv, value, accent, enabled, w=16, h=150):
+def draw_eq(cv, value, accent, enabled, w=EQ_SLIDER_W, h=EQ_SLIDER_H):
     cv.delete("all")
     cx = w / 2
-    top, bot = 8, h - 8
+    top, bot = 10, h - 10
     span = bot - top
     t = value / 255.0
     capY = bot - span * t
+    # dB gridlines (byte-linear positions); 0 dB (byte 128) drawn solid as the detent
+    for b, _lab in EQ_TICKS:
+        gy = bot - span * (b / 255.0)
+        if b == 128:
+            cv.create_line(2, gy, w - 2, gy, fill="#6a6d77")
+        else:
+            cv.create_line(3, gy, w - 3, gy, fill="#3a3b44", dash=(2, 2))
+    # track
     cv.create_rectangle(cx - 2.5, top, cx + 2.5, bot, fill=WELL, outline="#26272e")
-    # center detent at 128 (unity)
-    dy = bot - span * (128 / 255.0)
-    cv.create_line(2, dy, w - 2, dy, fill="#62656f", dash=(2, 2))
-    capH = 12
-    cap_fill = "#3a3b45" if enabled else "#2a2b32"
-    cv.create_rectangle(1, capY - capH / 2, w - 1, capY + capH / 2,
-                        fill=cap_fill, outline="#121317")
-    cv.create_line(3, capY, w - 3, capY, fill=(accent if enabled else FAINT),
-                   width=2, capstyle="round")
+    # round handle (like the reference graphic EQ)
+    r = 6
+    ring = accent if enabled else "#4a4b54"
+    cv.create_oval(cx - r, capY - r, cx + r, capY + r,
+                   fill=PANEL_HI, outline=ring, width=2)
+    cv.create_oval(cx - 2, capY - 2, cx + 2, capY + 2,
+                   fill=(READOUT if enabled else FAINT), outline="")
+
+
+def draw_eq_axis(cv, h=EQ_SLIDER_H, w=EQ_AXIS_W):
+    """Shared dB scale drawn to the left of an EQ strip's four bands.
+
+    Only the numeric ticks live on the canvas; the 'GAIN' / '(dB)' captions are
+    real labels above/below it, so nothing collides with the top tick."""
+    cv.delete("all")
+    top, bot = 10, h - 10
+    span = bot - top
+    for b, lab in EQ_TICKS:
+        y = bot - span * (b / 255.0)
+        cv.create_line(w - 6, y, w - 2, y, fill="#4a4b54")
+        cv.create_text(w - 8, y, text=lab, anchor="e", fill=DIM,
+                       font=("TkDefaultFont", 7))
 
 
 # ============================================================================
@@ -270,7 +313,8 @@ class ValueEntry(tk.Entry):
     and written to the board on Return / focus-out. Read-only when its control is
     read-only or the board is disconnected.
     """
-    def __init__(self, parent, font, fg, bg, on_commit, get_value, is_editable, width=3):
+    def __init__(self, parent, font, fg, bg, on_commit, get_value, is_editable,
+                 fmt=None, editfmt=None, parse=None, width=3):
         self._var = tk.StringVar()
         super().__init__(parent, textvariable=self._var, font=font, fg=fg, bg=bg,
                          readonlybackground=bg, disabledbackground=bg,
@@ -279,38 +323,59 @@ class ValueEntry(tk.Entry):
         self._on_commit = on_commit
         self._get_value = get_value
         self._is_editable = is_editable
+        # Unit-aware display/edit/parse. Defaults preserve the old raw-byte behavior.
+        self._fmt = fmt or (lambda v: str(int(v)))           # blurred: "+3.5 dB"
+        self._editfmt = editfmt or (lambda v: str(int(v)))   # focused: bare "-6.0"
+        self._parse = parse or (lambda s: int(s) if s.strip().isdigit() else None)
         self.configure(validate="key",
                        validatecommand=(self.register(self._validate), "%P"))
         self.bind("<Return>", self._commit)
         self.bind("<FocusOut>", self._commit)
         self.bind("<Escape>", self._cancel)
-        self.bind("<FocusIn>", lambda e: self._is_editable() and self.select_range(0, "end"))
+        self.bind("<FocusIn>", self._focus_in)
         self.set_display(self._get_value())
 
     @staticmethod
     def _validate(proposed):
-        return proposed == "" or (proposed.isdigit() and len(proposed) <= 3)
+        # Allow a signed decimal so dB ("-6.0") and the raw forms can be typed.
+        if proposed in ("", "-", "+", ".", "-.", "+."):
+            return True
+        if len(proposed) > 8:
+            return False
+        body = proposed[1:] if proposed[0] in "+-" else proposed
+        if body.count(".") > 1:
+            return False
+        return all(ch.isdigit() or ch == "." for ch in body)
 
     def set_display(self, v):
         # Refresh the shown value (called on drag / wheel / dump), but never clobber
         # text while the user is mid-edit. Also tracks editable state.
         if self.focus_get() is not self:
-            self._var.set(str(int(v)))
+            self._var.set(self._fmt(v))
         self.configure(state=("normal" if self._is_editable() else "readonly"))
+
+    def _focus_in(self, e=None):
+        # Swap the formatted readout for a bare, editable number and select it.
+        if not self._is_editable():
+            return
+        self._var.set(self._editfmt(self._get_value()))
+        self.select_range(0, "end")
+        self.icursor("end")
 
     def _commit(self, e=None):
         if not self._is_editable():
             return
-        txt = self._var.get()
-        v = int(txt) if txt.isdigit() else self._get_value()
-        v = max(M.PARAM_MIN, min(M.PARAM_MAX, v))
-        self._on_commit(v)
-        self._var.set(str(v))           # reflect the (possibly clamped) value
+        v = self._parse(self._var.get())
+        if v is None:                       # unparseable -> revert to current
+            v = int(self._get_value())
+        if v != int(self._get_value()):     # only write the board on a real change
+            self._on_commit(v)
+        self._var.set(self._fmt(v))         # reflect the (possibly clamped) value
         if e is not None and getattr(e, "keysym", "") == "Return":
-            self.master.focus_set()     # drop focus so it "locks in"
+            self.master.focus_set()         # drop focus so it "locks in"
 
     def _cancel(self, e=None):
-        self._var.set(str(int(self._get_value())))
+        self._var.set(self._fmt(self._get_value()))
         self.master.focus_set()
 
 
@@ -326,11 +391,19 @@ class _Control:
     def active(self):
         return self.gui.enabled and not self.ro
 
-    def make_value_entry(self, parent, font, fg=READOUT):
-        """Build the editable numeric readout wired to this control."""
+    def make_value_entry(self, parent, font, fg=READOUT, compact=False):
+        """Build the editable numeric readout wired to this control.
+
+        compact=True uses the suffix-less dB form (for the dense EQ band sliders).
+        """
+        fx, p = self.fx, self.p
         return ValueEntry(parent, font=font, fg=fg, bg=PANEL,
                           on_commit=self._set_from_entry,
-                          get_value=self.value, is_editable=self.active)
+                          get_value=self.value, is_editable=self.active,
+                          fmt=lambda v: M.fmt_value(fx, p, v, compact),
+                          editfmt=lambda v: M.edit_str(fx, p, v),
+                          parse=lambda s: M.parse_value(fx, p, s),
+                          width=M.display_width(fx, p, compact))
 
     def _set_from_entry(self, v):
         # apply a typed value: cache it, redraw the control, and write to the board
@@ -350,8 +423,9 @@ class Knob(_Control):
                  fg=FAINT, bg=PANEL).pack()
         self.cv = tk.Canvas(f, width=size, height=size, bg=PANEL, highlightthickness=0)
         self.cv.pack()
+        # compact dB (no " dB" suffix) keeps knob readouts tight and the columns even
         self.lbl = self.make_value_entry(
-            f, font=(gui.f_fval if size >= 50 else gui.f_val))
+            f, font=(gui.f_fval if size >= sc(50) else gui.f_val), compact=True)
         self.lbl.pack()
         if not self.ro:
             self.cv.configure(cursor="sb_v_double_arrow")
@@ -405,17 +479,21 @@ class Knob(_Control):
 
 
 class EqBand(_Control):
-    def __init__(self, parent, gui, fx, p, accent):
+    def __init__(self, grid, gui, fx, p, accent, col):
         super().__init__(gui, fx, p)
         self.accent = accent
-        f = tk.Frame(parent, bg=PANEL)
-        self.frame = f
-        tk.Label(f, text=plab(M.param_name(fx, p)), font=gui.f_label,
-                 fg=FAINT, bg=PANEL).pack()
-        self.cv = tk.Canvas(f, width=EQ_SLIDER_W, height=150, bg=PANEL, highlightthickness=0)
-        self.cv.pack()
-        self.lbl = self.make_value_entry(f, font=gui.f_val)
-        self.lbl.pack()
+        self.cv_h = EQ_SLIDER_H
+        # gridded into the EQ block's shared grid (column = band, rows = value /
+        # slider / name) so every row keeps one uniform height and lines up with
+        # the dB axis column beside it.
+        self.lbl = self.make_value_entry(grid, font=gui.f_val, compact=True)
+        self.lbl.grid(row=0, column=col, padx=3, sticky="s")
+        self.cv = tk.Canvas(grid, width=EQ_SLIDER_W, height=self.cv_h, bg=PANEL,
+                            highlightthickness=0)
+        self.cv.grid(row=1, column=col, padx=3)
+        tk.Label(grid, text=plab(M.param_name(fx, p)), font=gui.f_label,
+                 fg=FAINT, bg=PANEL).grid(row=2, column=col, padx=3, pady=(2, 0),
+                                          sticky="n")
         self.cv.configure(cursor="sb_v_double_arrow")
         self.cv.bind("<Button-1>", self._press)
         self.cv.bind("<B1-Motion>", self._motion)
@@ -423,8 +501,17 @@ class EqBand(_Control):
         self.cv.bind("<Double-Button-1>", self._dbl)
         self.redraw()
 
+    def set_height(self, h):
+        # let the band slider grow to fill the strip, like the channel faders
+        if abs(h - self.cv_h) < 2:
+            return
+        self.cv_h = h
+        self.cv.config(height=h)
+        self.redraw()
+
     def redraw(self):
-        draw_eq(self.cv, self.value(), self.accent, self.active(), w=EQ_SLIDER_W)
+        draw_eq(self.cv, self.value(), self.accent, self.active(),
+                w=EQ_SLIDER_W, h=self.cv_h)
         self.lbl.set_display(self.value())
 
     def _press(self, e):
@@ -497,8 +584,8 @@ class Fader(_Control):
         super().__init__(gui, fx, p)
         self.accent = accent
         self.unity = fader_unity(fx, p)
-        self.w = 58 if master else (54 if wide else 46)
-        self.h = 222 if (master or fill) else 200
+        self.w = sc(58) if master else (sc(54) if wide else sc(46))
+        self.h = sc(222) if (master or fill) else sc(200)
         f = tk.Frame(parent, bg=PANEL)
         self.frame = f
         lbl = plab(M.param_name(fx, p))
@@ -585,35 +672,7 @@ class Strip:
         accent = ACCENT[self.cat]
         self.controls = []
 
-        if self.master:
-            width = 146
-        elif self.cat == "eq":
-            width = 160   # widened so the four graphic-EQ bands fit without clipping
-        else:
-            width = 110
-        bg = "#272620" if self.master else PANEL
-        outer = tk.Frame(parent, bg=bg, width=width, height=STRIP_H,
-                         highlightthickness=1,
-                         highlightbackground=("#4a401f" if self.master else "#303138"))
-        outer.pack(side="left", fill="y", padx=(14 if self.master else 0, 0))
-        outer.pack_propagate(False)   # lock strip width (and pin the height floor)
-        self.frame = outer
-
-        # ---- header name plate ----
-        hdr = tk.Frame(outer, bg=accent, height=46)
-        hdr.pack(fill="x")
-        hdr.pack_propagate(False)
-        tk.Label(hdr, text=M.fx_name(fx), font=gui.f_head, fg=HEADER_INK,
-                 bg=accent, anchor="w", justify="left",
-                 wraplength=width - 14).pack(fill="x", padx=8, pady=(5, 0))
-        row = tk.Frame(hdr, bg=accent)
-        row.pack(fill="x", padx=8)
-        tk.Label(row, text=CAT_LABEL[self.cat].upper(), font=gui.f_cat,
-                 fg=HEADER_INK, bg=accent).pack(side="left")
-        tk.Label(row, text="F%d" % fx, font=gui.f_cat, fg=HEADER_INK,
-                 bg=accent).pack(side="right")
-
-        # ---- body (parameters only; the board has no bypass / insert toggle) ----
+        # ---- decide the layout up front so the strip width can hug its content ----
         fp = fader_param(fx)
         eq = is_eq(fx)
         # decay is a stepper, not a knob; the fader param is not duplicated as a knob
@@ -622,48 +681,116 @@ class Strip:
         decay_ps = [] if eq else [p for p in M.active_params(fx)
                                   if M.param_name(fx, p) == "decay"]
         has_knobs = bool(knob_ps or decay_ps)
-        # Any strip with a fader lets that fader GROW to fill leftover vertical space.
-        # Knob-less gain stages fill the whole strip; strips that also carry knobs put
-        # the knobs directly under the header and let the fader eat the space below
-        # (so there is no dead gap between the header and the controls).
         self.fill = (fp is not None) and not eq          # fader grows to fill
         fader_only = self.fill and not has_knobs         # no knobs -> fader is the strip
-        use_hero = (len(knob_ps) >= 2) and not decay_ps  # one bigger signature knob
+        # Narrow strips stack their few params in one vertical column so the strip
+        # can hug its content; busy effects keep the wider two-column knob grid.
+        narrow = (not eq) and (not self.master) and len(knob_ps) <= 4
+        single_col = narrow and len(knob_ps) >= 3        # gate; chorus/delay keep a hero
+        use_hero = (len(knob_ps) >= 2) and not decay_ps and not single_col
+
+        # Width is set dynamically: build at a provisional width, then
+        # _autofit_strips() measures each strip's REAL rendered content
+        # (title + readouts + controls) and sizes it to fit — so nothing clips
+        # regardless of label text, and we never hand-tune widths again.
+        self._fit_frames = []                 # content frames measured during autofit
+        if self.master:
+            self.min_width = sc(146)
+        elif eq:
+            self.min_width = sc(120)
+        elif fader_only:
+            self.min_width = sc(84)           # holds a sensible floor for gain stages
+        elif narrow:
+            self.min_width = sc(72)           # gate / chorus / delay
+        else:
+            self.min_width = sc(110)          # compressor / distortion / reverb
+        width = max(self.min_width, sc(130))  # provisional; autofit corrects it
+        bg = "#272620" if self.master else PANEL
+        outer = tk.Frame(parent, bg=bg, width=width, height=STRIP_H,
+                         highlightthickness=1,
+                         highlightbackground=("#4a401f" if self.master else "#303138"))
+        outer.pack(side="left", fill="y", padx=(sc(14) if self.master else 0, 0))
+        outer.pack_propagate(False)   # lock strip width (and pin the height floor)
+        self.frame = outer
+
+        # ---- header name plate ----
+        # No wraplength: the title stays one line and reports its true required
+        # width, which autofit uses to size the strip so the name never clips.
+        hdr = tk.Frame(outer, bg=accent, height=sc(46))
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+        self.hdr_label = tk.Label(hdr, text=M.fx_name(fx), font=gui.f_head,
+                                  fg=HEADER_INK, bg=accent, anchor="w", justify="left")
+        self.hdr_label.pack(fill="x", padx=8, pady=(5, 0))
+        self.hdr_row = tk.Frame(hdr, bg=accent)
+        self.hdr_row.pack(fill="x", padx=8)
+        tk.Label(self.hdr_row, text=CAT_LABEL[self.cat].upper(), font=gui.f_cat,
+                 fg=HEADER_INK, bg=accent).pack(side="left")
+        tk.Label(self.hdr_row, text="F%d" % fx, font=gui.f_cat, fg=HEADER_INK,
+                 bg=accent).pack(side="right")
 
         # ---- body: EQ bands, or knobs/stepper hugging the header ----
         if eq or has_knobs:
             body = tk.Frame(outer, bg=PANEL)
             self.body = body
             if eq:
-                # no fader; center the four bands vertically in the full body
+                # no fader; one shared grid (axis + four bands) centered in the body.
+                # Grid rows give every column one uniform height, so the GAIN/(dB)
+                # captions line up with the value readouts and band names.
                 body.pack(side="top", fill="both", expand=True)
                 body.pack_propagate(False)
-                inner = tk.Frame(body, bg=PANEL)
-                inner.place(relx=0.5, rely=0.5, anchor="center")
-                wrap = tk.Frame(inner, bg=PANEL)
-                wrap.pack()
-                for p in M.active_params(fx):
-                    EqBand(wrap, gui, fx, p, accent).frame.pack(side="left", padx=4)
+                grid = tk.Frame(body, bg=PANEL)
+                grid.place(relx=0.5, rely=0.5, anchor="center")
+                # dB axis column (col 0): GAIN caption / scale / (dB) caption
+                tk.Label(grid, text="GAIN", font=gui.f_val, fg=FAINT,
+                         bg=PANEL).grid(row=0, column=0, padx=(0, 2), sticky="s")
+                acv = tk.Canvas(grid, width=EQ_AXIS_W, height=EQ_SLIDER_H, bg=PANEL,
+                                highlightthickness=0)
+                acv.grid(row=1, column=0, padx=(0, 2))
+                draw_eq_axis(acv)
+                tk.Label(grid, text="(dB)", font=gui.f_label, fg=FAINT,
+                         bg=PANEL).grid(row=2, column=0, padx=(0, 2), pady=(2, 0),
+                                        sticky="n")
+                self._eq_axis = acv
+                self._eq_bands = [EqBand(grid, gui, fx, p, accent, col=i + 1)
+                                  for i, p in enumerate(M.active_params(fx))]
+                self._fit_frames.append(grid)
                 self._collect()
+                # grow the bands + axis to fill the strip height, like the faders
+                body.bind("<Configure>", self._resize_eq)
             else:
                 # knobs sit just under the header (natural height); the growing fader
                 # below fills what used to be dead space at the top.
                 body.pack(side="top", fill="x")
                 inner = tk.Frame(body, bg=PANEL)
                 inner.pack(pady=(6, 2))
-                if use_hero:
-                    Knob(inner, gui, fx, knob_ps[0], accent, size=56).frame.pack(pady=(0, 2))
-                    rest = knob_ps[1:]
+                if single_col:
+                    # all params in one vertical column (thin strip, aligned knobs)
+                    for p in knob_ps:
+                        Knob(inner, gui, fx, p, accent, size=sc(40)).frame.pack(pady=2)
                 else:
-                    rest = knob_ps
-                if rest:
-                    grid = tk.Frame(inner, bg=PANEL)
-                    grid.pack()
-                    for i, p in enumerate(rest):
-                        Knob(grid, gui, fx, p, accent, size=38).frame.grid(
-                            row=i // 2, column=i % 2, padx=1, pady=1)
+                    if use_hero:
+                        Knob(inner, gui, fx, knob_ps[0], accent, size=sc(56)).frame.pack(pady=(0, 2))
+                        rest = knob_ps[1:]
+                    else:
+                        rest = knob_ps
+                    if rest:
+                        grid = tk.Frame(inner, bg=PANEL)
+                        grid.pack()
+                        # equal-width columns so paired knobs sit symmetric/centered
+                        grid.columnconfigure(0, weight=1, uniform="kn")
+                        grid.columnconfigure(1, weight=1, uniform="kn")
+                        odd = len(rest) % 2 == 1
+                        for i, p in enumerate(rest):
+                            kf = Knob(grid, gui, fx, p, accent, size=sc(38)).frame
+                            if odd and i == len(rest) - 1:
+                                # lone last knob spans both columns -> centered
+                                kf.grid(row=i // 2, column=0, columnspan=2, pady=1)
+                            else:
+                                kf.grid(row=i // 2, column=i % 2, padx=1, pady=1)
                 for p in decay_ps:
                     Stepper(inner, gui, fx, p, accent).frame.pack(pady=2)
+                self._fit_frames.append(inner)
                 self._collect()
 
         # ---- fader zone (fills the rest of the strip below the header/knobs) ----
@@ -679,6 +806,7 @@ class Strip:
             self.fader = Fader(fz, gui, fx, fp, accent, master=self.master,
                                fill=self.fill, wide=fader_only)
             self.fader.frame.pack(pady=(8, 6), expand=True)
+            self._fit_frames.append(self.fader.frame)
             if self.master:
                 tk.Label(fz, text="MAIN BUS", font=gui.f_cat, fg="#e7c463",
                          bg="#2a281f", bd=1, relief="solid").pack(pady=(0, 8))
@@ -688,6 +816,28 @@ class Strip:
     def _resize_fill(self, e):
         if hasattr(self, "fader"):
             self.fader.set_height(max(200, e.height - 96))
+
+    def _resize_eq(self, e):
+        # value row + name row + padding take ~64 px; the sliders fill the rest
+        h = max(150, e.height - 64)
+        for eb in self._eq_bands:
+            eb.set_height(h)
+        self._eq_axis.config(height=h)
+        draw_eq_axis(self._eq_axis, h=h)
+
+    def fit_width(self):
+        # Size the strip to its REAL rendered content: the title row plus the
+        # widest body/fader frame. Uses winfo_reqwidth (true requested size), so
+        # it adapts to any label text or readout width without hand-tuned numbers.
+        need = self.min_width
+        title = max(self.hdr_label.winfo_reqwidth(),
+                    self.hdr_row.winfo_reqwidth()) + sc(22)   # + header padx & slack
+        need = max(need, title)
+        for fr in self._fit_frames:
+            rw = fr.winfo_reqwidth()
+            if rw > 1:
+                need = max(need, rw + sc(14))                 # + breathing room
+        self.frame.config(width=need)
 
     def _collect(self):
         # Strip.controls mirrors gui.controls for this strip.
@@ -713,7 +863,10 @@ class KfxGui(tk.Tk):
 
         self.client = None
         self.enabled = False
-        self.bank = 0
+        self.bank = 0               # bank currently viewed/edited in the GUI
+        self.hw_bank = 0            # last known live (hardware) bank
+        self.follow = True          # auto-follow the live bank as it changes on the pedal
+        self.hw_bank_supported = True  # cleared if firmware predates the GBNK opcode
         self.values = {}            # (fx, p) -> int
         self.controls = []          # all _Control instances
         self.strips = []
@@ -722,15 +875,15 @@ class KfxGui(tk.Tk):
 
         base = self._pick_font(["Segoe UI", "Helvetica Neue", "Helvetica", "DejaVu Sans"])
         mono = self._pick_font(["Consolas", "SF Mono", "DejaVu Sans Mono", "Courier"])
-        self.f_head = tkfont.Font(family=base, size=11, weight="bold")
-        self.f_cat = tkfont.Font(family=base, size=7, weight="bold")
-        self.f_label = tkfont.Font(family=base, size=7, weight="bold")
-        self.f_val = tkfont.Font(family=mono, size=9, weight="bold")
-        self.f_fval = tkfont.Font(family=mono, size=12, weight="bold")
-        self.f_master = tkfont.Font(family=mono, size=15, weight="bold")
-        self.f_btn = tkfont.Font(family=base, size=9, weight="bold")
-        self.f_brand = tkfont.Font(family=base, size=12, weight="bold")
-        self.f_status = tkfont.Font(family=mono, size=9)
+        self.f_head = tkfont.Font(family=base, size=fsz(11), weight="bold")
+        self.f_cat = tkfont.Font(family=base, size=fsz(7), weight="bold")
+        self.f_label = tkfont.Font(family=base, size=fsz(7), weight="bold")
+        self.f_val = tkfont.Font(family=mono, size=fsz(9), weight="bold")
+        self.f_fval = tkfont.Font(family=mono, size=fsz(12), weight="bold")
+        self.f_master = tkfont.Font(family=mono, size=fsz(15), weight="bold")
+        self.f_btn = tkfont.Font(family=base, size=fsz(9), weight="bold")
+        self.f_brand = tkfont.Font(family=base, size=fsz(12), weight="bold")
+        self.f_status = tkfont.Font(family=mono, size=fsz(9))
 
         # board-op plumbing: one worker thread + a result queue drained on the UI thread
         self.jobs = queue.Queue()
@@ -743,9 +896,10 @@ class KfxGui(tk.Tk):
         self._build_console()
         self._build_status()
         self._build_overlay()
+        self._autofit_strips()      # size every strip to its real content width
 
         self.set_connected(False)
-        self.after(180, self._poll_pedal)
+        self.after(180, self._poll_state)
 
     # ---------------------------------------------------------------- fonts
     def _pick_font(self, prefs):
@@ -837,20 +991,39 @@ class KfxGui(tk.Tk):
         tk.Label(bar, text="PRESET BANK", font=self.f_cat, fg=FAINT,
                  bg="#1b1c21").pack(side="left", padx=(14, 12), pady=(7, 5))
         for b in range(P.BANK_COUNT):
-            lbl = tk.Label(bar, text=" %d · %s " % (b, M.bank_name(b)),
+            lbl = tk.Label(bar, text=self._tab_text(b),
                            font=self.f_btn, fg=DIM, bg="#212228", bd=0,
                            padx=10, pady=6, cursor="hand2")
             lbl.pack(side="left", padx=(0, 3), pady=(6, 0))
             lbl.bind("<Button-1>", lambda e, bb=b: self.select_bank(bb))
             self.tab_widgets.append(lbl)
+        # Follow toggle: when ON the highlighted tab tracks the live (pedal) bank.
+        self.follow_btn = tk.Label(bar, text="", font=self.f_btn, bd=0,
+                                   padx=11, pady=6, cursor="hand2")
+        self.follow_btn.pack(side="right", padx=(0, 12), pady=(6, 0))
+        self.follow_btn.bind("<Button-1>", lambda e: self.toggle_follow())
         self._paint_tabs()
+        self._paint_follow()
+
+    def _tab_text(self, b):
+        # A "●" marks the live (hardware) bank so it stays visible even when pinned.
+        live = "●" if b == self.hw_bank else "  "
+        return " %d · %s %s " % (b, M.bank_name(b), live)
 
     def _paint_tabs(self):
         for b, w in enumerate(self.tab_widgets):
+            w.config(text=self._tab_text(b))
             if b == self.bank:
                 w.config(bg=PANEL, fg=INK)
             else:
                 w.config(bg="#212228", fg=DIM)
+
+    def _paint_follow(self):
+        on = self.follow
+        self.follow_btn.config(
+            text="⟳ FOLLOW: ON" if on else "⟳ FOLLOW: OFF",
+            fg=(HEADER_INK if on else DIM),
+            bg=("#5fae6b" if on else "#212228"))
 
     # ---------------------------------------------------------------- console
     def _build_console(self):
@@ -872,13 +1045,21 @@ class KfxGui(tk.Tk):
         canvas.bind("<Configure>",
                     lambda e: canvas.itemconfigure(win, height=max(e.height, STRIP_H + 24)))
         pad = tk.Frame(inner, bg=BG)
-        pad.pack(padx=12, pady=12, fill="both", expand=True)
+        pad.pack(padx=sc(12), pady=sc(12), fill="both", expand=True)
 
         # iterate M.active_fx() in order; globals become the MASTER strip on the right
         channels = [fx for fx in M.active_fx() if not M.is_global(fx)]
         masters = [fx for fx in M.active_fx() if M.is_global(fx)]
         for fx in channels + masters:
             self.strips.append(Strip(pad, self, fx))
+
+    def _autofit_strips(self):
+        # After layout, size each strip to its real rendered content so titles and
+        # readouts never clip. Dynamic — no per-strip widths to hand-tune.
+        self.update_idletasks()
+        for s in self.strips:
+            s.fit_width()
+        self.update_idletasks()
 
     # ---------------------------------------------------------------- status
     def _build_status(self):
@@ -989,6 +1170,7 @@ class KfxGui(tk.Tk):
             b.config(state=st)
         for w in self.tab_widgets:
             w.config(cursor="hand2" if ok else "arrow")
+        self.follow_btn.config(cursor="hand2" if ok else "arrow")
         self.connect_btn.config(text="Reconnect" if ok else "Connect")
         self.conn_dot.delete("all")
         self.conn_dot.create_oval(1, 1, 11, 11,
@@ -1040,15 +1222,29 @@ class KfxGui(tk.Tk):
         value = clamp(self.get_value(fx, p))
         bank = 0 if M.is_global(fx) else self.bank   # global writes go to bank 0 (mirrored)
         name = "%s / %s" % (M.fx_name(fx), M.param_name(fx, p))
+        shown = M.fmt_value(fx, p, value)
         self.submit(lambda: self.client.write_param(bank, fx, p, value),
-                    lambda r: self.set_status("Wrote %s = %d" % (name, value), "ok"))
+                    lambda r: self.set_status("Wrote %s = %s" % (name, shown), "ok"))
 
     def select_bank(self, b):
         if not self.enabled:
             return
+        # Viewing a bank that isn't live means the user wants to edit it without
+        # being yanked back by the poll — pin the view by disabling follow.
+        if b != self.hw_bank and self.follow:
+            self.follow = False
+            self._paint_follow()
         self.bank = b
         self._paint_tabs()
         self.refresh()   # re-read repopulates non-global strips; master stays put
+
+    def toggle_follow(self):
+        if not self.enabled:
+            return
+        self.follow = not self.follow
+        self._paint_follow()
+        if self.follow and self.hw_bank != self.bank:
+            self.select_bank(self.hw_bank)   # resume: snap the view to the live bank
 
     def reset_bank(self):
         if not self.client:
@@ -1113,16 +1309,43 @@ class KfxGui(tk.Tk):
             messagebox.showinfo("Import", msg + "\n\nWarnings:\n" + "\n".join(warnings))
         self.set_status(msg, "ok")
 
-    # ---------------------------------------------------------------- pedal poll
-    def _poll_pedal(self):
-        # The expression-pedal slot is read-only and driven by a physical pedal.
-        # If the board reflects the live pedal position in dump(), poll while idle
-        # so the user can watch that fader move. Only fires when no other job is
-        # queued, so it never floods JTAG or competes with edits.
-        ro = [c for c in self.controls if c.ro]
-        if self.client and self.enabled and ro and self.jobs.empty():
+    # ---------------------------------------------------------------- idle poll
+    def _poll_state(self):
+        # While idle, follow the live bank and (when stable) keep the read-only
+        # expression-pedal fader fresh. Only fires when no other job is queued so
+        # it never floods JTAG or competes with edits. Checking the bank first is
+        # cheap (4-byte reply) and avoids two pollers racing on different banks.
+        if self.client and self.enabled and self.jobs.empty():
+            if self.hw_bank_supported:
+                self.submit(self._safe_get_bank, self._apply_hw_bank)
+            elif any(c.ro for c in self.controls):
+                self.submit(lambda: self.client.dump(), self._apply_pedal)
+        self.after(180, self._poll_state)
+
+    def _safe_get_bank(self):
+        # Swallow protocol errors so an un-reflashed board (no GBNK opcode) or a
+        # transient timeout never spawns a popup every 180 ms.
+        try:
+            return self.client.get_bank()
+        except P.ProtocolError:
+            return None
+
+    def _apply_hw_bank(self, hw):
+        if hw is None:                       # firmware lacks GBNK — fall back to pedal-only poll
+            self.hw_bank_supported = False
+            return
+        moved = (hw != self.hw_bank)
+        self.hw_bank = hw
+        if self.follow and hw != self.bank:
+            self.bank = hw
+            self._paint_tabs()
+            self.refresh()                   # reload this bank's params (and pedal) via dump
+            self.set_status("Following live bank %d (%s)." % (hw, M.bank_name(hw)), "ok")
+            return
+        if moved:
+            self._paint_tabs()               # refresh the ● LIVE marker even when pinned
+        if any(c.ro for c in self.controls) and self.jobs.empty():
             self.submit(lambda: self.client.dump(), self._apply_pedal)
-        self.after(180, self._poll_pedal)
 
     def _apply_pedal(self, data):
         changed = False

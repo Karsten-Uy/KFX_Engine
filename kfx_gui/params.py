@@ -7,6 +7,8 @@ fx_* modules.  **lab_pkg.sv is canonical** — keep this in sync with it.
 All parameters are 8-bit (0..255).  Unused FX slots (11-14) are omitted.
 """
 
+import math
+
 PARAM_MIN = 0
 PARAM_MAX = 255
 
@@ -81,3 +83,110 @@ def param_by_name(fx: int, name: str):
         if nm == name:
             return idx
     return None
+
+
+# ---------------------------------------------------------------------------
+# Display conversion — raw 8-bit byte <-> human units
+#
+# The FPGA always stores/transmits the raw 0..255 byte; these helpers only
+# change how a value is shown and typed in the GUI.  Two converted kinds:
+#
+#   dB  : every gain-like param.  The byte is a linear multiplier the DSP
+#         applies as (sample * byte) >> shift, so the byte maps to gain
+#         relative to a reference R (= 1<<shift, the unity/flat point):
+#             dB = 20*log10(byte / R)        byte 0 -> -inf (muted)
+#         R per param (mirrors the shifts in the fx_* modules):
+#             fx_gain (in/out/master/expr) >>5  -> R=32
+#             compressor in-gain / makeup  >>6  -> R=64
+#             distortion makeup            >>7  -> R=128
+#             EQ band gains (fx_eq)        >>8, flat detent at 128 -> R=128
+#   pct : wet/dry mix.  DSP blends (wet-dry)*byte>>8; shown 0..100% across
+#         the full byte range:  pct = byte/255*100.
+#
+# Anything not listed stays a raw 0..255 integer.
+# ---------------------------------------------------------------------------
+DB_REF = {
+    (0, 0): 32, (10, 0): 32, (15, 0): 32, (7, 0): 32,   # in / out / master / expr
+    (3, 4): 64, (3, 5): 64,                             # compressor in-gain, makeup
+    (4, 1): 128,                                        # distortion makeup
+    (2, 0): 128, (2, 1): 128, (2, 2): 128, (2, 3): 128,  # EQ 1 bands
+    (5, 0): 128, (5, 1): 128, (5, 2): 128, (5, 3): 128,  # EQ 2 bands
+}
+
+MIX = {(3, 7), (4, 7), (6, 7), (8, 7), (9, 7)}
+
+_INF_TOKENS = {"-inf", "inf", "-∞", "∞", "mute"}
+
+
+def _to_pct(v: int) -> int:
+    return int(round(v / 255.0 * 100.0))
+
+
+def fmt_value(fx: int, param: int, v, compact: bool = False) -> str:
+    """Raw byte -> display string with units (e.g. '+3.5 dB', '0.0 dB', '50%').
+
+    compact=True drops the ' dB' suffix and the leading '+' (e.g. '3.5', '-0.5',
+    '0.0') for dense readouts like the graphic-EQ band sliders.
+    """
+    v = int(round(v))
+    r = DB_REF.get((fx, param))
+    if r is not None:
+        if v <= 0:
+            return "-inf"
+        db = 20.0 * math.log10(v / float(r))
+        if compact:
+            return "0.0" if abs(db) < 0.05 else "%.1f" % db
+        return "0.0 dB" if abs(db) < 0.05 else "%+.1f dB" % db
+    if (fx, param) in MIX:
+        return "%d%%" % _to_pct(v)
+    return str(v)
+
+
+def edit_str(fx: int, param: int, v) -> str:
+    """Raw byte -> bare number shown while editing (no unit suffix).
+
+    A muted dB band edits as '-60.0', which parses back to byte 0, so the
+    mute state round-trips through the inline editor.
+    """
+    v = int(round(v))
+    r = DB_REF.get((fx, param))
+    if r is not None:
+        if v <= 0:
+            return "-60.0"
+        return "%.1f" % (20.0 * math.log10(v / float(r)))
+    if (fx, param) in MIX:
+        return "%d" % _to_pct(v)
+    return str(v)
+
+
+def parse_value(fx: int, param: int, text: str):
+    """Display/bare text -> clamped raw byte, or None if unparseable (revert)."""
+    s = text.strip().lower()
+    for tok in ("db", "%", "x", "×"):
+        if s.endswith(tok):
+            s = s[: -len(tok)].strip()
+    if s == "":
+        return None
+    r = DB_REF.get((fx, param))
+    if r is not None and s in _INF_TOKENS:
+        return 0
+    try:
+        x = float(s)
+    except ValueError:
+        return None
+    if r is not None:
+        b = r * (10.0 ** (x / 20.0))
+    elif (fx, param) in MIX:
+        b = x / 100.0 * 255.0
+    else:
+        b = x
+    return max(PARAM_MIN, min(PARAM_MAX, int(round(b))))
+
+
+def display_width(fx: int, param: int, compact: bool = False) -> int:
+    """Character width the inline readout needs for this param's format."""
+    if (fx, param) in DB_REF:
+        return 5 if compact else 9   # "-12.0" / "-inf"  vs  "+18.0 dB" (+1 slack)
+    if (fx, param) in MIX:
+        return 5   # e.g. "100%"
+    return 3       # raw 0..255

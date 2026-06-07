@@ -26,6 +26,7 @@ class FpgaEmu:
         self.defaults = bytearray((i * 7 + 3) & 0xFF for i in range(512))
         self.params = bytearray(self.defaults)
         self.busy = False
+        self.cur_bank = 0
 
     def process(self, frame: bytes) -> bytes:
         if len(frame) < 7 or frame[0] != P.REQ_SYNC:
@@ -70,6 +71,10 @@ class FpgaEmu:
             if self.busy:
                 return bytes((P.RSP_SYNC, P.ERR_BUSY))
             return bytes((P.RSP_SYNC, P.ST_OK))
+
+        if op == P.OP_GBNK:
+            b = self.cur_bank & 0xFF
+            return bytes((P.RSP_SYNC, P.OP_GBNK, b, (P.OP_GBNK ^ b) & 0xFF))
 
         if op == P.OP_PING:
             return bytes((P.RSP_SYNC, P.OP_PING, 0x01, 0x00, (P.OP_PING ^ 0x01 ^ 0x00) & 0xFF))
@@ -204,6 +209,12 @@ def main():
     emu.busy = True
     expect_nack("busy", lambda: c.write_param(1, 4, 0, 5), P.ERR_BUSY)
     emu.busy = False
+
+    print("[12] get_bank")
+    check("bank.default", c.get_bank(), 0)
+    emu.cur_bank = 2
+    check("bank.2", c.get_bank(), 2)
+    emu.cur_bank = 0
 
     if _fails == 0:
         print("\n=== ALL PROTOCOL TESTS PASSED ===")

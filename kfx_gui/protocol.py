@@ -14,6 +14,7 @@ Response frames (FPGA -> PC), all prefixed 0xA5:
     ACK  : [0xA5][0x00]
     NACK : [0xA5][err]                 err 01=checksum 02=opcode 03=busy 04=read-only
     READ : [0xA5][0x10][bank][fx][param][value][chk]
+    BANK : [0xA5][0x11][bank][chk]                 chk = 0x11 ^ bank
     DUMP : [0xA5][0x20][0x02][0x00] + 512 value bytes + [chk]
     PONG : [0xA5][0xF0][VER_MAJ][VER_MIN][chk]
 """
@@ -35,6 +36,7 @@ RSP_SYNC = 0xA5
 
 OP_WRITE = 0x01
 OP_READ = 0x10
+OP_GBNK = 0x11
 OP_DUMP = 0x20
 OP_RESET = 0x30
 OP_RDEF = 0x40
@@ -188,6 +190,11 @@ class Client:
             if self._xor(bytes((OP_READ,)) + rest[:4]) != rest[4]:
                 raise ProtocolError("READ checksum mismatch")
             return ("read", rest[0], rest[1], rest[2], rest[3])
+        if t == OP_GBNK:
+            rest = self.t.read(2, self.timeout)  # bank, chk
+            if (OP_GBNK ^ rest[0]) & 0xFF != rest[1]:
+                raise ProtocolError("GBNK checksum mismatch")
+            return ("bank", rest[0])
         if t == OP_DUMP:
             hdr = self.t.read(2, self.timeout)  # len hi, lo
             length = (hdr[0] << 8) | hdr[1]
@@ -212,6 +219,15 @@ class Client:
         if r[0] != "pong":
             raise ProtocolError(f"expected PONG, got {r[0]}")
         return (r[1], r[2])
+
+    def get_bank(self) -> int:
+        """Return the FPGA's currently active (live) bank index."""
+        self.t.flush_input()
+        self._send(OP_GBNK)
+        r = self._recv()
+        if r[0] != "bank":
+            raise ProtocolError(f"expected BANK, got {r[0]}")
+        return r[1]
 
     def read_param(self, bank: int, fx: int, param: int) -> int:
         self._send(OP_READ, bank, fx, param)
@@ -268,6 +284,7 @@ def _main(argv=None):
     ap = argparse.ArgumentParser(description="KFX Engine host CLI (JTAG-UART)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("ping")
+    sub.add_parser("bank")
     sub.add_parser("dump")
     p = sub.add_parser("read"); p.add_argument("bank", type=int); p.add_argument("fx", type=int); p.add_argument("param", type=int)
     p = sub.add_parser("rdef"); p.add_argument("bank", type=int); p.add_argument("fx", type=int); p.add_argument("param", type=int)
@@ -282,6 +299,8 @@ def _main(argv=None):
     if args.cmd == "ping":
         vmaj, vmin = client.ping()
         print(f"PONG  firmware v{vmaj}.{vmin}")
+    elif args.cmd == "bank":
+        print(client.get_bank())
     elif args.cmd == "dump":
         data = client.dump()
         for bank in range(BANK_COUNT):

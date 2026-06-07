@@ -63,6 +63,17 @@ set_multicycle_path -hold  -from [get_registers {fx_*:*|*}] -to [get_registers {
 set_multicycle_path -setup -to [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|tuner_vals[*][*]}] 2
 set_multicycle_path -hold  -to [get_registers {display:DISPLAY|tuner_display:TUNER_DISPLAY|tuner_vals[*][*]}] 1
 
+# Expression-pedal pot scaling.
+#
+# POT_ADC CH0 updates at ~19 kHz and holds for thousands of CLOCK_50 cycles, so
+# every register fed from it is a slow path.  The controller.sv reciprocal-multiply
+# pipeline already closes these single-cycle; this is belt-and-suspenders and is
+# valid because the source data is stable for far more than 2 cycles.
+set_multicycle_path -setup -from [get_registers {*POT_ADC*}]                -to [get_registers {controller:CONTROL|pot_*}] 2
+set_multicycle_path -hold  -from [get_registers {*POT_ADC*}]                -to [get_registers {controller:CONTROL|pot_*}] 1
+set_multicycle_path -setup -from [get_registers {controller:CONTROL|pot_*}] -to [get_registers {controller:CONTROL|all_params[*][*][*]}] 2
+set_multicycle_path -hold  -from [get_registers {controller:CONTROL|pot_*}] -to [get_registers {controller:CONTROL|all_params[*][*][*]}] 1
+
 #**************************************************************
 # False Paths
 #**************************************************************

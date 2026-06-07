@@ -426,20 +426,44 @@ module controller (
     localparam int POT_RAW_MAX  = 3100;
     localparam int POT_RAW_SPAN = POT_RAW_MAX - POT_RAW_MIN;   // compile-time const
 
+    // Reciprocal-multiply replaces a runtime divide-by-SPAN so the ADC->param
+    // datapath is short enough to close timing at 50 MHz.  A combinational
+    // divide is ~14 logic levels and cannot settle in one 20 ns cycle.  K is
+    // derived at compile time, so it tracks any future change to the calibrated
+    // POT_RAW_MIN/MAX range:
+    //     (x-MIN)*255/SPAN  ==  ((x-MIN)*K) >> POT_RECIP_S   (error < 0.03 LSB)
+    localparam int POT_RECIP_S = 16;
+    localparam int POT_RECIP_K = (255*(1<<<POT_RECIP_S) + POT_RAW_SPAN/2) / POT_RAW_SPAN; // = 5444
+
     logic [PARAM_W-1:0] pot_prev;
-    logic [PARAM_W-1:0] pot_scaled;
+    logic [PARAM_W-1:0] pot_scaled;            // stage 3: registered scaled value (0..255)
     logic [8:0]         pot_diff;
-    logic [20:0]        pot_num;     // (pot_value-min)*255, max ~1.04M < 2^21
+    logic [11:0]        pot_sub_q;             // stage 1: clamped (pot_value - MIN)
+    logic [24:0]        pot_prod_q;            // stage 2: pot_sub_q * K; linear region < 2^24 (high-clamp region may wrap but pot_hi2_q masks it)
+    logic               pot_lo_q,  pot_hi_q;   // stage 1: clamp flags
+    logic               pot_lo2_q, pot_hi2_q;  // stage 2: clamp flags
 
-    always_comb begin
-        // Assigned unconditionally first so no latch is inferred.
-        pot_num = (pot_value > 12'(POT_RAW_MIN))
-                ? (21'(pot_value) - 21'(POT_RAW_MIN)) * 21'd255
-                : 21'd0;
+    // Three-stage pipeline: clamp/offset -> multiply (1 DSP) -> shift/clamp.
+    // Registering pot_scaled also makes the all_params write below a clean
+    // register-to-register path.  The 3-cycle (60 ns) latency is inaudible, and
+    // the pipeline needs no reset: it self-fills in 3 cycles and the pot_diff > 1
+    // hysteresis below tolerates the brief startup transient.
+    always_ff @(posedge clk) begin
+        // Stage 1: clamp detect + offset
+        pot_lo_q  <= (pot_value <= 12'(POT_RAW_MIN));
+        pot_hi_q  <= (pot_value >= 12'(POT_RAW_MAX));
+        pot_sub_q <= (pot_value > 12'(POT_RAW_MIN)) ? 12'(pot_value - 12'(POT_RAW_MIN)) : 12'd0;
 
-        if      (pot_value <= 12'(POT_RAW_MIN)) pot_scaled = 8'd0;
-        else if (pot_value >= 12'(POT_RAW_MAX)) pot_scaled = 8'd255;
-        else                                    pot_scaled = 8'(pot_num / POT_RAW_SPAN);
+        // Stage 2: multiply by reciprocal constant (Quartus folds K to a small
+        // shift-add net).  25-bit cast keeps the linear-region product exactly.
+        pot_prod_q <= 25'(pot_sub_q * POT_RECIP_K);
+        pot_lo2_q  <= pot_lo_q;
+        pot_hi2_q  <= pot_hi_q;
+
+        // Stage 3: shift (a bit-select) + clamp
+        pot_scaled <= pot_lo2_q ? 8'd0
+                    : pot_hi2_q ? 8'd255
+                    :             pot_prod_q[POT_RECIP_S +: 8];
     end
 
     always_comb begin
