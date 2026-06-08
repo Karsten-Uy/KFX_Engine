@@ -107,6 +107,18 @@ EQ_AXIS_W = sc(34)      # width of the shared dB scale on the left of an EQ stri
 # travel; the labels are the dB they map to (ref 128): +6 / 0 / -6 / -12.
 EQ_TICKS = ((255, "+6"), (128, "0"), (64, "-6"), (32, "-12"))
 
+# ----------------------------------------------------------------------------
+# Signal-flow connectors — thin gaps between strips carry a horizontal line and a
+# right-pointing chevron so the row reads as a chain (IN -> FX -> FX -> ... -> OUT).
+# The line sits at the header-band center so it ties the colored name plates
+# together; the rest of the gap is plain window background.
+# ----------------------------------------------------------------------------
+FLOW_LINE = "#3f4049"   # the signal-flow connector line
+FLOW_MARK = "#8b929b"   # chevrons / port nodes / IN-OUT labels (steel gray)
+CONN_W    = sc(12)      # width of an inter-FX connector gap (thin, to fit small screens)
+PORT_W    = sc(30)      # width of the IN / OUT end caps
+CONN_H    = sc(46)      # connector canvas height
+
 # short uppercase labels per parameter (keyed by this model's short names)
 PLAB = {
     "gain": "GAIN", "threshold": "THRESH", "attack": "ATK", "release": "REL",
@@ -299,6 +311,45 @@ def draw_eq_axis(cv, h=EQ_SLIDER_H, w=EQ_AXIS_W):
         cv.create_line(w - 6, y, w - 2, y, fill="#4a4b54")
         cv.create_text(w - 8, y, text=lab, anchor="e", fill=DIM,
                        font=("TkDefaultFont", 7))
+
+
+def draw_connector(cv, kind, w, h):
+    """Draw the signal-flow link in an inter-FX gap or an IN/OUT end cap.
+
+    kind: "mid"  — plain connecting line, no arrow (intermediate FX -> FX)
+          "feed" — line + chevron at the center (Output Gain -> Master)
+          "in"   — source node on the left, line + chevron flowing right
+          "out"  — line + chevron flowing right into a sink node on the right
+    """
+    cv.delete("all")
+    yc = h // 2
+    c = sc(3)
+
+    def chevron(cx):
+        cv.create_line(cx - c, yc - c - 1, cx + c, yc,
+                       fill=FLOW_MARK, width=2, capstyle="round")
+        cv.create_line(cx - c, yc + c + 1, cx + c, yc,
+                       fill=FLOW_MARK, width=2, capstyle="round")
+
+    def node(nx):
+        r = sc(3)
+        cv.create_oval(nx - r, yc - r, nx + r, yc + r, fill=FLOW_MARK, outline="")
+
+    if kind == "in":
+        nx = sc(7)
+        cv.create_line(nx, yc, w, yc, fill=FLOW_LINE, width=2)
+        node(nx)
+        chevron(w - sc(8))
+    elif kind == "out":
+        nx = w - sc(7)
+        cv.create_line(0, yc, nx, yc, fill=FLOW_LINE, width=2)
+        node(nx)
+        chevron(sc(9))
+    elif kind == "feed":  # Output Gain -> Master: directional arrow
+        cv.create_line(0, yc, w, yc, fill=FLOW_LINE, width=2)
+        chevron(w // 2)
+    else:  # mid — plain connecting line, no arrow
+        cv.create_line(0, yc, w, yc, fill=FLOW_LINE, width=2)
 
 
 # ============================================================================
@@ -709,7 +760,9 @@ class Strip:
         outer = tk.Frame(parent, bg=bg, width=width, height=STRIP_H,
                          highlightthickness=1,
                          highlightbackground=("#4a401f" if self.master else "#303138"))
-        outer.pack(side="left", fill="y", padx=(sc(14) if self.master else 0, 0))
+        # no extra left pad on the master: the "feed" connector sits flush against
+        # it so its signal-flow line reaches the strip edge instead of leaving a gap
+        outer.pack(side="left", fill="y")
         outer.pack_propagate(False)   # lock strip width (and pin the height floor)
         self.frame = outer
 
@@ -1047,11 +1100,34 @@ class KfxGui(tk.Tk):
         pad = tk.Frame(inner, bg=BG)
         pad.pack(padx=sc(12), pady=sc(12), fill="both", expand=True)
 
-        # iterate M.active_fx() in order; globals become the MASTER strip on the right
+        # iterate M.active_fx() in order; globals become the MASTER strip on the right.
+        # Strips are interleaved with signal-flow connectors and bookended by IN/OUT
+        # caps, so the row reads as a chain:  IN > FX > FX > ... > MASTER > OUT.
         channels = [fx for fx in M.active_fx() if not M.is_global(fx)]
         masters = [fx for fx in M.active_fx() if M.is_global(fx)]
-        for fx in channels + masters:
+        chain = channels + masters
+        self._connector(pad, "in")
+        for i, fx in enumerate(chain):
             self.strips.append(Strip(pad, self, fx))
+            if i < len(chain) - 1:
+                # arrow only where it feeds the Master (Output Gain -> Master);
+                # the rest are plain connecting lines
+                self._connector(pad, "feed" if M.is_global(chain[i + 1]) else "mid")
+        self._connector(pad, "out")
+
+    def _connector(self, parent, kind):
+        """A thin full-height gap carrying the signal-flow line. 'in'/'out' caps
+        add a labelled port node; 'mid' just links the two neighbouring strips."""
+        w = PORT_W if kind in ("in", "out") else (CONN_W * 2 if kind == "feed" else CONN_W)
+        fr = tk.Frame(parent, bg=BG, width=w)
+        fr.pack(side="left", fill="y")
+        fr.pack_propagate(False)
+        cv = tk.Canvas(fr, width=w, height=CONN_H, bg=BG, highlightthickness=0)
+        cv.place(relx=0.5, rely=0.5, anchor="center")   # ride the vertical middle of the strip
+        draw_connector(cv, kind, w, CONN_H)
+        if kind in ("in", "out"):
+            cv.create_text(w / 2, CONN_H // 2 - sc(12), text=kind.upper(),
+                           fill=FLOW_MARK, font=self.f_cat)
 
     def _autofit_strips(self):
         # After layout, size each strip to its real rendered content so titles and
