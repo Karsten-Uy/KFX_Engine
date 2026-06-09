@@ -474,6 +474,28 @@ Implements a **Schroeder Reverberator** using parallel damped feedback comb filt
 
 ---
 
+## Audio-Integrity & Build Notes (Clock-Domain Crossing + SignalTap)
+
+Two non-obvious, **fit-dependent** problems caused audible audio corruption — a buzz/crackle that varied between otherwise-identical compiles (the *same* RTL sounded clean on one build and distorted on the next). Both are documented here because they pass static timing analysis and are easy to reintroduce.
+
+### 1. Codec clock-domain crossing — the buzz / crackle
+
+The WM8731 codec runs as the **I2S master**, so `AUD_BCLK`, `AUD_ADCLRCK`, `AUD_DACLRCK`, and `AUD_ADCDAT` are **asynchronous** to the 50 MHz system clock. The Intel University-Program audio core (`altera_up_clock_edge`) sampled each of these with a **single flip-flop** and used that flop *directly* in the edge detector that clocks the I2S serializer/deserializer. A one-flop sampler on an asynchronous signal is metastability-prone: on an unlucky place-and-route the metastability resolved too late, **slipped I2S bits**, and produced extremely distorted audio. Because it depends on routing delays, the result changed from compile to compile. The Timing Analyzer reported the design clean (metastability is **not** a static-timing violation), and the metastability report flagged these chains with *"MTBF could not be calculated."*
+
+**Fix:** synchronize the four asynchronous codec lines through a clean **2-FF synchronizer at the top level** (`src/AudioFX.sv`), *before* they enter the codec IP, then feed the codec the synchronized copies. All four are delayed by the same two cycles, so the relative I2S framing is preserved. This is deliberately done at the top level rather than inside `altera_up_clock_edge` — edits to the generated Platform Designer IP are overwritten whenever the IP is regenerated.
+
+### 2. SignalTap perturbs the fit — the residual static popping
+
+With the synchronizer in place the buzz was largely gone, but a residual **static popping** remained. The cause was **SignalTap itself**: the embedded logic analyzer adds an acquisition RAM, trigger logic, a JTAG hub, and a second clock domain (`auto_stp_external_clock_0`, 100 MHz). In this near-full, timing-tight design that extra logic and routing **congestion shifts the placement** of the audio paths on every recompile (and every time the tap set changes) — enough to push marginal paths into occasional glitching. Removing SignalTap eliminated the popping.
+
+**Fix:** build the **production bitstream with SignalTap disabled** (Assignments → Settings → *SignalTap Logic Analyzer* → uncheck **Enable SignalTap Logic Analyzer**). Only enable it on a separate debug build when you actually need to capture internal signals — the "does it sound clean" bitstream and the "watch internal signals" bitstream are genuinely different fits.
+
+### Takeaway
+
+For a clean, repeatable audio build: keep the **top-level codec synchronizers** in place, and **compile final bitstreams with SignalTap off**. Together these removed the recompile-dependent buzz/crackle and the static popping. (Separately, an unregistered combinational divide on the expression-pedal path and a DSP-inferred combinational loop in `fx_distortion` were fixed during the same investigation — see the controller/distortion sources.)
+
+---
+
 ## Tools, Technologies & Platform
 
 * **FPGA Board:** DE1-SoC

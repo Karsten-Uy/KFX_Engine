@@ -121,7 +121,9 @@ module fx_distortion #(
     // Tightness (HPF) State - WIDENED TO PREVENT TRANSIENT WRAP
     logic signed [16:0] pre_lp_state[1:0];
     logic signed [17:0] pre_lp_diff[1:0];
-    logic signed [27:0] pre_lp_mult[1:0];
+    // IIR feedback multiply — force to ALUTs so Quartus does not pack the
+    // always_comb accumulate into a DSP loopback (else: comb loop, audio buzz).
+    (* multstyle = "logic" *) logic signed [27:0] pre_lp_mult[1:0];
     logic signed [31:0] pre_lp_next_full[1:0];
     logic signed [16:0] pre_lp_next_safe[1:0];
     
@@ -193,7 +195,8 @@ module fx_distortion #(
     // Smooth (LPF) State - WIDENED TO PREVENT TRANSIENT WRAP
     logic signed [15:0] post_lp_state[1:0];
     logic signed [16:0] post_lp_diff[1:0];
-    logic signed [26:0] post_lp_mult[1:0];
+    // IIR feedback multiply — force to ALUTs (see pre_lp_mult note above).
+    (* multstyle = "logic" *) logic signed [26:0] post_lp_mult[1:0];
     logic signed [31:0] fizz_tamed_full[1:0];
     logic signed [15:0] fizz_tamed_safe[1:0];
     
@@ -249,7 +252,10 @@ module fx_distortion #(
     // -----------------------------------------------------------------------
     logic signed [15:0] cab1[1:0], cab2[1:0], cab1_n[1:0], cab2_n[1:0];
     logic signed [16:0] d1[1:0],   d2[1:0];
-    logic signed [26:0] cab1_mult[1:0], cab2_mult[1:0]; 
+    // Cabinet IIR feedback multiplies — force to ALUTs (see pre_lp_mult note).
+    // These two cascaded poles are the FX_DISTORTION|Mult17/Mult19 + Add46/Add50
+    // nodes the Timing Analyzer flagged as a 96-node combinational loop.
+    (* multstyle = "logic" *) logic signed [26:0] cab1_mult[1:0], cab2_mult[1:0];
     // Clamp to 256 so the cabinet IIR coefficient (safe_tone/256) never
     // exceeds 1.0 — anything > 1.0 makes the cabinet IIR unstable and it
     // rings into wrap-around.  For fx_tone in [246..255] we'd otherwise

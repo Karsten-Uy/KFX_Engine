@@ -928,10 +928,29 @@ class Strip:
 # ============================================================================
 # Main application
 # ============================================================================
+def _set_app_user_model_id(app_id):
+    """Windows: give this process its own taskbar identity.
+
+    Without this, Windows groups the window under the python.exe interpreter and
+    the taskbar shows Python's icon instead of ours. Setting an explicit
+    AppUserModelID *before* any window is created detaches us, so the taskbar
+    button picks up the window icon set via iconphoto(). No-op off Windows.
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    except Exception:
+        pass
+
+
 class KfxGui(tk.Tk):
     def __init__(self):
+        _set_app_user_model_id("kfx.engine.gui")
         super().__init__()
         self.title("KFX Engine GUI — Param Editor")
+        self._apply_window_icon()
         self.geometry("1400x820")   # tall enough that the densest strips fit unclipped
         self.configure(bg=BG)
         self.minsize(1040, 700)
@@ -1002,6 +1021,26 @@ class KfxGui(tk.Tk):
                 return img.subsample(factor, factor)
             except Exception:
                 return None
+
+    def _apply_window_icon(self):
+        """Set the OS window icon (title-bar top-left + Windows taskbar button).
+
+        Hands Tk several sizes of logo.png so it can pick a crisp one for the
+        ~16px title bar and ~32px taskbar render. References are kept on self so
+        Tk doesn't garbage-collect the images out from under the window. Paired
+        with the AppUserModelID set in _set_app_user_model_id(), the taskbar
+        shows this icon instead of the generic python.exe icon. Silently leaves
+        the default icon if logo.png is missing/unreadable.
+        """
+        path = os.path.join(HERE, "logo.png")
+        imgs = [self._load_logo(path, s) for s in (64, 48, 32, 16)]
+        self._icon_imgs = [im for im in imgs if im is not None]
+        if not self._icon_imgs:
+            return
+        try:
+            self.iconphoto(True, *self._icon_imgs)
+        except Exception:
+            pass
 
     # ---------------------------------------------------------------- toolbar
     def _tbtn(self, parent, text, cmd, danger=False, primary=False):

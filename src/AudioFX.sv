@@ -305,15 +305,39 @@ module AudioFX (
             .I2C_SCLK    (FPGA_I2C_SCLK)
         );
 
+        // ----------------------------------------------------------------
+        // Codec async-clock synchronizers
+        //
+        // AUD_BCLK / AUD_ADCLRCK / AUD_DACLRCK / AUD_ADCDAT are produced by the
+        // WM8731 (codec is I2S master) and are ASYNCHRONOUS to CLOCK_50.  The
+        // stock UP audio core samples them with a single flop and uses it
+        // directly to clock the serializer/deserializer — metastable, which on
+        // some fits slips I2S bits and gives extremely distorted, recompile-
+        // dependent audio.  Sync them through a clean 2-FF chain here, at the
+        // top level (so Qsys regeneration can't undo it).  All four are delayed
+        // by the same 2 cycles, so their relative I2S timing is preserved.
+        // ----------------------------------------------------------------
+        logic aud_bclk_m,    aud_bclk_s;
+        logic aud_adclrck_m, aud_adclrck_s;
+        logic aud_daclrck_m, aud_daclrck_s;
+        logic aud_adcdat_m,  aud_adcdat_s;
+
+        always_ff @(posedge CLOCK_50) begin
+            aud_bclk_m    <= AUD_BCLK;     aud_bclk_s    <= aud_bclk_m;
+            aud_adclrck_m <= AUD_ADCLRCK;  aud_adclrck_s <= aud_adclrck_m;
+            aud_daclrck_m <= AUD_DACLRCK;  aud_daclrck_s <= aud_daclrck_m;
+            aud_adcdat_m  <= AUD_ADCDAT;   aud_adcdat_s  <= aud_adcdat_m;
+        end
+
         // Avalon-streaming codec: ADC capture and DAC playback
         AudioCodec AUDIO_CODEC (
             .clk                          (CLOCK_50),
             .reset                        (~KEY[0]),
-            .AUD_ADCDAT                   (AUD_ADCDAT),
-            .AUD_ADCLRCK                  (AUD_ADCLRCK),
-            .AUD_BCLK                     (AUD_BCLK),
+            .AUD_ADCDAT                   (aud_adcdat_s),
+            .AUD_ADCLRCK                  (aud_adclrck_s),
+            .AUD_BCLK                     (aud_bclk_s),
             .AUD_DACDAT                   (AUD_DACDAT),
-            .AUD_DACLRCK                  (AUD_DACLRCK),
+            .AUD_DACLRCK                  (aud_daclrck_s),
             .from_adc_left_channel_ready  (ADC_Ready[0]),
             .from_adc_left_channel_data   (ADC_Data[0]),
             .from_adc_left_channel_valid  (ADC_Valid[0]),
@@ -722,7 +746,7 @@ module AudioFX (
         );
 
         // ---- FX 7: Expression Gain -----------------------------------
-        fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EXPRESSION_GAIN (
+        fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W), .SMOOTH(1)) FX_EXPRESSION_GAIN (
             .clk      (CLOCK_50),
             .reset_n  (KEY[0]),       
             .audio_in (chorus_out),
