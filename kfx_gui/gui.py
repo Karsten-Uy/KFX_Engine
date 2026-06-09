@@ -118,6 +118,21 @@ FLOW_MARK = "#8b929b"   # chevrons / port nodes / IN-OUT labels (steel gray)
 CONN_W    = sc(12)      # width of an inter-FX connector gap (thin, to fit small screens)
 PORT_W    = sc(30)      # width of the IN / OUT end caps
 CONN_H    = sc(46)      # connector canvas height
+GAP_EXTRA_MAX = sc(14)  # cap on how much a gap may widen past its base on a big screen
+                        # (once gaps hit this, leftover width goes to the strips instead)
+
+def _fit_fader(fader, height):
+    """Grow a strip's fill-fader to its zone height (per-buffer Configure)."""
+    fader.set_height(max(200, height - 96))
+
+
+def _fit_eq(axis, bands, height):
+    """Grow an EQ buffer's axis + band sliders to fill the strip height."""
+    h = max(150, height - 64)   # value row + name row + padding take ~64 px
+    for eb in bands:
+        eb.set_height(h)
+    axis.config(height=h)
+    draw_eq_axis(axis, h=h)
 
 # short uppercase labels per parameter (keyed by this model's short names)
 PLAB = {
@@ -740,6 +755,13 @@ class Strip:
         single_col = narrow and len(knob_ps) >= 3        # gate; chorus/delay keep a hero
         use_hero = (len(knob_ps) >= 2) and not decay_ps and not single_col
 
+        # stash the layout decisions so _populate() can build each body buffer
+        self._accent = accent
+        self._fp, self._eq = fp, eq
+        self._knob_ps, self._decay_ps = knob_ps, decay_ps
+        self._has_knobs = has_knobs
+        self._fader_only, self._single_col, self._use_hero = fader_only, single_col, use_hero
+
         # Width is set dynamically: build at a provisional width, then
         # _autofit_strips() measures each strip's REAL rendered content
         # (title + readouts + controls) and sizes it to fit — so nothing clips
@@ -761,40 +783,62 @@ class Strip:
                          highlightthickness=1,
                          highlightbackground=("#4a401f" if self.master else "#303138"))
         # no extra left pad on the master: the "feed" connector sits flush against
-        # it so its signal-flow line reaches the strip edge instead of leaving a gap
-        outer.pack(side="left", fill="y")
+        # it so its signal-flow line reaches the strip edge instead of leaving a gap.
+        # expand+fill="both": the fitted width (set by fit_width, pinned by
+        # pack_propagate False) is the MINIMUM; on a big screen the strips share
+        # whatever width is left after the inter-FX gaps hit their cap.
+        outer.pack(side="left", fill="both", expand=True)
         outer.pack_propagate(False)   # lock strip width (and pin the height floor)
         self.frame = outer
 
-        # ---- header name plate ----
-        # No wraplength: the title stays one line and reports its true required
-        # width, which autofit uses to size the strip so the name never clips.
-        hdr = tk.Frame(outer, bg=accent, height=sc(46))
-        hdr.pack(fill="x")
-        hdr.pack_propagate(False)
-        self.hdr_label = tk.Label(hdr, text=M.fx_name(fx), font=gui.f_head,
-                                  fg=HEADER_INK, bg=accent, anchor="w", justify="left")
-        self.hdr_label.pack(fill="x", padx=8, pady=(5, 0))
-        self.hdr_row = tk.Frame(hdr, bg=accent)
-        self.hdr_row.pack(fill="x", padx=8)
-        tk.Label(self.hdr_row, text=CAT_LABEL[self.cat].upper(), font=gui.f_cat,
-                 fg=HEADER_INK, bg=accent).pack(side="left")
-        tk.Label(self.hdr_row, text="F%d" % fx, font=gui.f_cat, fg=HEADER_INK,
-                 bg=accent).pack(side="right")
+        # ---- header name-plate + body, in one frame ----
+        # _populate builds the colored name-plate (via _make_header) then the
+        # body controls into a single frame that fills the strip. Bank switches
+        # rewrite the live controls in place (no animation, no second buffer).
+        self.hdr_label = self.hdr_row = None
+        self.body = tk.Frame(outer, bg=PANEL)
+        self.body.pack(side="top", fill="both", expand=True)
+        self.body.pack_propagate(False)
+        self.controls = self._populate(self.body, track_fit=True)
 
-        # ---- body: EQ bands, or knobs/stepper hugging the header ----
-        if eq or has_knobs:
-            body = tk.Frame(outer, bg=PANEL)
-            self.body = body
+    def _make_header(self, container, track_fit):
+        """Build the colored name-plate (FX title + category + F#) at the top of
+        the strip body. track_fit -> stash refs for width autofit. No wraplength:
+        the title stays one line and reports its true required width, which
+        autofit uses to size the strip so the name never clips."""
+        gui, fx, accent = self.gui, self.fx, self._accent
+        hdr = tk.Frame(container, bg=accent, height=sc(46))
+        hdr.pack(side="top", fill="x")
+        hdr.pack_propagate(False)
+        name = tk.Label(hdr, text=M.fx_name(fx), font=gui.f_head,
+                        fg=HEADER_INK, bg=accent, anchor="w", justify="left")
+        name.pack(fill="x", padx=8, pady=(5, 0))
+        row = tk.Frame(hdr, bg=accent)
+        row.pack(fill="x", padx=8)
+        tk.Label(row, text=CAT_LABEL[self.cat].upper(), font=gui.f_cat,
+                 fg=HEADER_INK, bg=accent).pack(side="left")
+        tk.Label(row, text="F%d" % fx, font=gui.f_cat, fg=HEADER_INK,
+                 bg=accent).pack(side="right")
+        if track_fit:
+            self.hdr_label, self.hdr_row = name, row
+
+    def _populate(self, container, track_fit):
+        """Build the header name-plate + body (EQ bands or knobs/stepper) + fader
+        zone into container, and return the list of _Control instances created.
+        Resize-to-fill is wired via Configure closures on the body/fader frames."""
+        gui, fx, accent = self.gui, self.fx, self._accent
+        fp, eq = self._fp, self._eq
+        before = len(gui.controls)
+        self._make_header(container, track_fit)
+
+        if eq or self._has_knobs:
+            body = tk.Frame(container, bg=PANEL)
             if eq:
                 # no fader; one shared grid (axis + four bands) centered in the body.
-                # Grid rows give every column one uniform height, so the GAIN/(dB)
-                # captions line up with the value readouts and band names.
                 body.pack(side="top", fill="both", expand=True)
                 body.pack_propagate(False)
                 grid = tk.Frame(body, bg=PANEL)
                 grid.place(relx=0.5, rely=0.5, anchor="center")
-                # dB axis column (col 0): GAIN caption / scale / (dB) caption
                 tk.Label(grid, text="GAIN", font=gui.f_val, fg=FAINT,
                          bg=PANEL).grid(row=0, column=0, padx=(0, 2), sticky="s")
                 acv = tk.Canvas(grid, width=EQ_AXIS_W, height=EQ_SLIDER_H, bg=PANEL,
@@ -804,79 +848,63 @@ class Strip:
                 tk.Label(grid, text="(dB)", font=gui.f_label, fg=FAINT,
                          bg=PANEL).grid(row=2, column=0, padx=(0, 2), pady=(2, 0),
                                         sticky="n")
-                self._eq_axis = acv
-                self._eq_bands = [EqBand(grid, gui, fx, p, accent, col=i + 1)
-                                  for i, p in enumerate(M.active_params(fx))]
-                self._fit_frames.append(grid)
-                self._collect()
+                bands = [EqBand(grid, gui, fx, p, accent, col=i + 1)
+                         for i, p in enumerate(M.active_params(fx))]
+                if track_fit:
+                    self._fit_frames.append(grid)
                 # grow the bands + axis to fill the strip height, like the faders
-                body.bind("<Configure>", self._resize_eq)
+                body.bind("<Configure>",
+                          lambda e, ax=acv, bb=bands: _fit_eq(ax, bb, e.height))
             else:
-                # knobs sit just under the header (natural height); the growing fader
-                # below fills what used to be dead space at the top.
                 body.pack(side="top", fill="x")
                 inner = tk.Frame(body, bg=PANEL)
                 inner.pack(pady=(6, 2))
-                if single_col:
-                    # all params in one vertical column (thin strip, aligned knobs)
-                    for p in knob_ps:
+                if self._single_col:
+                    for p in self._knob_ps:
                         Knob(inner, gui, fx, p, accent, size=sc(40)).frame.pack(pady=2)
                 else:
-                    if use_hero:
-                        Knob(inner, gui, fx, knob_ps[0], accent, size=sc(56)).frame.pack(pady=(0, 2))
-                        rest = knob_ps[1:]
+                    if self._use_hero:
+                        Knob(inner, gui, fx, self._knob_ps[0], accent,
+                             size=sc(56)).frame.pack(pady=(0, 2))
+                        rest = self._knob_ps[1:]
                     else:
-                        rest = knob_ps
+                        rest = self._knob_ps
                     if rest:
                         grid = tk.Frame(inner, bg=PANEL)
                         grid.pack()
-                        # equal-width columns so paired knobs sit symmetric/centered
                         grid.columnconfigure(0, weight=1, uniform="kn")
                         grid.columnconfigure(1, weight=1, uniform="kn")
                         odd = len(rest) % 2 == 1
                         for i, p in enumerate(rest):
                             kf = Knob(grid, gui, fx, p, accent, size=sc(38)).frame
                             if odd and i == len(rest) - 1:
-                                # lone last knob spans both columns -> centered
                                 kf.grid(row=i // 2, column=0, columnspan=2, pady=1)
                             else:
                                 kf.grid(row=i // 2, column=i % 2, padx=1, pady=1)
-                for p in decay_ps:
+                for p in self._decay_ps:
                     Stepper(inner, gui, fx, p, accent).frame.pack(pady=2)
-                self._fit_frames.append(inner)
-                self._collect()
+                if track_fit:
+                    self._fit_frames.append(inner)
 
-        # ---- fader zone (fills the rest of the strip below the header/knobs) ----
         if fp is not None:
-            fz = tk.Frame(outer, bg=PANEL, highlightthickness=0)
+            fz = tk.Frame(container, bg=PANEL, highlightthickness=0)
             fz.pack(side="top", fill="both", expand=True)
-            if not fader_only:
+            if not self._fader_only:
                 tk.Frame(fz, bg=SEP, height=1).pack(fill="x")   # divide knobs / fader
             if self.readonly:
-                # driven by the physical expression pedal — display only
                 tk.Label(fz, text=" PEDAL ", font=gui.f_cat, fg="#6fd0c6",
                          bg="#1c2b29", bd=1, relief="solid").pack(pady=(8, 0))
-            self.fader = Fader(fz, gui, fx, fp, accent, master=self.master,
-                               fill=self.fill, wide=fader_only)
-            self.fader.frame.pack(pady=(8, 6), expand=True)
-            self._fit_frames.append(self.fader.frame)
+            fader = Fader(fz, gui, fx, fp, accent, master=self.master,
+                          fill=self.fill, wide=self._fader_only)
+            fader.frame.pack(pady=(8, 6), expand=True)
+            if track_fit:
+                self._fit_frames.append(fader.frame)
             if self.master:
                 tk.Label(fz, text="MAIN BUS", font=gui.f_cat, fg="#e7c463",
                          bg="#2a281f", bd=1, relief="solid").pack(pady=(0, 8))
-            # the fader grows to fill its zone whenever there is one
-            fz.bind("<Configure>", self._resize_fill)
+            fz.bind("<Configure>", lambda e, fd=fader: _fit_fader(fd, e.height))
 
-    def _resize_fill(self, e):
-        if hasattr(self, "fader"):
-            self.fader.set_height(max(200, e.height - 96))
-
-    def _resize_eq(self, e):
-        # value row + name row + padding take ~64 px; the sliders fill the rest
-        h = max(150, e.height - 64)
-        for eb in self._eq_bands:
-            eb.set_height(h)
-        self._eq_axis.config(height=h)
-        draw_eq_axis(self._eq_axis, h=h)
+        return gui.controls[before:]
 
     def fit_width(self):
         # Size the strip to its REAL rendered content: the title row plus the
@@ -891,12 +919,6 @@ class Strip:
             if rw > 1:
                 need = max(need, rw + sc(14))                 # + breathing room
         self.frame.config(width=need)
-
-    def _collect(self):
-        # Strip.controls mirrors gui.controls for this strip.
-        for c in self.gui.controls:
-            if getattr(c, "fx", None) == self.fx and c not in self.controls:
-                self.controls.append(c)
 
     def redraw(self):
         for c in self.controls:
@@ -925,6 +947,7 @@ class KfxGui(tk.Tk):
         self.strips = []
         self.tool_btns = []
         self.tab_widgets = []
+        self._grow_gaps = []        # (frame, base_w) inter-FX gaps, widened by _relayout
 
         base = self._pick_font(["Segoe UI", "Helvetica Neue", "Helvetica", "DejaVu Sans"])
         mono = self._pick_font(["Consolas", "SF Mono", "DejaVu Sans Mono", "Courier"])
@@ -1090,13 +1113,22 @@ class KfxGui(tk.Tk):
         hsb.config(command=canvas.xview)
         inner = tk.Frame(canvas, bg=BG)
         win = canvas.create_window((0, 0), window=inner, anchor="nw")
+        self._console_canvas = canvas
         inner.bind("<Configure>",
                    lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        # stretch the inner frame to the viewport height (but never below one
-        # strip's height) so the knob-less gain/master strips' fill-faders run
-        # the full height; the strips' own fill="y" then grows them to match.
-        canvas.bind("<Configure>",
-                    lambda e: canvas.itemconfigure(win, height=max(e.height, STRIP_H + 24)))
+        # Stretch the inner frame to the viewport so the chain fills the window:
+        #  - height (but never below one strip) lets the fill-faders run full height;
+        #  - width (but never below the natural content) gives _relayout room to
+        #    spread the chain across a wide screen. When the content is wider than
+        #    the viewport, the window keeps its natural width and the horizontal
+        #    scrollbar takes over instead.
+        def _on_canvas_configure(e):
+            canvas.itemconfigure(
+                win,
+                width=max(e.width, inner.winfo_reqwidth()),
+                height=max(e.height, STRIP_H + 24))
+            self._relayout(e.width)
+        canvas.bind("<Configure>", _on_canvas_configure)
         pad = tk.Frame(inner, bg=BG)
         pad.pack(padx=sc(12), pady=sc(12), fill="both", expand=True)
 
@@ -1117,17 +1149,33 @@ class KfxGui(tk.Tk):
 
     def _connector(self, parent, kind):
         """A thin full-height gap carrying the signal-flow line. 'in'/'out' caps
-        add a labelled port node; 'mid' just links the two neighbouring strips."""
+        add a labelled port node; 'mid'/'feed' link neighbouring strips and, on a
+        wide screen, stretch (expand) so the chain spreads evenly across the width.
+        The line is redrawn to the gap's live width so it always reaches both
+        strips no matter how wide the gap grows."""
         w = PORT_W if kind in ("in", "out") else (CONN_W * 2 if kind == "feed" else CONN_W)
+        grow = kind in ("mid", "feed")          # inter-FX gaps widen on big screens
         fr = tk.Frame(parent, bg=BG, width=w)
+        # Fixed width (no expand): _relayout sets each grow gap's width directly,
+        # capped at base + GAP_EXTRA_MAX; the strips' expand soaks up the rest.
         fr.pack(side="left", fill="y")
         fr.pack_propagate(False)
+        # span the gap's full width at its vertical middle, so the flow line
+        # connects the strips even after the gap stretches.
         cv = tk.Canvas(fr, width=w, height=CONN_H, bg=BG, highlightthickness=0)
-        cv.place(relx=0.5, rely=0.5, anchor="center")   # ride the vertical middle of the strip
-        draw_connector(cv, kind, w, CONN_H)
-        if kind in ("in", "out"):
-            cv.create_text(w / 2, CONN_H // 2 - sc(12), text=kind.upper(),
-                           fill=FLOW_MARK, font=self.f_cat)
+        cv.place(relx=0, rely=0.5, anchor="w", relwidth=1.0)
+
+        def _redraw(_=None):
+            cw = max(fr.winfo_width(), w)
+            draw_connector(cv, kind, cw, CONN_H)
+            if kind in ("in", "out"):
+                cv.create_text(cw / 2, CONN_H // 2 - sc(12), text=kind.upper(),
+                               fill=FLOW_MARK, font=self.f_cat)
+
+        fr.bind("<Configure>", _redraw)
+        _redraw()
+        if grow:
+            self._grow_gaps.append((fr, w))     # (frame, base width) for _relayout
 
     def _autofit_strips(self):
         # After layout, size each strip to its real rendered content so titles and
@@ -1136,6 +1184,27 @@ class KfxGui(tk.Tk):
         for s in self.strips:
             s.fit_width()
         self.update_idletasks()
+        self._relayout()
+
+    def _relayout(self, vw=None):
+        # Spread the chain across a wide screen: widen each inter-FX gap by an
+        # equal share of the spare width, but only up to GAP_EXTRA_MAX. Anything
+        # left after the gaps are capped is absorbed by the strips (which expand),
+        # so on a big screen the FX themselves grow too. On a narrow screen the
+        # spare width is negative, gaps stay at their base, and the row scrolls.
+        if not self._grow_gaps:
+            return
+        if vw is None:
+            vw = self._console_canvas.winfo_width()
+        if vw <= 1:
+            return
+        used = sum(s.frame.winfo_reqwidth() for s in self.strips)
+        used += 2 * PORT_W                       # IN / OUT end caps
+        used += sum(base for _fr, base in self._grow_gaps)
+        spare = vw - used - 2 * sc(12)           # minus pad's left+right padding
+        share = 0 if spare <= 0 else min(spare // len(self._grow_gaps), GAP_EXTRA_MAX)
+        for fr, base in self._grow_gaps:
+            fr.config(width=base + share)
 
     # ---------------------------------------------------------------- status
     def _build_status(self):
@@ -1281,15 +1350,24 @@ class KfxGui(tk.Tk):
             return
         self.submit(lambda: self.client.dump(), self._apply_dump)
 
-    def _apply_dump(self, data):
+    def _write_values_from_dump(self, data):
         for c in self.controls:
             b = 0 if M.is_global(c.fx) else self.bank
             try:
                 self.values[(c.fx, c.p)] = data[P.dump_index(b, c.fx, c.p)]
             except Exception:
                 pass
+
+    def _apply_dump(self, data):
+        # Bank switches (and every other read) apply instantly: write the new
+        # values, redraw every control, then flush once. The single explicit
+        # update_idletasks() repaints all canvases in one batch instead of
+        # letting the event loop dribble their idle redraws out over several
+        # frames, which is what made the values appear to update left-to-right.
+        self._write_values_from_dump(data)
         for c in self.controls:
             c.redraw()
+        self.update_idletasks()
         self.set_status("Read bank %d (%s)." % (self.bank, M.bank_name(self.bank)), "ok")
 
     def commit(self, fx, p):
@@ -1312,7 +1390,7 @@ class KfxGui(tk.Tk):
             self._paint_follow()
         self.bank = b
         self._paint_tabs()
-        self.refresh()   # re-read repopulates non-global strips; master stays put
+        self.refresh()       # re-read repopulates non-global strips; master stays put
 
     def toggle_follow(self):
         if not self.enabled:
@@ -1415,7 +1493,7 @@ class KfxGui(tk.Tk):
         if self.follow and hw != self.bank:
             self.bank = hw
             self._paint_tabs()
-            self.refresh()                   # reload this bank's params (and pedal) via dump
+            self.refresh()       # reload this bank's params (and pedal) via dump
             self.set_status("Following live bank %d (%s)." % (hw, M.bank_name(hw)), "ok")
             return
         if moved:
