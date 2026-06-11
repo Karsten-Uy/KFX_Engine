@@ -11,7 +11,7 @@ Managed with [`uv`](https://docs.astral.sh/uv/).
 
 | File | Purpose |
 | ---- | ------- |
-| `protocol.py` | Byte protocol + transports + `Client`; also a CLI |
+| `protocol.py` | Byte protocol + transports + `Client`; also a CLI (wire format: [`../PROTOCOL.md`](../PROTOCOL.md)) |
 | `params.py`   | FX / parameter names & ranges (mirrors `src/lab_pkg.sv`) |
 | `presets.py`  | Export / import the 4 banks as JSON |
 | `gui.py`      | Tkinter desktop editor (Python stdlib) |
@@ -68,8 +68,30 @@ Click **Connect**, pick a **Bank**, drag sliders (writes live on release),
 The Expression gain (FX7) is read-only (the hardware pedal drives it); Master
 Gain (FX15) is global and mirrored across all banks.
 
+### Launch as a Windows app (no terminal)
+
+Double-click [`launch_kfx_gui.vbs`](./launch_kfx_gui.vbs) — it starts the GUI
+from this folder with **no console window** (it uses the venv's `pythonw.exe`,
+falling back to `uv run` if the venv is missing).
+
+To add a **Start Menu** entry (searchable, pinnable), run once:
+
+```
+powershell -ExecutionPolicy Bypass -File install_shortcut.ps1
+```
+
+Then open Start, search **"KFX Engine GUI"**, and right-click → **Pin to Start**
+or **Pin to taskbar**. The shortcut points back at this repo, so editing
+`gui.py` (or `git pull`) updates the app on the next launch — nothing is bundled
+or frozen. To see startup errors (the no-console launcher hides them), run
+`uv run python gui.py` from a terminal.
+
 ## Notes
 
+- The **wire protocol** (request/response frames, opcodes, error codes,
+  checksums, the JTAG transport stack, and worked byte-level examples) is
+  specified in [`../PROTOCOL.md`](../PROTOCOL.md). The FPGA side that parses it is
+  [`../src/control/host_if.sv`](../src/control/host_if.sv); keep the two in sync.
 - `params.py` mirrors `src/lab_pkg.sv` by hand — keep them in sync if you change
   the FX/parameter layout. Factory defaults are read live from the board, so
   "reset to default" always matches the hardware.

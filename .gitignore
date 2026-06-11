@@ -27,6 +27,7 @@ work/
 *.bak
 *.orig
 *~
+.claude/
 
 
 # --- IP & System Design (Qsys/Platform Designer) ---

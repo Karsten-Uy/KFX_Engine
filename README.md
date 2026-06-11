@@ -327,6 +327,46 @@ The sketch uses the [MIDIUSB](https://github.com/arduino-libraries/MIDIUSB) libr
 | Delay tap        | `96`                           |
 | Mute             | `120`                          |
 
+## PC Host Interface — JTAG-UART + GUI
+
+Alongside the on-board switches/HEX controls, the whole parameter store can be
+read and edited live from a **PC over the JTAG-UART** — the *same on-board
+USB-Blaster cable you already use to program the board*. There are **no extra
+top-level pins**: the link rides the JTAG chain. The MIDI/Arduino path is
+independent and untouched by this interface.
+
+**On-FPGA transport stack** (all in [`src/control/`](./src/control/)):
+
+```
+JtagUart (Qsys IP)  ──Avalon-MM──►  jtag_uart_adapter  ──byte stream──►  host_if  ──►  controller all_params
+```
+
+* `JtagUart` is the Altera JTAG UART IP; `jtag_uart_adapter.sv` turns its Avalon
+  register interface into a simple RX/TX byte stream (TX prioritized so even the
+  512-byte dump flushes out).
+* `host_if.sv` is the command parser/responder FSM. It decodes a fixed 7-byte
+  request, drives the controller's parameter store, and serializes the reply —
+  staying transport-agnostic so the JTAG-UART could later be swapped for a plain
+  UART without changing it.
+
+**What the host can do:** per-parameter **read/write**, read a parameter's
+**factory default**, **dump** all 512 bytes, **reset** at param/fx/bank/all
+scope, **save/load** the four banks to flash, query the **live bank**, and
+**ping** for the firmware version. Read-only and busy rules are enforced in
+hardware (the pedal slot FX7·P0 is read-only; writes during a flash save are
+rejected as busy).
+
+**PC tooling** lives in [`kfx_gui/`](./kfx_gui/): a Tkinter desktop editor
+(`gui.py`) and a CLI (`protocol.py`) built on a transport-agnostic `Client`.
+Setup, the CLI, and the GUI are documented in
+[`kfx_gui/README.md`](./kfx_gui/README.md). The tool needs Quartus on `PATH`
+(its `intel-jtag-uart` dependency wraps Quartus's `jtag_atlantic`) and exclusive
+ownership of the JTAG link — close `nios2-terminal`, the Programmer's
+auto-detect, and SignalTap first, and close the tool before re-programming.
+
+> The byte-level wire format — request/response frames, opcodes, error codes,
+> checksums, and worked examples — is specified in **[`PROTOCOL.md`](./PROTOCOL.md)**.
+
 ## Implemented Effects & Parameters
 
 ### Gain
