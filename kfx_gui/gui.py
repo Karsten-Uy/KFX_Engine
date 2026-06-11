@@ -156,7 +156,9 @@ RK_KNOB_CHROME = sc(38) # label + value rows stacked around a knob (≈32 px); t
                         # height budget subtracts it so a grown knob's whole cell fits
 RK_EQ_H   = sc(128)     # EQ band slider height (console only; rack EQ uses knobs)
 RK_HDR_H  = sc(24)      # rack unit header (name plate) height
-RK_EAR_W  = sc(20)      # rack ear width
+RK_EAR_W  = sc(20)      # rack ear width (portrait: vertical flange, screws top+bottom)
+RK_FLANGE_H = sc(16)    # console strip flange height (landscape: horizontal flange
+                        # across the top + bottom, screws left+right — same rack look)
 RK_NODE_Y = sc(14)      # header center, where the cable taps into a unit
 RK_KNOB_COLS = 8        # all of an FX's knobs sit in one row (keeps units short)
 RK_MASTER_BG = "#272620"   # gold-tinted master bar face
@@ -443,17 +445,29 @@ def _draw_screw(cv, cx, cy, size, angle):
 
 
 def draw_rack_ear(cv, w, h, side, collapsed):
-    """A rack ear: a darker flange with mounting screws — two when the unit is
-    expanded, one centered when collapsed (or when the bar is short)."""
+    """A rack ear / flange with mounting screws. Left/right ears (portrait rack)
+    are a vertical flange with a screw at the top and bottom; top/bottom flanges
+    (landscape console strips) are a horizontal flange with a screw at the left and
+    right. A short flange — or a collapsed unit — gets a single centered screw."""
     cv.delete("all")
-    edge_x = (w - 1) if side == "left" else 0
-    cv.create_line(edge_x, 0, edge_x, h, fill="#1a1b1f")
-    cx = w / 2
-    if collapsed or h < sc(56):
-        _draw_screw(cv, cx, h / 2, sc(9), 0.6)
-    else:
-        _draw_screw(cv, cx, sc(12), sc(9), 0.6)
-        _draw_screw(cv, cx, h - sc(12), sc(9), 2.2)
+    if side in ("left", "right"):
+        edge_x = (w - 1) if side == "left" else 0
+        cv.create_line(edge_x, 0, edge_x, h, fill="#1a1b1f")
+        cx = w / 2
+        if collapsed or h < sc(56):
+            _draw_screw(cv, cx, h / 2, sc(9), 0.6)
+        else:
+            _draw_screw(cv, cx, sc(12), sc(9), 0.6)
+            _draw_screw(cv, cx, h - sc(12), sc(9), 2.2)
+    else:   # "top" / "bottom" — horizontal flange, screws at the left + right ends
+        edge_y = (h - 1) if side == "top" else 0
+        cv.create_line(0, edge_y, w, edge_y, fill="#1a1b1f")
+        cy = h / 2
+        if collapsed or w < sc(56):
+            _draw_screw(cv, w / 2, cy, sc(9), 0.6)
+        else:
+            _draw_screw(cv, sc(12), cy, sc(9), 0.6)
+            _draw_screw(cv, w - sc(12), cy, sc(9), 2.2)
 
 
 # ============================================================================
@@ -749,24 +763,25 @@ class Stepper(_Control):
 
 
 class Fader(_Control):
-    def __init__(self, parent, gui, fx, p, accent, master=False, fill=False, wide=False):
+    def __init__(self, parent, gui, fx, p, accent, master=False, fill=False,
+                 wide=False, bg=PANEL):
         super().__init__(gui, fx, p)
         self.accent = accent
         self.unity = fader_unity(fx, p)
         self.w = sc(58) if master else (sc(54) if wide else sc(46))
         self.h = sc(222) if (master or fill) else sc(200)
-        f = tk.Frame(parent, bg=PANEL)
+        f = tk.Frame(parent, bg=bg)
         self.frame = f
         lbl = plab(M.param_name(fx, p))
         if master:
             lbl = "MASTER"
-        tk.Label(f, text=lbl, font=gui.f_label, fg=FAINT, bg=PANEL).pack(pady=(0, 4))
-        self.cv = tk.Canvas(f, width=self.w, height=self.h, bg=PANEL,
+        tk.Label(f, text=lbl, font=gui.f_label, fg=FAINT, bg=bg).pack(pady=(0, 4))
+        self.cv = tk.Canvas(f, width=self.w, height=self.h, bg=bg,
                             highlightthickness=0)
         self.cv.pack()
         self.lbl = self.make_value_entry(
             f, font=(gui.f_fval if not master else gui.f_master),
-            fg=(accent if master else READOUT))
+            fg=(accent if master else READOUT), bg=bg)
         self.lbl.pack(pady=(5, 0))
         if not self.ro:
             self.cv.configure(cursor="sb_v_double_arrow")
@@ -1138,6 +1153,7 @@ class RackUnit:
         # ears redraw via their own <Configure>; the right-side FX->FX cables
         # need an explicit redraw since folding changed the unit heights
         self.gui._schedule_cable_redraw()
+        self.gui._paint_foldtoggle()   # keep the single fold/expand button in sync
 
 
 # ============================================================================
@@ -1192,10 +1208,12 @@ class Strip:
         else:
             self.min_width = sc(110)          # compressor / distortion / reverb
         width = max(self.min_width, sc(130))  # provisional; autofit corrects it
-        bg = "#272620" if self.master else PANEL
-        outer = tk.Frame(parent, bg=bg, width=width, height=STRIP_H,
+        # the master strip wears the same gold-tinted face as the portrait rack's
+        # MASTER bar; every other strip stays on the neutral PANEL background.
+        self.bg = RK_MASTER_BG if self.master else PANEL
+        outer = tk.Frame(parent, bg=self.bg, width=width, height=STRIP_H,
                          highlightthickness=1,
-                         highlightbackground=("#4a401f" if self.master else "#303138"))
+                         highlightbackground=(RK_MASTER_BD if self.master else "#303138"))
         # no extra left pad on the master: the "feed" connector sits flush against
         # it so its signal-flow line reaches the strip edge instead of leaving a gap.
         # expand+fill="both": the fitted width (set by fit_width, pinned by
@@ -1205,12 +1223,27 @@ class Strip:
         outer.pack_propagate(False)   # lock strip width (and pin the height floor)
         self.frame = outer
 
+        # ---- rack-module styling: screw flanges across the top + bottom edges ----
+        # The portrait rack units flank each unit with screwed ears on the left and
+        # right; the landscape strips are tall, so the matching flanges run across
+        # the top and bottom. Packed first so the body fills between them; each
+        # redraws its screws on <Configure> as the strip width changes.
+        self.ears = []
+        for side in ("top", "bottom"):
+            ear = tk.Canvas(outer, width=1, height=RK_FLANGE_H, bg="#232428",
+                            highlightthickness=0)
+            ear.pack(side=side, fill="x")
+            ear.bind("<Configure>",
+                     lambda e, c=ear, s=side: draw_rack_ear(c, e.width, e.height,
+                                                            s, False))
+            self.ears.append(ear)
+
         # ---- header name-plate + body, in one frame ----
         # _populate builds the colored name-plate (via _make_header) then the
         # body controls into a single frame that fills the strip. Bank switches
         # rewrite the live controls in place (no animation, no second buffer).
         self.hdr_label = self.hdr_row = None
-        self.body = tk.Frame(outer, bg=PANEL)
+        self.body = tk.Frame(outer, bg=self.bg)
         self.body.pack(side="top", fill="both", expand=True)
         self.body.pack_propagate(False)
         self.controls = self._populate(self.body, track_fit=True)
@@ -1301,7 +1334,7 @@ class Strip:
                     self._fit_frames.append(inner)
 
         if fp is not None:
-            fz = tk.Frame(container, bg=PANEL, highlightthickness=0)
+            fz = tk.Frame(container, bg=self.bg, highlightthickness=0)
             fz.pack(side="top", fill="both", expand=True)
             if not self._fader_only:
                 tk.Frame(fz, bg=SEP, height=1).pack(fill="x")   # divide knobs / fader
@@ -1309,7 +1342,7 @@ class Strip:
                 tk.Label(fz, text=" PEDAL ", font=gui.f_cat, fg="#6fd0c6",
                          bg="#1c2b29", bd=1, relief="solid").pack(pady=(8, 0))
             fader = Fader(fz, gui, fx, fp, accent, master=self.master,
-                          fill=self.fill, wide=self._fader_only)
+                          fill=self.fill, wide=self._fader_only, bg=self.bg)
             fader.frame.pack(pady=(8, 6), expand=True)
             if track_fit:
                 self._fit_frames.append(fader.frame)
@@ -1543,15 +1576,13 @@ class KfxGui(tk.Tk):
                                    padx=11, pady=6, cursor="hand2")
         self.follow_btn.pack(side="right", padx=(0, 12), pady=(6, 0))
         self.follow_btn.bind("<Button-1>", lambda e: self.toggle_follow())
-        # rack-only fold controls — packed/unpacked by _set_view
-        self.expand_btn = tk.Label(bar, text="▾ EXPAND", font=self.f_btn,
-                                   fg=DIM, bg="#1b1c21", padx=6, pady=6,
-                                   cursor="hand2")
-        self.expand_btn.bind("<Button-1>", lambda e: self.fold_all(False))
-        self.fold_btn = tk.Label(bar, text="▸ FOLD", font=self.f_btn,
-                                 fg=DIM, bg="#1b1c21", padx=6, pady=6,
-                                 cursor="hand2")
-        self.fold_btn.bind("<Button-1>", lambda e: self.fold_all(True))
+        # rack-only fold/expand toggle — packed/unpacked by _set_view. One button:
+        # its label tracks the rack state (EXPAND when everything is folded, else
+        # FOLD) and clicking flips the whole rack to the other state.
+        self.foldtoggle_btn = tk.Label(bar, text="▸ FOLD", font=self.f_btn,
+                                       fg=DIM, bg="#1b1c21", padx=6, pady=6,
+                                       cursor="hand2")
+        self.foldtoggle_btn.bind("<Button-1>", lambda e: self.toggle_fold_all())
         self._paint_tabs()
         self._paint_follow()
 
@@ -1578,10 +1609,10 @@ class KfxGui(tk.Tk):
     # ---------------------------------------------------------------- console
     def _build_console(self):
         wrap = self.console_frame = tk.Frame(self.center, bg=BG)
-        hsb = tk.Scrollbar(wrap, orient="horizontal")
+        hsb = self._console_hsb = tk.Scrollbar(wrap, orient="horizontal")
         hsb.pack(side="bottom", fill="x")
         canvas = tk.Canvas(wrap, bg=BG, highlightthickness=0,
-                           xscrollcommand=hsb.set)
+                           xscrollcommand=self._console_xscroll)
         canvas.pack(side="top", fill="both", expand=True)
         hsb.config(command=canvas.xview)
         inner = tk.Frame(canvas, bg=BG)
@@ -1619,6 +1650,21 @@ class KfxGui(tk.Tk):
                 # the rest are plain connecting lines
                 self._connector(pad, "feed" if M.is_global(chain[i + 1]) else "mid")
         self._connector(pad, "out")
+
+    def _console_xscroll(self, first, last):
+        """Drive the console's horizontal scrollbar — but hide it whenever the whole
+        chain already fits the window (nothing to scroll), showing it again only when
+        the row overflows. Mirrors the rack view's vertical-scrollbar behavior.
+
+        Toggling a bottom-packed scrollbar changes only the canvas height, not its
+        width, so the horizontal fit it depends on never changes — no oscillation."""
+        hsb = self._console_hsb
+        hsb.set(first, last)
+        fits = float(first) <= 0.001 and float(last) >= 0.999
+        if fits and hsb.winfo_ismapped():
+            hsb.pack_forget()
+        elif not fits and not hsb.winfo_ismapped():
+            hsb.pack(side="bottom", fill="x", before=self._console_canvas)
 
     def _connector(self, parent, kind):
         """A thin full-height gap carrying the signal-flow line. 'in'/'out' caps
@@ -1789,6 +1835,21 @@ class KfxGui(tk.Tk):
     def fold_all(self, fold):
         for u in self.rack_units:
             u.set_collapsed(fold)
+        self._paint_foldtoggle()
+
+    def toggle_fold_all(self):
+        # fold everything, unless it's already all folded — then expand everything
+        self.fold_all(not all(u.collapsed for u in self.rack_units))
+
+    def _paint_foldtoggle(self):
+        """Sync the single fold/expand button's label to the rack state, so it shows
+        the action it will perform (FOLD while anything is open, EXPAND once all are
+        folded). Also keeps it in step with per-unit header clicks."""
+        btn = getattr(self, "foldtoggle_btn", None)
+        if btn is None:
+            return
+        folded = bool(self.rack_units) and all(u.collapsed for u in self.rack_units)
+        btn.config(text="▾ EXPAND" if folded else "▸ FOLD")
 
     def _schedule_cable_redraw(self):
         # widget positions are only valid once layout settles; coalesce the many
@@ -1865,15 +1926,14 @@ class KfxGui(tk.Tk):
         if mode == "rack":
             self.console_frame.pack_forget()
             self.rack_frame.pack(fill="both", expand=True)
-            # pack order: follow (rightmost), then EXPAND, then FOLD to its left
-            self.expand_btn.pack(side="right", pady=(6, 0))
-            self.fold_btn.pack(side="right", pady=(6, 0))
+            # to the left of the follow toggle (which is rightmost)
+            self.foldtoggle_btn.pack(side="right", pady=(6, 0))
+            self._paint_foldtoggle()
             self._schedule_cable_redraw()   # positions are valid once shown
         else:
             self.rack_frame.pack_forget()
             self.console_frame.pack(fill="both", expand=True)
-            self.fold_btn.pack_forget()
-            self.expand_btn.pack_forget()
+            self.foldtoggle_btn.pack_forget()
         for c in self.controls:    # sync the freshly shown view's readouts
             c.redraw()
 
