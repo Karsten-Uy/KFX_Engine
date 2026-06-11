@@ -20,6 +20,13 @@
  *
  * sample_en must be a single-cycle pulse with data_in valid on that cycle.
  *
+ * Reset behaviour
+ * ---------------
+ * While reset_n is asserted, the buffer is walked one address per clock
+ * writing 0 (a full pass completes in MAX_DELAY_SAMPLES clocks).  This
+ * clears stale BRAM that would otherwise be read back the instant audio
+ * resumes — the same post-bank-switch buzz fix used in delay_line.sv.
+ *
  * Ports
  * -----
  *   data_in       — sample to write
@@ -52,7 +59,17 @@ module delay_line_li #(
     logic [ADDR_W-1:0]        write_ptr;
     logic [ADDR_W-1:0]        read_ptr0;   // integer-delay address
     logic [ADDR_W-1:0]        read_ptr1;   // integer-delay + 1 (for interpolation)
+    logic [ADDR_W-1:0]        clear_addr = '0;  // reset-time BRAM clear walk
+                                                 // (init 0 = FPGA power-up state;
+                                                 //  also keeps 4-state sim defined)
     logic signed [DATA_W-1:0] ram_out0, ram_out1;
+
+    // BRAM write-port mux — selects between the reset-time clear walk and
+    // normal sample_en writes (mirrors delay_line.sv).  Splitting the write
+    // out of the read always_ff keeps a clean M10K inference.
+    logic [ADDR_W-1:0]        bram_wr_addr;
+    logic signed [DATA_W-1:0] bram_wr_data;
+    logic                     bram_we;
 
     // Split fixed-point delay into integer and fractional parts
     logic [ADDR_W-1:0] delay_int;
@@ -63,8 +80,13 @@ module delay_line_li #(
     // Registered fractional part (aligned with the RAM read pipeline stage)
     logic [FRAC_W-1:0] frac_reg;
 
-    // Interpolation intermediate values (32-bit signed for headroom)
-    logic signed [31:0] s0, s1, diff, product, interpolated;
+    // Interpolation intermediate values (32-bit signed for headroom).
+    // `product` is the only multiply (diff × FRAC_W-bit fraction).  Forcing
+    // it into ALUTs keeps it off the scarce DSP blocks — the design runs at
+    // 87/87 DSP, and with FRAC_W small the shift-add tree is cheap.  This
+    // also frees the DSPs the chorus instances would otherwise spend here.
+    logic signed [31:0] s0, s1, diff, interpolated;
+    (* multstyle = "logic" *) logic signed [31:0] product;
 
     // ----------------------------------------------------------------
     // Read Address Calculation
@@ -82,14 +104,37 @@ module delay_line_li #(
     end
 
     // ----------------------------------------------------------------
+    // Write-Port Mux  (combinational)
+    //
+    // During reset, walk every address writing 0 (clear_addr advances one
+    // step per clock in the pointer block below).  Outside reset, data_in
+    // is written at write_ptr on each sample_en pulse.
+    // ----------------------------------------------------------------
+
+    always_comb begin
+        if (!reset_n) begin
+            bram_wr_addr = clear_addr;
+            bram_wr_data = '0;
+            bram_we      = 1'b1;
+        end else begin
+            bram_wr_addr = write_ptr;
+            bram_wr_data = data_in;
+            bram_we      = sample_en;
+        end
+    end
+
+    // ----------------------------------------------------------------
     // Synchronous RAM Access  (one-cycle read latency)
     // ----------------------------------------------------------------
 
     always_ff @(posedge clk) begin
+        if (bram_we) buffer[bram_wr_addr] <= bram_wr_data;
+    end
+
+    always_ff @(posedge clk) begin
         if (sample_en) begin
-            buffer[write_ptr] <= data_in;
-            ram_out0          <= buffer[read_ptr0];
-            ram_out1          <= buffer[read_ptr1];
+            ram_out0 <= buffer[read_ptr0];
+            ram_out1 <= buffer[read_ptr1];
         end
     end
 
@@ -105,9 +150,12 @@ module delay_line_li #(
 
     always_ff @(posedge clk) begin
         if (!reset_n) begin
-            write_ptr <= '0;
-            data_out  <= '0;
-            frac_reg  <= '0;
+            write_ptr  <= '0;
+            data_out   <= '0;
+            frac_reg   <= '0;
+            clear_addr <= (clear_addr == ADDR_W'(MAX_DELAY_SAMPLES - 1))
+                          ? '0
+                          : clear_addr + 1'b1;
         end else if (sample_en) begin
             frac_reg <= delay_frac;  // register fraction to match RAM latency
 

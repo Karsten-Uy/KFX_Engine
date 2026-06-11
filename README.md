@@ -16,7 +16,7 @@ The design was initially forked from the *audio-loopback-only* example in
 Audio is processed sequentially through the following effect chain:
 
 ```
-Gain -> Gate -> EQ -> Compressor -> Distortion -> EQ -> Chorus -> Gain -> Delay -> Reverb -> Gain
+Input Gain -> Gate -> EQ -> Compressor -> Distortion -> EQ -> Chorus -> Expression Pedal Gain -> Delay -> Reverb -> Bank Gain -> Global Gain
 ```
 
 ---
@@ -162,7 +162,7 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 
 ### FX Mapping Table
 
-| FX          | Parameter       | FX Num | Parameter Num |
+| FX          | Parameter       | FX Num    | Parameter Num    |
 | ----------- | --------------- | --------- | ---------------- |
 | Input Gain  | fx_gain         | F0        | P0               |
 | Gate        | fx_threshold    | F1        | P0               |
@@ -189,6 +189,9 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 | Distortion  | fx_tightness    | F4        | P5               |
 | Distortion  | fx_smooth       | F4        | P6               |
 | Distortion  | fx_mix          | F4        | P7               |
+
+| FX          | Parameter       | FX Num    | Parameter Num    |
+| ----------- | --------------- | --------- | ---------------- |
 | EQ2         | fx_sub_gain     | F5        | P0               |
 | EQ2         | fx_low_gain     | F5        | P1               |
 | EQ2         | fx_mid_gain     | F5        | P2               |
@@ -203,6 +206,10 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 | Reverb      | fx_size         | F9        | P0               |
 | Reverb      | fx_damping      | F9        | P1               |
 | Reverb      | fx_decay        | F9        | P2               |
+| Reverb      | fx_moddepth     | F9        | P3               |
+| Reverb      | fx_diffusion    | F9        | P4               |
+| Reverb      | fx_predelay     | F9        | P5               |
+| Reverb      | fx_width        | F9        | P6               |
 | Reverb      | fx_mix          | F9        | P7               |
 | Output Gain | fx_gain         | F10       | P0               |
 | Global Gain | fx_gain         | F15       | P0               |
@@ -322,6 +329,46 @@ The sketch uses the [MIDIUSB](https://github.com/arduino-libraries/MIDIUSB) libr
 | Expression pedal | `4`, `66`, `67`, `68` (by active bank) |
 | Delay tap        | `96`                           |
 | Mute             | `120`                          |
+
+## PC Host Interface — JTAG-UART + GUI
+
+Alongside the on-board switches/HEX controls, the whole parameter store can be
+read and edited live from a **PC over the JTAG-UART** — the *same on-board
+USB-Blaster cable you already use to program the board*. There are **no extra
+top-level pins**: the link rides the JTAG chain. The MIDI/Arduino path is
+independent and untouched by this interface.
+
+**On-FPGA transport stack** (all in [`src/control/`](./src/control/)):
+
+```
+JtagUart (Qsys IP)  ──Avalon-MM──►  jtag_uart_adapter  ──byte stream──►  host_if  ──►  controller all_params
+```
+
+* `JtagUart` is the Altera JTAG UART IP; `jtag_uart_adapter.sv` turns its Avalon
+  register interface into a simple RX/TX byte stream (TX prioritized so even the
+  512-byte dump flushes out).
+* `host_if.sv` is the command parser/responder FSM. It decodes a fixed 7-byte
+  request, drives the controller's parameter store, and serializes the reply —
+  staying transport-agnostic so the JTAG-UART could later be swapped for a plain
+  UART without changing it.
+
+**What the host can do:** per-parameter **read/write**, read a parameter's
+**factory default**, **dump** all 512 bytes, **reset** at param/fx/bank/all
+scope, **save/load** the four banks to flash, query the **live bank**, and
+**ping** for the firmware version. Read-only and busy rules are enforced in
+hardware (the pedal slot FX7·P0 is read-only; writes during a flash save are
+rejected as busy).
+
+**PC tooling** lives in [`kfx_gui/`](./kfx_gui/): a Tkinter desktop editor
+(`gui.py`) and a CLI (`protocol.py`) built on a transport-agnostic `Client`.
+Setup, the CLI, and the GUI are documented in
+[`kfx_gui/README.md`](./kfx_gui/README.md). The tool needs Quartus on `PATH`
+(its `intel-jtag-uart` dependency wraps Quartus's `jtag_atlantic`) and exclusive
+ownership of the JTAG link — close `nios2-terminal`, the Programmer's
+auto-detect, and SignalTap first, and close the tool before re-programming.
+
+> The byte-level wire format — request/response frames, opcodes, error codes,
+> checksums, and worked examples — is specified in **[`PROTOCOL.md`](./PROTOCOL.md)**.
 
 ## Implemented Effects & Parameters
 
@@ -457,20 +504,48 @@ Implements an echo effect using delay lines with feedback.
 
 ### Reverb
 
-Implements a **Schroeder Reverberator** using parallel damped feedback comb filters followed by series all-pass filters to simulate room reverberation.
+Implements a **Feedback Delay Network (FDN)** reverberator: 8 modulated fractional delay lines cross-coupled every sample through a lossless 8×8 Hadamard mixing matrix, fed by a stereo input chain of pre-delay → 2 series all-pass diffusers per channel.
 
-**Decay vs. size are independent.** `fx_size` scales the comb delay lengths (controls *what kind of room* - small = dense early reflections, large = sparse, spacious), and `fx_decay` selects the comb feedback gain in 4 discrete steps (controls *how long the tail rings*). This lets you set up small-room/long-tail or large-room/short-tail combinations that a single "size" parameter couldn't reach.
+The previous design was a Schroeder/Moorer reverb (4 parallel combs → 3 series all-passes per channel). With only 4 comb modes per channel the tail's echo density is low and periodic, which the ear hears as a ringing "metallic" coloration — worst on long, high-decay swells. Cross-coupling 8 delay lines through the Hadamard matrix makes echo density grow multiplicatively, so the FDN tail becomes dense and smooth. A slow (~0.86 Hz) triangle LFO gives each line a decorrelated, slewed length modulation (Lexicon-style) to break up any residual metallic ringing, and a fractional (interpolating) read keeps the moving delay from quantise-buzzing. The Hadamard matrix and feedback gain are multiplier-free / forced into logic, so the FDN actually uses **fewer** DSP blocks than the old Schroeder reverb. Output taps are mid/side-decoded for stereo width and pass through a per-channel DC blocker before the dry/wet mix.
+
+**Decay vs. size are independent.** `fx_size` scales all 8 FDN delay-line lengths (controls *what kind of room* — small = dense early reflections, large = sparse, spacious), and `fx_decay` selects the per-line round-trip feedback gain in 4 discrete steps (controls *how long the tail rings*). This lets you set up small-room/long-tail or large-room/short-tail combinations that a single "size" parameter couldn't reach.
 
 **Parameters**
 
-* `fx_size`: Room size - scales all four comb filter delays (`0` = smallest / densest room, `255` = largest / most spacious)
-* `fx_damping`: High-frequency damping of the reverb tail (`0` = bright / full HF content, `255` = dark / heavily damped)
-* `fx_decay`: Tail length / RT60 - 4 discrete steps selected by the upper two bits:
-  * `0–63` → short tail (~1–2 s at max delay)
-  * `64–127` → medium (~3 s)
-  * `128–191` → original behavior (~7-8 s)
-  * `192–255` → long (~15+ s)
-* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = ~99.6% wet)
+* `fx_size`: Room size — scales all 8 FDN delay-line lengths (`0` = smallest / densest room, `255` = largest / most spacious)
+* `fx_damping`: High-frequency damping of the reverb tail, a one-pole low-pass on each line's feedback (`0` = bright / full HF content, `255` = dark / heavily damped)
+* `fx_decay`: Tail length / RT60 — 4 discrete steps selected by the upper two bits (`fx_decay[7:6]`), each a per-line round-trip feedback gain `g`:
+  * `0–63` → short (`g ≈ 0.781`)
+  * `64–127` → medium (`g ≈ 0.859`)
+  * `128–191` → long (`g ≈ 0.922`, default / reset)
+  * `192–255` → huge (`g ≈ 0.969`)
+* `fx_moddepth`: Tail modulation depth — how far the LFO wobbles each delay length (`0` = static, `255` = max wobble, ≈ ±15 samples). Adds movement that smears any metallic ringing.
+* `fx_diffusion`: Input diffusion — coefficient of the two series all-pass diffusers on each channel (`0` = none / clear transients into the tank, `255` = max smear / softened attacks)
+* `fx_predelay`: Pre-delay before the reverb tank (`0` ≈ 0 ms, `255` ≈ 80 ms) — separates the dry signal from the onset of the tail
+* `fx_width`: Stereo width of the wet signal — scales the side component of the mid/side-decoded tap (`0` = mono tail, `255` = fully decorrelated stereo)
+* `fx_mix`: Dry/wet blend (`0` = fully dry, `255` = full wet)
+
+---
+
+## Audio-Integrity & Build Notes (Clock-Domain Crossing + SignalTap)
+
+Two non-obvious, **fit-dependent** problems caused audible audio corruption — a buzz/crackle that varied between otherwise-identical compiles (the *same* RTL sounded clean on one build and distorted on the next). Both are documented here because they pass static timing analysis and are easy to reintroduce.
+
+### 1. Codec clock-domain crossing — the buzz / crackle
+
+The WM8731 codec runs as the **I2S master**, so `AUD_BCLK`, `AUD_ADCLRCK`, `AUD_DACLRCK`, and `AUD_ADCDAT` are **asynchronous** to the 50 MHz system clock. The Intel University-Program audio core (`altera_up_clock_edge`) sampled each of these with a **single flip-flop** and used that flop *directly* in the edge detector that clocks the I2S serializer/deserializer. A one-flop sampler on an asynchronous signal is metastability-prone: on an unlucky place-and-route the metastability resolved too late, **slipped I2S bits**, and produced extremely distorted audio. Because it depends on routing delays, the result changed from compile to compile. The Timing Analyzer reported the design clean (metastability is **not** a static-timing violation), and the metastability report flagged these chains with *"MTBF could not be calculated."*
+
+**Fix:** synchronize the four asynchronous codec lines through a clean **2-FF synchronizer at the top level** (`src/AudioFX.sv`), *before* they enter the codec IP, then feed the codec the synchronized copies. All four are delayed by the same two cycles, so the relative I2S framing is preserved. This is deliberately done at the top level rather than inside `altera_up_clock_edge` — edits to the generated Platform Designer IP are overwritten whenever the IP is regenerated.
+
+### 2. SignalTap perturbs the fit — the residual static popping
+
+With the synchronizer in place the buzz was largely gone, but a residual **static popping** remained. The cause was **SignalTap itself**: the embedded logic analyzer adds an acquisition RAM, trigger logic, a JTAG hub, and a second clock domain (`auto_stp_external_clock_0`, 100 MHz). In this near-full, timing-tight design that extra logic and routing **congestion shifts the placement** of the audio paths on every recompile (and every time the tap set changes) — enough to push marginal paths into occasional glitching. Removing SignalTap eliminated the popping.
+
+**Fix:** build the **production bitstream with SignalTap disabled** (Assignments → Settings → *SignalTap Logic Analyzer* → uncheck **Enable SignalTap Logic Analyzer**). Only enable it on a separate debug build when you actually need to capture internal signals — the "does it sound clean" bitstream and the "watch internal signals" bitstream are genuinely different fits.
+
+### Takeaway
+
+For a clean, repeatable audio build: keep the **top-level codec synchronizers** in place, and **compile final bitstreams with SignalTap off**. Together these removed the recompile-dependent buzz/crackle and the static popping. (Separately, an unregistered combinational divide on the expression-pedal path and a DSP-inferred combinational loop in `fx_distortion` were fixed during the same investigation — see the controller/distortion sources.)
 
 ---
 

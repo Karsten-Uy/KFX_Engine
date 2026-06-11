@@ -1,0 +1,14 @@
+[project]
+name = "kfx_gui"
+version = "0.1.0"
+description = "Host parameter editor for the KFX Engine pedalboard (JTAG-UART)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "intel-jtag-uart>=0.0.3",
+]
+# GUI uses Tkinter (Python standard library) — no heavy desktop-toolkit download.
+
+[tool.uv]
+# Flat app (scripts, not an installable library) — manage deps only.
+package = false

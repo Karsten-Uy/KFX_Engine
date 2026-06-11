@@ -27,6 +27,7 @@ work/
 *.bak
 *.orig
 *~
+.claude/
 
 
 # --- IP & System Design (Qsys/Platform Designer) ---
@@ -36,6 +37,7 @@ AudioCodec/
 AudioPLL/
 FlashMemInterface/
 expressionPedalADC/
+JtagUart/
 pcie_reconfig_test/
 *.sopcinfo
 *.map
@@ -43,5 +45,7 @@ pcie_reconfig_test/
 
 # -- Irrelevant dev files
 src_*/
+kfx_gui/__pycache__/
+kfx_gui/.venv/
 HaH_processor*/
 *.zip

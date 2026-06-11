@@ -436,7 +436,15 @@ generate
             else
                 counter <= counter - 8'b1;
         // - - - - - - - - ADC_SCLK generation - - - - - - - - - 
-            always @(posedge clock or posedge reset)
+            // Synchronous reset (was "or posedge reset").  Under BOARD_REV =
+            // "Autodetect", isLTC = ad_or_ltc_error_count[3] is a RUNTIME register,
+            // so ~isLTC is non-constant.  An asynchronous reset that loads a
+            // non-constant value cannot map to a flip-flop, so Quartus builds sclk
+            // as a latch with undefined power-up — the "1 combinational loop /
+            // KEY[0] is a clock" warning, which glitches the ADC clock and causes a
+            // recompile-dependent audio crackle.  Synchronous reset removes the
+            // latch and matches this module's FSM (already sync-reset).
+            always @(posedge clock)
             if (reset)
                 sclk <= ~isLTC;
             else if (cs_n)

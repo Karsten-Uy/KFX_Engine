@@ -132,7 +132,20 @@ module controller (
     output logic [31:0] flash_csr_writedata,
     input  logic [31:0] flash_csr_readdata,
     input  logic        flash_csr_waitrequest,
-    input  logic        flash_csr_readdatavalid
+    input  logic        flash_csr_readdatavalid,
+
+    // ---- Host (PC) parameter interface (UART/JTAG, transport-agnostic) ----
+    input  logic                           host_wr_en,
+    input  logic [$clog2(BANK_COUNT)-1:0]  host_bank,
+    input  logic [$clog2(FX_COUNT)-1:0]    host_fx,
+    input  logic [$clog2(PARAM_COUNT)-1:0] host_param,
+    input  logic [PARAM_W-1:0]             host_data,
+    input  logic                           host_rst_en,
+    input  logic [1:0]                     host_rst_scope,   // 0=param 1=fx 2=bank 3=all
+    input  logic                           host_save_pulse,
+    input  logic                           host_load_pulse,
+    output logic [PARAM_W-1:0]             host_rd_value,    // all_params[host_bank][host_fx][host_param]
+    output logic [PARAM_W-1:0]             host_default_value // param_default(host_bank,host_fx,host_param)
 );
 
     import lab_pkg::*;
@@ -215,6 +228,10 @@ module controller (
     assign fx_sel        = sw_fx_sel;
     assign param_sel     = sw_param_sel;
     assign current_value = all_params[bank_sel][fx_sel][param_sel];
+
+    // Host readback: current value and factory default at the host's address.
+    assign host_rd_value      = all_params[host_bank][host_fx][host_param];
+    assign host_default_value = param_default(host_bank, host_fx, host_param);
 
     // ----------------------------------------------------------------
     // Two-Phase Bank Select
@@ -391,11 +408,63 @@ module controller (
 
     int i, j, k;
 
-    logic [PARAM_W-1:0] pot_prev;
-    logic [PARAM_W-1:0] pot_scaled;
-    logic [8:0]         pot_diff;
+    // ----------------------------------------------------------------
+    // Expression-pedal calibration: raw ADC heel/toe → full 0..255
+    //
+    // A plain bit-slice (pot_value[11:4]) only reaches full scale if the ADC
+    // sees its full reference.  It can't here: the pot is driven from 3.3 V but
+    // the LTC2308 reference is higher (~4 V), so the wiper tops out at ~3.08 V
+    // and the raw value never reaches 4095 — the slice would cap around ~190.
+    // Instead, linearly rescale the *measured* raw range to 0..255 (mirrors the
+    // Arduino's map(pot, 5, 630, 0, 127) in KFX_midi.ino).
+    //
+    // TODO(calibrate): set POT_RAW_MIN / POT_RAW_MAX from a SignalTap capture of
+    // `pot_value` at the pedal heel (min) and toe (max), taken AFTER the wiper
+    // op-amp buffer is installed (see WIRING.md).  The values below are
+    // placeholders of the expected magnitude — measure before trusting them.
+    localparam int POT_RAW_MIN  = 30;
+    localparam int POT_RAW_MAX  = 3100;
+    localparam int POT_RAW_SPAN = POT_RAW_MAX - POT_RAW_MIN;   // compile-time const
 
-    assign pot_scaled = pot_value[11:12-PARAM_W];
+    // Reciprocal-multiply replaces a runtime divide-by-SPAN so the ADC->param
+    // datapath is short enough to close timing at 50 MHz.  A combinational
+    // divide is ~14 logic levels and cannot settle in one 20 ns cycle.  K is
+    // derived at compile time, so it tracks any future change to the calibrated
+    // POT_RAW_MIN/MAX range:
+    //     (x-MIN)*255/SPAN  ==  ((x-MIN)*K) >> POT_RECIP_S   (error < 0.03 LSB)
+    localparam int POT_RECIP_S = 16;
+    localparam int POT_RECIP_K = (255*(1<<<POT_RECIP_S) + POT_RAW_SPAN/2) / POT_RAW_SPAN; // = 5444
+
+    logic [PARAM_W-1:0] pot_prev;
+    logic [PARAM_W-1:0] pot_scaled;            // stage 3: registered scaled value (0..255)
+    logic [8:0]         pot_diff;
+    logic [11:0]        pot_sub_q;             // stage 1: clamped (pot_value - MIN)
+    logic [24:0]        pot_prod_q;            // stage 2: pot_sub_q * K; linear region < 2^24 (high-clamp region may wrap but pot_hi2_q masks it)
+    logic               pot_lo_q,  pot_hi_q;   // stage 1: clamp flags
+    logic               pot_lo2_q, pot_hi2_q;  // stage 2: clamp flags
+
+    // Three-stage pipeline: clamp/offset -> multiply (1 DSP) -> shift/clamp.
+    // Registering pot_scaled also makes the all_params write below a clean
+    // register-to-register path.  The 3-cycle (60 ns) latency is inaudible, and
+    // the pipeline needs no reset: it self-fills in 3 cycles and the pot_diff > 1
+    // hysteresis below tolerates the brief startup transient.
+    always_ff @(posedge clk) begin
+        // Stage 1: clamp detect + offset
+        pot_lo_q  <= (pot_value <= 12'(POT_RAW_MIN));
+        pot_hi_q  <= (pot_value >= 12'(POT_RAW_MAX));
+        pot_sub_q <= (pot_value > 12'(POT_RAW_MIN)) ? 12'(pot_value - 12'(POT_RAW_MIN)) : 12'd0;
+
+        // Stage 2: multiply by reciprocal constant (Quartus folds K to a small
+        // shift-add net).  25-bit cast keeps the linear-region product exactly.
+        pot_prod_q <= 25'(pot_sub_q * POT_RECIP_K);
+        pot_lo2_q  <= pot_lo_q;
+        pot_hi2_q  <= pot_hi_q;
+
+        // Stage 3: shift (a bit-select) + clamp
+        pot_scaled <= pot_lo2_q ? 8'd0
+                    : pot_hi2_q ? 8'd255
+                    :             pot_prod_q[POT_RECIP_S +: 8];
+    end
 
     always_comb begin
         if (pot_scaled >= pot_prev)
@@ -427,6 +496,48 @@ module controller (
                 end else begin
                     all_params[f_bank][f_fx][f_p] <= latched_readdata[7:0];
                 end
+
+            // ---- Host reset-to-default (scope-aware); reuses param_default ----
+            // Priority: flash-load > host_rst > host_wr > buttons/pot.  Host
+            // pulses are gated on !fsm_busy inside host_if, so they never race
+            // the flash-load branch.  FX15 stays mirrored across all banks.
+            end else if (host_rst_en) begin
+                case (host_rst_scope)
+                    2'd0: begin  // single parameter
+                        if (host_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX))
+                            for (int b = 0; b < BANK_COUNT; b++)
+                                all_params[b][host_fx][host_param] <= param_default(b, host_fx, host_param);
+                        else
+                            all_params[host_bank][host_fx][host_param] <= param_default(host_bank, host_fx, host_param);
+                    end
+                    2'd1: begin  // whole FX row
+                        for (int p = 0; p < PARAM_COUNT; p++)
+                            if (host_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX))
+                                for (int b = 0; b < BANK_COUNT; b++)
+                                    all_params[b][host_fx][p] <= param_default(b, host_fx, p);
+                            else
+                                all_params[host_bank][host_fx][p] <= param_default(host_bank, host_fx, p);
+                    end
+                    2'd2: begin  // whole bank
+                        for (int fi = 0; fi < FX_COUNT; fi++)
+                            for (int p = 0; p < PARAM_COUNT; p++)
+                                all_params[host_bank][fi][p] <= param_default(host_bank, fi, p);
+                    end
+                    default: begin  // everything
+                        for (int bk = 0; bk < BANK_COUNT; bk++)
+                            for (int fi = 0; fi < FX_COUNT; fi++)
+                                for (int p = 0; p < PARAM_COUNT; p++)
+                                    all_params[bk][fi][p] <= param_default(bk, fi, p);
+                    end
+                endcase
+
+            // ---- Host write one parameter (FX15 mirrored across banks) ----
+            end else if (host_wr_en) begin
+                if (host_fx == $clog2(FX_COUNT)'(GLOBAL_GAIN_FX))
+                    for (int b = 0; b < BANK_COUNT; b++)
+                        all_params[b][host_fx][host_param] <= host_data;
+                else
+                    all_params[host_bank][host_fx][host_param] <= host_data;
 
             end else if (!fsm_busy) begin
                 if (inc_p || inc_r) begin
@@ -527,8 +638,8 @@ module controller (
     controller_fsm CONTROLLER_FSM (
         .clk      (clk),
         .rst_n    (reset_n),
-        .save_en  (sav_p),
-        .load_en  (ld_p),
+        .save_en  (sav_p | host_save_pulse),
+        .load_en  (ld_p  | host_load_pulse),
         .curr_bank(f_bank),
         .curr_fx  (f_fx),
         .curr_p   (f_p),

@@ -305,15 +305,39 @@ module AudioFX (
             .I2C_SCLK    (FPGA_I2C_SCLK)
         );
 
+        // ----------------------------------------------------------------
+        // Codec async-clock synchronizers
+        //
+        // AUD_BCLK / AUD_ADCLRCK / AUD_DACLRCK / AUD_ADCDAT are produced by the
+        // WM8731 (codec is I2S master) and are ASYNCHRONOUS to CLOCK_50.  The
+        // stock UP audio core samples them with a single flop and uses it
+        // directly to clock the serializer/deserializer — metastable, which on
+        // some fits slips I2S bits and gives extremely distorted, recompile-
+        // dependent audio.  Sync them through a clean 2-FF chain here, at the
+        // top level (so Qsys regeneration can't undo it).  All four are delayed
+        // by the same 2 cycles, so their relative I2S timing is preserved.
+        // ----------------------------------------------------------------
+        logic aud_bclk_m,    aud_bclk_s;
+        logic aud_adclrck_m, aud_adclrck_s;
+        logic aud_daclrck_m, aud_daclrck_s;
+        logic aud_adcdat_m,  aud_adcdat_s;
+
+        always_ff @(posedge CLOCK_50) begin
+            aud_bclk_m    <= AUD_BCLK;     aud_bclk_s    <= aud_bclk_m;
+            aud_adclrck_m <= AUD_ADCLRCK;  aud_adclrck_s <= aud_adclrck_m;
+            aud_daclrck_m <= AUD_DACLRCK;  aud_daclrck_s <= aud_daclrck_m;
+            aud_adcdat_m  <= AUD_ADCDAT;   aud_adcdat_s  <= aud_adcdat_m;
+        end
+
         // Avalon-streaming codec: ADC capture and DAC playback
         AudioCodec AUDIO_CODEC (
             .clk                          (CLOCK_50),
             .reset                        (~KEY[0]),
-            .AUD_ADCDAT                   (AUD_ADCDAT),
-            .AUD_ADCLRCK                  (AUD_ADCLRCK),
-            .AUD_BCLK                     (AUD_BCLK),
+            .AUD_ADCDAT                   (aud_adcdat_s),
+            .AUD_ADCLRCK                  (aud_adclrck_s),
+            .AUD_BCLK                     (aud_bclk_s),
             .AUD_DACDAT                   (AUD_DACDAT),
-            .AUD_DACLRCK                  (AUD_DACLRCK),
+            .AUD_DACLRCK                  (aud_daclrck_s),
             .from_adc_left_channel_ready  (ADC_Ready[0]),
             .from_adc_left_channel_data   (ADC_Data[0]),
             .from_adc_left_channel_valid  (ADC_Valid[0]),
@@ -385,6 +409,21 @@ module AudioFX (
     // FX Parameter Controller
     // ----------------------------------------------------------------
 
+    // Host (PC) parameter-interface signals (JTAG-UART transport)
+    logic                           host_wr_en, host_rst_en;
+    logic                           host_save_pulse, host_load_pulse;
+    logic [$clog2(BANK_COUNT)-1:0]  host_bank;
+    logic [$clog2(FX_COUNT)-1:0]    host_fx;
+    logic [$clog2(PARAM_COUNT)-1:0] host_param;
+    logic [PARAM_W-1:0]             host_data, host_rd_value, host_default_value;
+    logic [1:0]                     host_rst_scope;
+
+    logic [7:0]  hu_rx_data, hu_tx_data;          // host_if <-> adapter byte stream
+    logic        hu_rx_valid, hu_rx_ready, hu_tx_valid, hu_tx_ready;
+
+    logic        ju_chipselect, ju_address, ju_read_n, ju_write_n, ju_waitrequest;
+    logic [31:0] ju_readdata, ju_writedata;       // adapter <-> JtagUart Avalon-MM
+
     controller CONTROL (
         .clk               (CLOCK_50),
         .reset_n           (KEY[0]),
@@ -428,7 +467,81 @@ module AudioFX (
         .flash_csr_writedata     (flash_csr_writedata),
         .flash_csr_readdata      (flash_csr_readdata),
         .flash_csr_waitrequest   (flash_csr_waitrequest),
-        .flash_csr_readdatavalid (flash_csr_readdatavalid)
+        .flash_csr_readdatavalid (flash_csr_readdatavalid),
+
+        .host_wr_en         (host_wr_en),
+        .host_bank          (host_bank),
+        .host_fx            (host_fx),
+        .host_param         (host_param),
+        .host_data          (host_data),
+        .host_rst_en        (host_rst_en),
+        .host_rst_scope     (host_rst_scope),
+        .host_save_pulse    (host_save_pulse),
+        .host_load_pulse    (host_load_pulse),
+        .host_rd_value      (host_rd_value),
+        .host_default_value (host_default_value)
+    );
+
+    // ----------------------------------------------------------------
+    // Host (PC) Parameter Interface — JTAG-UART transport
+    //
+    //   JtagUart (Qsys IP)  <-Avalon->  jtag_uart_adapter  <-bytes->  host_if
+    //   host_if drives the controller's host_* ports.  No top-level pins:
+    //   the JTAG side rides the on-board USB-Blaster cable.
+    // ----------------------------------------------------------------
+
+    JtagUart JTAG_UART (
+        .clk_clk                     (CLOCK_50),
+        .reset_reset_n               (KEY[0]),
+        .jtag_uart_slave_chipselect  (ju_chipselect),
+        .jtag_uart_slave_address     (ju_address),
+        .jtag_uart_slave_read_n      (ju_read_n),
+        .jtag_uart_slave_readdata    (ju_readdata),
+        .jtag_uart_slave_write_n     (ju_write_n),
+        .jtag_uart_slave_writedata   (ju_writedata),
+        .jtag_uart_slave_waitrequest (ju_waitrequest)
+    );
+
+    jtag_uart_adapter JTAG_ADAPTER (
+        .clk            (CLOCK_50),
+        .reset_n        (KEY[0]),
+        .av_chipselect  (ju_chipselect),
+        .av_address     (ju_address),
+        .av_read_n      (ju_read_n),
+        .av_readdata    (ju_readdata),
+        .av_write_n     (ju_write_n),
+        .av_writedata   (ju_writedata),
+        .av_waitrequest (ju_waitrequest),
+        .rx_data        (hu_rx_data),
+        .rx_valid       (hu_rx_valid),
+        .rx_ready       (hu_rx_ready),
+        .tx_data        (hu_tx_data),
+        .tx_valid       (hu_tx_valid),
+        .tx_ready       (hu_tx_ready)
+    );
+
+    host_if HOST_IF (
+        .clk                (CLOCK_50),
+        .reset_n            (KEY[0]),
+        .rx_data            (hu_rx_data),
+        .rx_valid           (hu_rx_valid),
+        .rx_ready           (hu_rx_ready),
+        .tx_data            (hu_tx_data),
+        .tx_valid           (hu_tx_valid),
+        .tx_ready           (hu_tx_ready),
+        .host_wr_en         (host_wr_en),
+        .host_bank          (host_bank),
+        .host_fx            (host_fx),
+        .host_param         (host_param),
+        .host_data          (host_data),
+        .host_rst_en        (host_rst_en),
+        .host_rst_scope     (host_rst_scope),
+        .host_save_pulse    (host_save_pulse),
+        .host_load_pulse    (host_load_pulse),
+        .host_rd_value      (host_rd_value),
+        .host_default_value (host_default_value),
+        .bank_sel           (bank_sel),
+        .fsm_busy           (fsm_busy)
     );
 
     // ----------------------------------------------------------------
@@ -633,7 +746,7 @@ module AudioFX (
         );
 
         // ---- FX 7: Expression Gain -----------------------------------
-        fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_EXPRESSION_GAIN (
+        fx_gain #(.DATA_W(DATA_W), .PARAM_W(PARAM_W), .SMOOTH(1)) FX_EXPRESSION_GAIN (
             .clk      (CLOCK_50),
             .reset_n  (KEY[0]),       
             .audio_in (chorus_out),
@@ -659,16 +772,20 @@ module AudioFX (
 
         // ---- FX 9: Reverb --------------------------------------------
         fx_reverb #(.DATA_W(DATA_W), .PARAM_W(PARAM_W)) FX_REVERB (
-            .clk       (CLOCK_50),
-            .reset_n   (fx_reset_n),      
-            .audio_in  (delay_out),
-            .audio_out (reverb_out),
-            .flush     (fx_flush),
-            .fx_size   (params[9][0]),
-            .fx_damping(params[9][1]),
-            .fx_decay  (params[9][2]),
-            .fx_mix    (params[9][7]),
-            .sample_en (sample_en_pipe[9])
+            .clk        (CLOCK_50),
+            .reset_n    (fx_reset_n),
+            .audio_in   (delay_out),
+            .audio_out  (reverb_out),
+            .flush      (fx_flush),
+            .fx_size    (params[9][0]),
+            .fx_damping (params[9][1]),
+            .fx_decay   (params[9][2]),
+            .fx_moddepth(params[9][3]),
+            .fx_diffusion(params[9][4]),
+            .fx_predelay(params[9][5]),
+            .fx_width   (params[9][6]),
+            .fx_mix     (params[9][7]),
+            .sample_en  (sample_en_pipe[9])
         );
 
         // ---- FX 10: Output Gain -------------------------------------

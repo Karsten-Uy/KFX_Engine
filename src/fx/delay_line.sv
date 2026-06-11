@@ -45,7 +45,9 @@ module delay_line #(
 
     logic [ADDR_W-1:0]        write_ptr;
     logic [ADDR_W-1:0]        read_ptr;
-    logic [ADDR_W-1:0]        clear_addr;
+    logic [ADDR_W-1:0]        clear_addr = '0;  // init 0 = FPGA power-up state;
+                                                // the reset clear-walk needs a
+                                                // defined start (also for 4-state sim)
     logic signed [DATA_W-1:0] ram_out;
 
     // BRAM port muxes — combinational selection of write address/data
