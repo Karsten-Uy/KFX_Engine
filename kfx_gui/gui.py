@@ -471,8 +471,10 @@ def draw_rack_ear(cv, w, h, side, collapsed):
 
 
 # ============================================================================
-# Control widgets — each reads/writes value through the gui value cache and
-# commits to the board on RELEASE (so JTAG is not flooded during a drag).
+# Control widgets — each reads/writes value through the gui value cache. During
+# a drag they stream the value to the board live (gui.live_commit, coalesced so
+# JTAG isn't flooded) and fire the authoritative gui.commit on RELEASE; wheel /
+# type / double-click commit immediately.
 # ============================================================================
 class ValueEntry(tk.Entry):
     """Numeric readout that doubles as an inline editor.
@@ -636,6 +638,7 @@ class Knob(_Control):
         if dy:
             self.gui.set_value(self.fx, self.p, self.value() + dy * 0.9)
             self.redraw()
+            self.gui.live_commit(self.fx, self.p)   # stream to the board mid-drag
 
     def _release(self, e):
         if self.active():
@@ -708,6 +711,7 @@ class EqBand(_Control):
         if dy:
             self.gui.set_value(self.fx, self.p, self.value() + dy * 1.5)
             self.redraw()
+            self.gui.live_commit(self.fx, self.p)   # stream to the board mid-drag
 
     def _release(self, e):
         if self.active():
@@ -819,6 +823,7 @@ class Fader(_Control):
         if dy:
             self.gui.set_value(self.fx, self.p, self.value() + dy * (255.0 / (self.h - 26)))
             self.redraw()
+            self.gui.live_commit(self.fx, self.p)   # stream to the board mid-drag
 
     def _release(self, e):
         if self.active():
@@ -925,6 +930,7 @@ class RackFader(_Control):
             self.gui.set_value(self.fx, self.p,
                                self.value() + dx * (255.0 / (self.w - sc(24))))
             self.redraw()
+            self.gui.live_commit(self.fx, self.p)   # stream to the board mid-drag
 
     def _release(self, e):
         if self.active():
@@ -1433,6 +1439,10 @@ class KfxGui(tk.Tk):
         # board-op plumbing: one worker thread + a result queue drained on the UI thread
         self.jobs = queue.Queue()
         self.results = queue.Queue()
+        # live-drag streaming: latest pending value per (fx, p) and a one-in-flight
+        # gate so mid-drag writes track the board in real time without flooding JTAG
+        self._live_pending = {}     # (fx, p) -> newest value awaiting a live write
+        self._live_busy = False     # True while a live write is in the worker
         threading.Thread(target=self._worker, daemon=True).start()
         self.after(40, self._drain)
 
@@ -2066,6 +2076,12 @@ class KfxGui(tk.Tk):
                     if on_done:
                         on_done(res)
                 else:
+                    if isinstance(res, P.TimeoutError_):
+                        # board went silent mid-command (almost always a reset /
+                        # re-program that kills the JTAG-UART). Tell the user and
+                        # close the app; the window is gone after this, so stop.
+                        self._connection_lost(str(res))
+                        return
                     if isinstance(res, P.ProtocolError):
                         self._error(str(res))
                     else:
@@ -2140,12 +2156,46 @@ class KfxGui(tk.Tk):
     def commit(self, fx, p):
         if not self.client or M.is_read_only(fx, p):
             return
+        # this is the authoritative write (mouse release / wheel / type / reset):
+        # supersede any value still queued from the live drag of this same param.
+        self._live_pending.pop((fx, p), None)
         value = clamp(self.get_value(fx, p))
         bank = 0 if M.is_global(fx) else self.bank   # global writes go to bank 0 (mirrored)
         name = "%s / %s" % (M.fx_name(fx), M.param_name(fx, p))
         shown = M.fmt_value(fx, p, value)
         self.submit(lambda: self.client.write_param(bank, fx, p, value),
                     lambda r: self.set_status("Wrote %s = %s" % (name, shown), "ok"))
+
+    def live_commit(self, fx, p):
+        """Stream a parameter to the board mid-drag so it tracks the control in
+        real time instead of waiting for the mouse release.
+
+        Writes are coalesced so the JTAG link is never flooded: at most one live
+        write is in flight at a time and only the newest value per (fx, p) is
+        sent — intermediate drag positions are dropped. The drag's end still
+        calls commit() for the final, authoritative write (and the status line).
+        """
+        if not self.client or M.is_read_only(fx, p):
+            return
+        self._live_pending[(fx, p)] = clamp(self.get_value(fx, p))
+        self._pump_live()
+
+    def _pump_live(self):
+        # send one coalesced live value if the link is free; chains via _live_done
+        if self._live_busy or not self._live_pending:
+            return
+        (fx, p), value = next(iter(self._live_pending.items()))
+        del self._live_pending[(fx, p)]
+        bank = 0 if M.is_global(fx) else self.bank
+        self._live_busy = True
+        # no status update per write — the live readout already shows the value,
+        # and spamming the status bar dozens of times a second is just noise.
+        self.submit(lambda: self.client.write_param(bank, fx, p, value),
+                    self._live_done)
+
+    def _live_done(self, _r):
+        self._live_busy = False
+        self._pump_live()   # flush whatever the drag queued while this write ran
 
     def select_bank(self, b):
         if not self.enabled:
@@ -2217,7 +2267,37 @@ class KfxGui(tk.Tk):
                                           filetypes=[("JSON", "*.json")])
         if not path:
             return
-        self.submit(lambda: presets.import_preset(self.client, path), self._on_import)
+        # Parse the file on the UI thread and reflect it on the controls RIGHT
+        # AWAY, so the values change the instant you pick the file instead of only
+        # after all ~180 per-parameter writes have trickled out over JTAG (which
+        # takes a couple of seconds and otherwise looks like nothing happened).
+        try:
+            entries, warnings = presets.parse_preset(path)
+        except Exception as e:
+            self._error("Could not read preset:\n%s" % e)
+            return
+        self._show_entries(entries)
+        # Hold a "writing to the board" popup up the whole time the import runs —
+        # it is ~180 serial JTAG writes and takes a couple of seconds (same idea
+        # as the Save/Load Flash overlay). The controls were updated just above,
+        # underneath the overlay, so they already show the imported values the
+        # moment it closes; the final refresh in _on_import re-syncs with the board.
+        self.submit(lambda: presets.write_entries(self.client, entries),
+                    lambda written: self._on_import((written, warnings)),
+                    busy=("Importing preset",
+                          "Writing %d parameters to the board over JTAG…" % len(entries)))
+
+    def _show_entries(self, entries):
+        """Apply parsed preset entries to the displayed value cache (for the bank
+        currently in view) and repaint every control. No forced flush: the repaint
+        lands under the import overlay (which is lifted on top), so the values are
+        ready when it closes without flashing on screen before it appears."""
+        for (bank, fx, p, val) in entries:
+            b = 0 if M.is_global(fx) else self.bank
+            if bank == b:
+                self.values[(fx, p)] = clamp(val)
+        for c in self.controls:
+            c.redraw()
 
     def _on_import(self, payload):
         try:
@@ -2287,8 +2367,33 @@ class KfxGui(tk.Tk):
 
     # ---------------------------------------------------------------- error
     def _error(self, msg):
+        # a failed job (possibly a live drag write) clears the one-in-flight gate
+        # so live streaming can resume; drop stale pending so we don't retry-storm.
+        self._live_busy = False
+        self._live_pending.clear()
         self.set_status(msg.replace("\n", " "), "bad")
         messagebox.showwarning("KFX Engine", msg)
+
+    def _connection_lost(self, msg):
+        """A read timed out — the board stopped responding. There's no way to
+        re-handshake the dead JTAG-UART in place, so warn the user (it was most
+        likely a board reset) and close the app on OK; a fresh launch reconnects.
+        """
+        # disable board ops first so the idle poller doesn't fire doomed jobs
+        # behind the modal dialog, then clear any in-flight live-drag state.
+        self.enabled = False
+        self.client = None
+        self._live_busy = False
+        self._live_pending.clear()
+        self.set_status(msg.replace("\n", " ") + " — board reset? Restart to reconnect.",
+                        "bad")
+        messagebox.showwarning(
+            "KFX Engine — connection lost",
+            msg + "\n\nThe board stopped responding. The RESET button may have "
+            "been pressed (or the board was re-programmed or unplugged), which "
+            "closes the JTAG-UART link.\n\n"
+            "Restart the application to reconnect.")
+        self.destroy()   # close the window once the user clicks OK
 
 
 def main():

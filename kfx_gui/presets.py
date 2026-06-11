@@ -44,13 +44,18 @@ def export_preset(client: P.Client, path: str) -> None:
         json.dump(doc, f, indent=2)
 
 
-def import_preset(client: P.Client, path: str) -> tuple[int, list[str]]:
-    """Write a preset file to the board. Returns (count_written, warnings)."""
+def parse_preset(path: str) -> tuple[list[tuple[int, int, int, int]], list[str]]:
+    """Parse a preset file into a flat list of (bank, fx, param, value) writes.
+
+    Pure parsing — no board I/O — so callers (e.g. the GUI) can reflect the file
+    on screen immediately before the slow per-parameter writes go out over JTAG.
+    Read-only slots are skipped; unknown FX/params are dropped with a warning.
+    """
     with open(path, "r", encoding="utf-8") as f:
         doc = json.load(f)
 
     warnings: list[str] = []
-    written = 0
+    entries: list[tuple[int, int, int, int]] = []
 
     if doc.get("version") != PRESET_VERSION:
         warnings.append(f"file version {doc.get('version')} != {PRESET_VERSION}; trying anyway")
@@ -68,8 +73,7 @@ def import_preset(client: P.Client, path: str) -> tuple[int, list[str]]:
                     continue
                 if M.is_read_only(fx, p):
                     continue
-                client.write_param(bank, fx, p, int(val) & 0xFF)
-                written += 1
+                entries.append((bank, fx, p, int(val) & 0xFF))
 
     for fxname, pd in doc.get("global", {}).items():
         fx = M.fx_by_name(fxname)
@@ -81,7 +85,19 @@ def import_preset(client: P.Client, path: str) -> tuple[int, list[str]]:
             if p is None:
                 warnings.append(f"unknown global param '{fxname}/{pname}' (skipped)")
                 continue
-            client.write_param(0, fx, p, int(val) & 0xFF)  # FPGA mirrors FX15
-            written += 1
+            entries.append((0, fx, p, int(val) & 0xFF))  # FPGA mirrors FX15
 
-    return written, warnings
+    return entries, warnings
+
+
+def write_entries(client: P.Client, entries: list[tuple[int, int, int, int]]) -> int:
+    """Write pre-parsed (bank, fx, param, value) entries to the board."""
+    for bank, fx, p, val in entries:
+        client.write_param(bank, fx, p, val)
+    return len(entries)
+
+
+def import_preset(client: P.Client, path: str) -> tuple[int, list[str]]:
+    """Write a preset file to the board. Returns (count_written, warnings)."""
+    entries, warnings = parse_preset(path)
+    return write_entries(client, entries), warnings

@@ -16,7 +16,7 @@ The design was initially forked from the *audio-loopback-only* example in
 Audio is processed sequentially through the following effect chain:
 
 ```
-Gain -> Gate -> EQ -> Compressor -> Distortion -> EQ -> Chorus -> Gain -> Delay -> Reverb -> Gain
+Input Gain -> Gate -> EQ -> Compressor -> Distortion -> EQ -> Chorus -> Expression Pedal Gain -> Delay -> Reverb -> Bank Gain -> Global Gain
 ```
 
 ---
@@ -162,7 +162,7 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 
 ### FX Mapping Table
 
-| FX          | Parameter       | FX Num | Parameter Num |
+| FX          | Parameter       | FX Num    | Parameter Num    |
 | ----------- | --------------- | --------- | ---------------- |
 | Input Gain  | fx_gain         | F0        | P0               |
 | Gate        | fx_threshold    | F1        | P0               |
@@ -189,6 +189,9 @@ NOTE* This list is just to run the project without periferals, all DSP functiona
 | Distortion  | fx_tightness    | F4        | P5               |
 | Distortion  | fx_smooth       | F4        | P6               |
 | Distortion  | fx_mix          | F4        | P7               |
+
+| FX          | Parameter       | FX Num    | Parameter Num    |
+| ----------- | --------------- | --------- | ---------------- |
 | EQ2         | fx_sub_gain     | F5        | P0               |
 | EQ2         | fx_low_gain     | F5        | P1               |
 | EQ2         | fx_mid_gain     | F5        | P2               |

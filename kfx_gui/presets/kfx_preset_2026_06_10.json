@@ -1,0 +1,293 @@
+{
+  "version": 1,
+  "tool": "kfx-engine",
+  "banks": [
+    {
+      "name": "CLEAN",
+      "fx": {
+        "Input Gain": {
+          "gain": 128
+        },
+        "Noise Gate": {
+          "threshold": 1,
+          "attack": 40,
+          "release": 240,
+          "knee": 0,
+          "depth": 0
+        },
+        "EQ 1 (pre)": {
+          "sub": 0,
+          "low": 4,
+          "mid": 128,
+          "high": 128
+        },
+        "Compressor": {
+          "threshold": 32,
+          "ratio": 175,
+          "attack": 64,
+          "release": 128,
+          "in gain": 64,
+          "makeup": 64,
+          "mix": 2
+        },
+        "Distortion": {
+          "drive": 128,
+          "makeup": 64,
+          "bias": 0,
+          "sag": 0,
+          "tone": 0,
+          "tightness": 0,
+          "smooth": 0,
+          "mix": 0
+        },
+        "EQ 2 (post)": {
+          "sub": 0,
+          "low": 100,
+          "mid": 128,
+          "high": 150
+        },
+        "Chorus": {
+          "rate": 167,
+          "depth": 128,
+          "mix": 129
+        },
+        "Delay": {
+          "time": 128,
+          "feedback": 98,
+          "mix": 27
+        },
+        "Reverb": {
+          "size": 100,
+          "damping": 160,
+          "decay": 95,
+          "mod depth": 50,
+          "diffusion": 110,
+          "predelay": 10,
+          "width": 170,
+          "mix": 40
+        },
+        "Output Gain": {
+          "gain": 41
+        }
+      }
+    },
+    {
+      "name": "CRUNCH",
+      "fx": {
+        "Input Gain": {
+          "gain": 140
+        },
+        "Noise Gate": {
+          "threshold": 1,
+          "attack": 40,
+          "release": 100,
+          "knee": 0,
+          "depth": 0
+        },
+        "EQ 1 (pre)": {
+          "sub": 0,
+          "low": 40,
+          "mid": 114,
+          "high": 140
+        },
+        "Compressor": {
+          "threshold": 60,
+          "ratio": 128,
+          "attack": 50,
+          "release": 110,
+          "in gain": 255,
+          "makeup": 255,
+          "mix": 255
+        },
+        "Distortion": {
+          "drive": 255,
+          "makeup": 9,
+          "bias": 50,
+          "sag": 124,
+          "tone": 230,
+          "tightness": 30,
+          "smooth": 230,
+          "mix": 255
+        },
+        "EQ 2 (post)": {
+          "sub": 0,
+          "low": 82,
+          "mid": 140,
+          "high": 170
+        },
+        "Chorus": {
+          "rate": 128,
+          "depth": 128,
+          "mix": 0
+        },
+        "Delay": {
+          "time": 100,
+          "feedback": 60,
+          "mix": 0
+        },
+        "Reverb": {
+          "size": 80,
+          "damping": 150,
+          "decay": 0,
+          "mod depth": 40,
+          "diffusion": 90,
+          "predelay": 0,
+          "width": 140,
+          "mix": 20
+        },
+        "Output Gain": {
+          "gain": 28
+        }
+      }
+    },
+    {
+      "name": "LEAD",
+      "fx": {
+        "Input Gain": {
+          "gain": 140
+        },
+        "Noise Gate": {
+          "threshold": 1,
+          "attack": 40,
+          "release": 100,
+          "knee": 0,
+          "depth": 0
+        },
+        "EQ 1 (pre)": {
+          "sub": 0,
+          "low": 40,
+          "mid": 160,
+          "high": 140
+        },
+        "Compressor": {
+          "threshold": 60,
+          "ratio": 128,
+          "attack": 50,
+          "release": 110,
+          "in gain": 64,
+          "makeup": 64,
+          "mix": 255
+        },
+        "Distortion": {
+          "drive": 80,
+          "makeup": 17,
+          "bias": 255,
+          "sag": 0,
+          "tone": 128,
+          "tightness": 30,
+          "smooth": 230,
+          "mix": 210
+        },
+        "EQ 2 (post)": {
+          "sub": 0,
+          "low": 90,
+          "mid": 140,
+          "high": 170
+        },
+        "Chorus": {
+          "rate": 128,
+          "depth": 128,
+          "mix": 60
+        },
+        "Delay": {
+          "time": 100,
+          "feedback": 60,
+          "mix": 20
+        },
+        "Reverb": {
+          "size": 80,
+          "damping": 150,
+          "decay": 0,
+          "mod depth": 70,
+          "diffusion": 140,
+          "predelay": 30,
+          "width": 190,
+          "mix": 0
+        },
+        "Output Gain": {
+          "gain": 42
+        }
+      }
+    },
+    {
+      "name": "AMBIENT",
+      "fx": {
+        "Input Gain": {
+          "gain": 32
+        },
+        "Noise Gate": {
+          "threshold": 1,
+          "attack": 40,
+          "release": 128,
+          "knee": 0,
+          "depth": 0
+        },
+        "EQ 1 (pre)": {
+          "sub": 0,
+          "low": 70,
+          "mid": 128,
+          "high": 128
+        },
+        "Compressor": {
+          "threshold": 32,
+          "ratio": 0,
+          "attack": 64,
+          "release": 128,
+          "in gain": 200,
+          "makeup": 64,
+          "mix": 255
+        },
+        "Distortion": {
+          "drive": 128,
+          "makeup": 64,
+          "bias": 0,
+          "sag": 0,
+          "tone": 0,
+          "tightness": 0,
+          "smooth": 0,
+          "mix": 0
+        },
+        "EQ 2 (post)": {
+          "sub": 0,
+          "low": 74,
+          "mid": 128,
+          "high": 150
+        },
+        "Chorus": {
+          "rate": 90,
+          "depth": 180,
+          "mix": 100
+        },
+        "Delay": {
+          "time": 200,
+          "feedback": 140,
+          "mix": 40
+        },
+        "Reverb": {
+          "size": 230,
+          "damping": 40,
+          "decay": 200,
+          "mod depth": 110,
+          "diffusion": 190,
+          "predelay": 50,
+          "width": 210,
+          "mix": 178
+        },
+        "Output Gain": {
+          "gain": 65
+        }
+      }
+    }
+  ],
+  "global": {
+    "Master Gain": {
+      "gain": 32
+    }
+  },
+  "_expression_readonly": [
+    247,
+    247,
+    247,
+    247
+  ]
+}

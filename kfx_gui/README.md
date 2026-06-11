@@ -63,10 +63,75 @@ Example: set Bank 2 (LEAD) reverb mix to 90 → `uv run python protocol.py write
 uv run python gui.py
 ```
 
-Click **Connect**, pick a **Bank**, drag sliders (writes live on release),
-**Reset Bank/All**, **Save/Load Flash**, or **Export/Import** a preset JSON.
-The Expression gain (FX7) is read-only (the hardware pedal drives it); Master
-Gain (FX15) is global and mirrored across all banks.
+Click **Connect**, pick a **Bank**, drag a knob/fader (it streams to the board
+in real time as you drag), **Reset Bank/All**, **Save/Load Flash**, or
+**Export/Import** a preset JSON. The Expression gain (FX7) is read-only (the
+hardware pedal drives it); Master Gain (FX15) is global and mirrored across all
+banks.
+
+### Controls
+
+#### Editing a parameter
+
+Every knob, fader, EQ band, and the reverb tail selector edits one parameter.
+Edits apply to the board **live** — you hear them immediately — but they live in
+the board's volatile working RAM until you **Save Flash** (see below).
+
+| Gesture | Effect |
+| ------- | ------ |
+| **Drag** a knob / fader / EQ slider (up–down, or left–right on the rack faders) | Sweeps the value; it **streams to the board in real time** while you drag, not just when you release. Writes are coalesced so the JTAG link is never flooded. |
+| **Mouse wheel** over a control | Nudge the value ±1. |
+| **Double-click** a control | Reset just that one parameter to its factory default. |
+| Click the **numeric readout** and type | Enter a value directly — **Enter** applies, **Esc** cancels. |
+| **Reverb decay** (4-step selector) | Click a tail length: SHORT / MED / ORIG / LONG. |
+
+Read-only slots (the Expression Gain, FX7 — driven by the hardware pedal) can't
+be dragged; their readout still updates live as the pedal moves.
+
+#### Banks
+
+The tabs **0 CLEAN / 1 CRUNCH / 2 LEAD / 3 AMBIENT** pick which of the four
+preset banks you view and edit; switching tabs re-reads that bank from the board.
+**Follow** (top-right toggle) snaps the view to whatever bank the pedal is
+currently live on, so the GUI tracks foot-switch bank changes; turn it off to
+pin the view to one bank while the pedal is on another.
+
+#### Toolbar buttons
+
+| Button | What it does |
+| ------ | ------------ |
+| **Connect / Reconnect** | Open the JTAG-UART and ping the firmware. |
+| **Read** | Re-read the current bank's parameters from the board and refresh the display (e.g. after an external change). |
+| **Reset Bank** | Reset the current bank's parameters to factory defaults (live, on the board — not yet saved to flash). |
+| **Reset All** | Reset **all four** banks to factory defaults (asks to confirm first). |
+| **Save Flash** | Persist the presets to non-volatile flash — see below. |
+| **Load Flash** | Reload the presets from flash — see below. |
+| **Export** | Save the four banks to a JSON file on the PC. |
+| **Import** | Load banks from a JSON file and write them to the board. |
+
+#### Save Flash vs. Load Flash
+
+The board keeps two copies of the presets: a **live working set in RAM** (what
+the audio chain actually uses, and what your edits change instantly) and a
+**saved copy in the on-board EPCQ flash** (non-volatile — it survives a power
+cycle). Editing a control only touches the working RAM; flash is untouched until
+you explicitly save.
+
+- **Save Flash** copies the current state of **all four banks** from working RAM
+  into flash in one shot — not just the bank you're viewing. The board erases
+  and rewrites a flash sector, which takes **~3 seconds and mutes the audio**
+  while it runs (the GUI shows a "Saving to flash — audio muted" overlay). After
+  it finishes, the presets are stored permanently and (if the design was
+  programmed as a power-persistent `.jic`) reload automatically on the next
+  power-up. Dial in all four banks, then save once.
+
+- **Load Flash** does the reverse: it copies the four banks **from flash back
+  into working RAM**, overwriting your current edits. Use it to revert to the
+  last saved state. If the flash has never been saved (no valid data sentinel),
+  the load safely aborts and leaves the working RAM untouched.
+
+So the rule of thumb: **edits are live but temporary; Save Flash makes them
+permanent; Load Flash throws away unsaved edits and restores the last save.**
 
 ### Launch as a Windows app (no terminal)
 
