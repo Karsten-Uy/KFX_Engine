@@ -11,6 +11,15 @@ iterations: no volume meters and no bypass toggles (the board has neither), the
 knob-less gain stages and the master run their faders full-height, each effect
 gets one bigger "hero" knob, and Reverb's decay is a 4-step tail selector.
 
+When the window is PORTRAIT (taller than wide) the console swaps to the
+"FX Rack" view from the fx-rack-layout design handoff: the same chain stacked
+vertically as collapsible rack units (rack ears + screws, flat fills) that fill
+the window width and height, with squared copper patch-cable brackets down the left side —
+each one linking a single effect to the next — and the gold MASTER bar pinned
+above the status bar while the rack scrolls behind it. The gain-stage and master
+faders stretch laterally to fill their units. Both views share the same value
+cache and board plumbing; resizing across the square aspect swaps them live.
+
 Only the view changed. The backend interface is untouched:
   protocol  as P   — P.Client, P.JtagTransport, P.dump_index, P.BANK_COUNT,
                      P.SCOPE_BANK, P.SCOPE_ALL, P.ProtocolError, and the
@@ -120,6 +129,38 @@ PORT_W    = sc(30)      # width of the IN / OUT end caps
 CONN_H    = sc(46)      # connector canvas height
 GAP_EXTRA_MAX = sc(14)  # cap on how much a gap may widen past its base on a big screen
                         # (once gaps hit this, leftover width goes to the strips instead)
+
+# ----------------------------------------------------------------------------
+# Rack view (portrait) — constants from the fx-rack-layout design handoff,
+# "cozy" density / "hardware" skeuomorphism / "cable" signal flow / horizontal
+# slider faders (the tweak settings the design landed on).
+# ----------------------------------------------------------------------------
+CABLE     = "#c5683a"   # copper patch-cable spine
+CABLE_HI  = "#e0834f"   # cable arrowheads / solder nodes / TO MASTER label
+RK_CONN_W = sc(30)      # left connector column — narrow so the squared cable
+                        # brackets sit close to the FX (mirrored by a right spacer)
+RK_PAD    = sc(4)       # unit body padding (tight, to fit the whole rack on screen)
+RK_GAP    = sc(7)       # min gap between controls inside a unit body
+RK_MAXGAP = sc(72)      # max gap a knob row spreads to before it stops spreading
+                        # and just centres — caps how far apart few-knob units drift
+RK_CELL_MIN = sc(56)    # approx width of a knob cell (label is usually wider than
+                        # the knob); used to budget the row gap in _grow_knobs
+RK_ROWGAP = sc(10)      # vertical space between rack units (clear gap when the
+                        # rack expands to fill a tall window)
+RK_KNOB   = sc(30)      # regular knob size in the rack (base / cramped-window size)
+RK_HERO   = sc(40)      # hero knob size — the ex-fader signature param
+RK_GROW_MAX = 1.7       # how far rack knobs grow when a big portrait window leaves
+                        # surplus room: 1.0 = base size (cramped), 1.7 = roomy.
+                        # They also spread to fill the unit width (see _grow_knobs).
+RK_KNOB_CHROME = sc(38) # label + value rows stacked around a knob (≈32 px); the
+                        # height budget subtracts it so a grown knob's whole cell fits
+RK_EQ_H   = sc(128)     # EQ band slider height (console only; rack EQ uses knobs)
+RK_HDR_H  = sc(24)      # rack unit header (name plate) height
+RK_EAR_W  = sc(20)      # rack ear width
+RK_NODE_Y = sc(14)      # header center, where the cable taps into a unit
+RK_KNOB_COLS = 8        # all of an FX's knobs sit in one row (keeps units short)
+RK_MASTER_BG = "#272620"   # gold-tinted master bar face
+RK_MASTER_BD = "#4a401f"   # master bar border
 
 def _fit_fader(fader, height):
     """Grow a strip's fill-fader to its zone height (per-buffer Configure)."""
@@ -367,6 +408,54 @@ def draw_connector(cv, kind, w, h):
         cv.create_line(0, yc, w, yc, fill=FLOW_LINE, width=2)
 
 
+# ----------------------------------------------------------------------------
+# Rack-view drawing primitives (all flat fills, per the design handoff)
+# ----------------------------------------------------------------------------
+def draw_hfader(cv, value, accent, enabled, unity=None, w=190, h=34):
+    """Horizontal rack fader: tick marks above/below a recessed track, optional
+    unity line, and a cap with an accent center line (the HFader prototype)."""
+    cv.delete("all")
+    left, right = sc(12), w - sc(12)
+    span = right - left
+    yc = h / 2
+    cap_x = left + span * (value / 255.0)
+    for tk_ in (0, .12, .25, .4, .55, .7, .85, 1):
+        x = left + span * tk_
+        cv.create_line(x, yc - sc(9), x, yc - sc(5), fill="#34353d")
+        cv.create_line(x, yc + sc(5), x, yc + sc(9), fill="#34353d")
+    cv.create_rectangle(left, yc - 3.5, right, yc + 3.5, fill=WELL, outline="#0a0b0d")
+    if unity is not None:
+        ux = left + span * (unity / 255.0)
+        cv.create_line(ux, yc - sc(11), ux, yc + sc(11), fill=accent, width=2)
+    cap_w, cap_h = sc(22), sc(26)
+    cv.create_rectangle(cap_x - cap_w / 2, yc - cap_h / 2,
+                        cap_x + cap_w / 2, yc + cap_h / 2,
+                        fill=("#3a3b45" if enabled else "#2a2b32"), outline="#121317")
+    cv.create_line(cap_x, yc - sc(9), cap_x, yc + sc(9),
+                   fill=(accent if enabled else FAINT), width=3, capstyle="round")
+
+
+def _draw_screw(cv, cx, cy, size, angle):
+    r = size / 2.0
+    cv.create_oval(cx - r, cy - r, cx + r, cy + r, fill="#191a1f", outline="#3a3b45")
+    dx, dy = math.cos(angle) * (r - 2), math.sin(angle) * (r - 2)
+    cv.create_line(cx - dx, cy - dy, cx + dx, cy + dy, fill="#55565f", width=1)
+
+
+def draw_rack_ear(cv, w, h, side, collapsed):
+    """A rack ear: a darker flange with mounting screws — two when the unit is
+    expanded, one centered when collapsed (or when the bar is short)."""
+    cv.delete("all")
+    edge_x = (w - 1) if side == "left" else 0
+    cv.create_line(edge_x, 0, edge_x, h, fill="#1a1b1f")
+    cx = w / 2
+    if collapsed or h < sc(56):
+        _draw_screw(cv, cx, h / 2, sc(9), 0.6)
+    else:
+        _draw_screw(cv, cx, sc(12), sc(9), 0.6)
+        _draw_screw(cv, cx, h - sc(12), sc(9), 2.2)
+
+
 # ============================================================================
 # Control widgets — each reads/writes value through the gui value cache and
 # commits to the board on RELEASE (so JTAG is not flooded during a drag).
@@ -457,13 +546,13 @@ class _Control:
     def active(self):
         return self.gui.enabled and not self.ro
 
-    def make_value_entry(self, parent, font, fg=READOUT, compact=False):
+    def make_value_entry(self, parent, font, fg=READOUT, compact=False, bg=PANEL):
         """Build the editable numeric readout wired to this control.
 
         compact=True uses the suffix-less dB form (for the dense EQ band sliders).
         """
         fx, p = self.fx, self.p
-        return ValueEntry(parent, font=font, fg=fg, bg=PANEL,
+        return ValueEntry(parent, font=font, fg=fg, bg=bg,
                           on_commit=self._set_from_entry,
                           get_value=self.value, is_editable=self.active,
                           fmt=lambda v: M.fmt_value(fx, p, v, compact),
@@ -479,10 +568,11 @@ class _Control:
 
 
 class Knob(_Control):
-    def __init__(self, parent, gui, fx, p, accent, size=38):
+    def __init__(self, parent, gui, fx, p, accent, size=38, on_redraw=None):
         super().__init__(gui, fx, p)
         self.accent = accent
         self.size = size
+        self.on_redraw = on_redraw   # optional hook (rack uses it for the mini readout)
         f = tk.Frame(parent, bg=PANEL)
         self.frame = f
         tk.Label(f, text=plab(M.param_name(fx, p)), font=gui.f_label,
@@ -507,6 +597,19 @@ class Knob(_Control):
     def redraw(self):
         draw_knob(self.cv, self.value(), self.accent, self.active(), self.size)
         self.lbl.set_display(self.value())
+        if self.on_redraw:
+            self.on_redraw()
+
+    def set_size(self, size):
+        """Resize the knob in place and redraw. Used by the rack to grow knobs to
+        fill a big portrait window. No-op when the size is unchanged so resize
+        events don't churn redraws."""
+        size = int(size)
+        if size == self.size:
+            return
+        self.size = size
+        self.cv.configure(width=size, height=size)
+        self.redraw()
 
     def _press(self, e):
         self._last = e.y
@@ -724,6 +827,317 @@ class Fader(_Control):
         self.gui.set_value(self.fx, self.p, self.value() + d)
         self.redraw()
         self.gui.commit(self.fx, self.p)
+
+
+class RackFader(_Control):
+    """Horizontal rack fader (the prototype's HFader): param label + editable
+    readout above a horizontal track. Drag left/right, wheel steps, double-click
+    resets — same gestures as the vertical console fader."""
+
+    def __init__(self, parent, gui, fx, p, accent, w, bg=PANEL, master=False,
+                 on_redraw=None, expand=False, show_top=True):
+        super().__init__(gui, fx, p)
+        self.accent, self.w, self.bg = accent, w, bg
+        self.expand = expand            # stretch the track laterally to fill the unit
+        self.h = sc(34)
+        self.unity = fader_unity(fx, p)
+        self.on_redraw = on_redraw
+        self._extra_entries = []
+        f = tk.Frame(parent, bg=bg)
+        self.frame = f
+        # The top row (param label + small readout) is optional: the gain stages
+        # drop it since their big accent dB readout already shows the value.
+        self.lbl = None
+        if show_top:
+            top = tk.Frame(f, bg=bg)
+            top.pack(fill="x", padx=2)
+            lbl = "MASTER" if master else plab(M.param_name(fx, p))
+            tk.Label(top, text=lbl, font=gui.f_label, fg=FAINT, bg=bg).pack(side="left")
+            self.lbl = self.make_value_entry(top, font=gui.f_val, compact=True, bg=bg)
+            self.lbl.pack(side="right")
+        self.cv = tk.Canvas(f, width=w, height=self.h, bg=bg, highlightthickness=0)
+        if expand:
+            # fill the strip laterally; <Configure> reports the real allocated
+            # width so the track / ticks / cap span the whole unit, not a fixed w.
+            self.cv.pack(fill="x")
+            self.cv.bind("<Configure>", self._on_resize)
+        else:
+            self.cv.pack()
+        if not self.ro:
+            self.cv.configure(cursor="sb_h_double_arrow")
+            self.cv.bind("<Button-1>", self._press)
+            self.cv.bind("<B1-Motion>", self._motion)
+            self.cv.bind("<ButtonRelease-1>", self._release)
+            self.cv.bind("<Double-Button-1>", self._dbl)
+            self.cv.bind("<MouseWheel>", self._wheel)
+            self.cv.bind("<Button-4>", lambda e: self._step(1))
+            self.cv.bind("<Button-5>", lambda e: self._step(-1))
+        self.redraw()
+
+    def attach_readout(self, parent, font, fg, bg):
+        """Extra readout mirroring this fader (the master bar's big gold one)."""
+        en = self.make_value_entry(parent, font=font, fg=fg, bg=bg)
+        self._extra_entries.append(en)
+        return en
+
+    def redraw(self):
+        draw_hfader(self.cv, self.value(), self.accent, self.active(),
+                    unity=self.unity, w=self.w, h=self.h)
+        if self.lbl is not None:
+            self.lbl.set_display(self.value())
+        for en in self._extra_entries:
+            en.set_display(self.value())
+        if self.on_redraw:
+            self.on_redraw()
+
+    def _on_resize(self, e):
+        # the fill="x" track grew/shrank — redraw it to span the new width (which
+        # also feeds drag sensitivity, since _motion scales by self.w)
+        if abs(e.width - self.w) < 2:
+            return
+        self.w = e.width
+        self.redraw()
+
+    def _press(self, e):
+        self._last = e.x
+
+    def _motion(self, e):
+        if not self.active():
+            return
+        dx = e.x - self._last
+        self._last = e.x
+        if dx:
+            self.gui.set_value(self.fx, self.p,
+                               self.value() + dx * (255.0 / (self.w - sc(24))))
+            self.redraw()
+
+    def _release(self, e):
+        if self.active():
+            self.gui.commit(self.fx, self.p)
+
+    def _dbl(self, e):
+        if not self.active():
+            return
+        r = ref_value(self.fx, self.p)
+        if r is not None:
+            self.gui.set_value(self.fx, self.p, r)
+            self.redraw()
+            self.gui.commit(self.fx, self.p)
+
+    def _wheel(self, e):
+        self._step(1 if e.delta > 0 else -1)
+
+    def _step(self, d):
+        if not self.active():
+            return
+        self.gui.set_value(self.fx, self.p, self.value() + d)
+        self.redraw()
+        self.gui.commit(self.fx, self.p)
+
+
+# ============================================================================
+# Rack unit (portrait view) — one collapsible row of the vertical FX rack
+# ============================================================================
+class RackUnit:
+    """One stacked rack unit: ears + name plate + body, with the FX-to-next-FX
+    cable bracket drawn on the shared connector canvas to its left.
+
+    Clicking the header folds the unit to a 1U strip that shows its signature
+    value. The body renders every parameter as a Knob — the signature param as a
+    larger hero knob, Reverb's decay as a Stepper — except the gain-only stages
+    (Input / Output / Expression), which keep a horizontal RackFader slider.
+    """
+
+    def __init__(self, parent, gui, fx, first, last):
+        self.gui, self.fx = gui, fx
+        self.first, self.last = first, last
+        self.collapsed = False
+        self.cat = category(fx)
+        accent = self._accent = ACCENT[self.cat]
+
+        # The unit is just its framed body now; the signal cables live on a
+        # single connector canvas to the right of the whole stack (drawn by
+        # KfxGui._draw_rack_cables), so each FX links only to the next one.
+        outer = tk.Frame(parent, bg=PANEL, highlightthickness=1,
+                         highlightbackground="#303138")
+        # fill + expand: when the window is taller than the rack needs, every unit
+        # shares the surplus and grows taller (its controls centred); when the
+        # rack overflows, units sit at natural height and the column scrolls.
+        outer.pack(fill="both", expand=True, pady=(0, 0 if last else RK_ROWGAP))
+        self.frame = outer
+
+        self.ears = []
+        for side in ("left", "right"):
+            ear = tk.Canvas(outer, width=RK_EAR_W, height=1, bg="#232428",
+                            highlightthickness=0)
+            ear.pack(side=side, fill="y")
+            ear.bind("<Configure>",
+                     lambda e, c=ear, s=side: draw_rack_ear(c, e.width, e.height,
+                                                            s, self.collapsed))
+            self.ears.append(ear)
+
+        mid = tk.Frame(outer, bg=PANEL)
+        mid.pack(side="left", fill="both", expand=True)
+
+        hdr = tk.Frame(mid, bg=accent, height=RK_HDR_H)
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+        self.caret = tk.Label(hdr, text="▾", font=gui.f_btn, fg=HEADER_INK, bg=accent)
+        self.caret.pack(side="left", padx=(sc(8), sc(6)))
+        tk.Label(hdr, text=M.fx_name(fx), font=gui.f_btn, fg=HEADER_INK,
+                 bg=accent).pack(side="left")
+        tk.Label(hdr, text=CAT_LABEL[self.cat].upper(), font=gui.f_cat,
+                 fg=HEADER_INK, bg=accent).pack(side="left", padx=(sc(8), 0))
+        if any_readonly(fx):
+            tk.Label(hdr, text=" PEDAL ", font=gui.f_cat, fg=HEADER_INK, bg=accent,
+                     highlightthickness=1, highlightbackground=HEADER_INK
+                     ).pack(side="left", padx=(sc(8), 0))
+        tk.Label(hdr, text="F%d" % fx, font=gui.f_cat, fg=HEADER_INK,
+                 bg=accent).pack(side="right", padx=(0, sc(10)))
+        # collapsed-state mini readout (packed only while folded)
+        self.mini = tk.Label(hdr, font=gui.f_val, fg=READOUT, bg=WELL,
+                             padx=sc(7), highlightthickness=1,
+                             highlightbackground="#0a0b0d")
+        for wdg in (hdr,) + tuple(hdr.winfo_children()):
+            wdg.bind("<Button-1>", lambda e: self.toggle())
+            wdg.configure(cursor="hand2")
+
+        self.body = tk.Frame(mid, bg=PANEL)
+        self.body.pack(fill="both", expand=True)   # grows with the unit
+        self._fader_ctl = None      # set after build; guards the first redraws
+        self._fader_ctl = self._build_body(self.body)
+
+    # ---- body layouts ----------------------------------------------------
+    def _build_body(self, body):
+        gui, fx, accent = self.gui, self.fx, self._accent
+        fp = fader_param(fx)
+        params = list(M.active_params(fx))
+
+        # Gain-only stages (Input / Output / Expression) keep the horizontal
+        # slider — it reads like a fader. Styled like the MASTER bar: the track
+        # stretches laterally to fill the unit, with a big accent dB readout
+        # pinned on the right.
+        if fp is not None and len(params) == 1:
+            wrap = tk.Frame(body, bg=PANEL)
+            wrap.pack(fill="x", expand=True, pady=RK_PAD)   # centred vertically
+            fctl = RackFader(wrap, gui, fx, fp, accent, w=sc(340),
+                             on_redraw=self._update_mini, expand=True, show_top=False)
+            big = fctl.attach_readout(wrap, font=gui.f_master, fg=accent, bg=PANEL)
+            big.pack(side="right", padx=(sc(10), sc(16)))
+            fctl.frame.pack(side="left", fill="x", expand=True, padx=(sc(16), 0))
+            fctl.redraw()   # populate the big readout attached after the first draw
+            return fctl
+
+        # Everything else (Gate / Comp / Dist / Chorus / Delay / Reverb / EQ):
+        # every param is a knob now. The signature (ex-fader) param becomes a
+        # LARGER hero knob; Reverb's decay stays a 4-step tail stepper. All knobs
+        # pack into one wrapping row so the unit stays short.
+        decay_ps = [p for p in params if M.param_name(fx, p) == "decay"]
+        hero = fp                                    # None for EQ (no signature)
+        knob_ps = [p for p in params if p != hero and p not in decay_ps]
+        cells = ([("hero", hero)] if hero is not None else []) \
+            + [("knob", p) for p in knob_ps] \
+            + [("step", p) for p in decay_ps]
+
+        # Lay the controls out so they fill the unit: the row spreads its knobs
+        # apart to use the width — but only up to RK_MAXGAP, past which it stops
+        # spreading and the cluster just centres (each row's cells live in a
+        # centred `inner` frame; _grow_knobs sets the gap). On a big portrait
+        # window the knobs also grow so the surplus reads as "expanded".
+        content = tk.Frame(body, bg=PANEL)
+        content.pack(fill="x", expand=True, pady=RK_PAD)   # full width, centred vertically
+        hero_ctl = None
+        self._grow = []                              # (knob, base_size) to scale on resize
+        self._grow_cells = []                        # every cell frame, for gap/centring
+        self._grow_cols = min(len(cells), RK_KNOB_COLS)
+        self._grow_rows = -(-len(cells) // RK_KNOB_COLS)   # ceil
+        for r0 in range(0, len(cells), RK_KNOB_COLS):
+            rowf = tk.Frame(content, bg=PANEL)
+            rowf.pack(fill="x")
+            inner = tk.Frame(rowf, bg=PANEL)
+            inner.pack()                             # centred: holds the row as a group
+            for kind, p in cells[r0:r0 + RK_KNOB_COLS]:
+                base = None
+                if kind == "hero":
+                    hero_ctl = Knob(inner, gui, fx, p, accent, size=RK_HERO,
+                                    on_redraw=self._update_mini)
+                    ctl = hero_ctl
+                    base = RK_HERO
+                elif kind == "knob":
+                    ctl = Knob(inner, gui, fx, p, accent, size=RK_KNOB)
+                    base = RK_KNOB
+                else:
+                    ctl = Stepper(inner, gui, fx, p, accent)
+                ctl.frame.pack(side="left", padx=RK_GAP, pady=1)
+                self._grow_cells.append(ctl.frame)
+                if base is not None:
+                    self._grow.append((ctl, base))
+        if self._grow:
+            self._grow_base = max(b for _, b in self._grow)   # hero if present
+            body.bind("<Configure>", self._grow_knobs)
+        return hero_ctl   # signature knob drives the collapsed mini readout
+
+    def _grow_knobs(self, e):
+        """Size the rack knobs and space them so a big portrait window reads as
+        roomy — knobs swell and spread — while a short/narrow one stays tight.
+
+        Growth is bounded by the unit's WIDTH (e.width, so columns never collide)
+        and by the vertical room a unit can claim. The height budget comes from the
+        scroll VIEWPORT (canvas height / unit count), not this body's own height:
+        the body height grows with the knobs, so feeding it back in would
+        oscillate; the viewport is fixed w.r.t. knob size, so it settles in one pass.
+
+        Spacing then spreads the row to fill the width, but no wider than RK_MAXGAP
+        between cells — past that the cluster just centres (cells sit in a centred
+        `inner` frame), so a few-knob unit never drifts edge-to-edge."""
+        cv = getattr(self.gui, "rack_canvas", None)
+        units = getattr(self.gui, "rack_units", None)
+        vp = cv.winfo_height() if cv is not None else e.height
+        n = max(1, len(units) if units else 1)
+        # room one unit can claim from the viewport, then per knob row inside it
+        per_unit = vp / n - RK_HDR_H - RK_ROWGAP
+        by_h = per_unit / self._grow_rows - RK_KNOB_CHROME
+        by_w = e.width / self._grow_cols - RK_GAP * 2
+        k = max(1.0, min(by_w / self._grow_base, by_h / self._grow_base, RK_GROW_MAX))
+        for ctl, base in self._grow:
+            ctl.set_size(base * k)
+        # cap the spread: fill the width with gap, clamped to [RK_GAP, RK_MAXGAP]
+        cell_w = max(RK_KNOB * k, RK_CELL_MIN)
+        gap = (e.width - self._grow_cols * cell_w) / self._grow_cols
+        gap = int(max(RK_GAP, min(gap, RK_MAXGAP)))
+        for f in self._grow_cells:
+            f.pack_configure(padx=gap // 2)
+
+    # ---- fold / unfold -----------------------------------------------------
+    def _update_mini(self):
+        if self._fader_ctl is None:
+            return
+        self.mini.config(
+            text=M.fmt_value(self.fx, self._fader_ctl.p, self._fader_ctl.value()),
+            fg=(READOUT if self.gui.enabled else FAINT))
+
+    def toggle(self):
+        self.set_collapsed(not self.collapsed)
+
+    def set_collapsed(self, flag):
+        if flag == self.collapsed:
+            return
+        self.collapsed = flag
+        if flag:
+            self.body.pack_forget()
+            self.caret.config(text="▸")
+            self.frame.pack_configure(expand=False)   # folded units stay a 1U strip
+            if self._fader_ctl is not None:
+                self._update_mini()
+                self.mini.pack(side="right", padx=(0, sc(8)))
+        else:
+            self.mini.pack_forget()
+            self.caret.config(text="▾")
+            self.frame.pack_configure(expand=True)     # expanded units fill the surplus
+            self.body.pack(fill="both", expand=True)
+        # ears redraw via their own <Configure>; the right-side FX->FX cables
+        # need an explicit redraw since folding changed the unit heights
+        self.gui._schedule_cable_redraw()
 
 
 # ============================================================================
@@ -953,7 +1367,10 @@ class KfxGui(tk.Tk):
         self._apply_window_icon()
         self.geometry("1400x820")   # tall enough that the densest strips fit unclipped
         self.configure(bg=BG)
-        self.minsize(1040, 700)
+        # min width low enough that the window can go portrait (taller than
+        # wide), which swaps the console for the vertical rack view; the
+        # landscape console falls back to its horizontal scrollbar when narrow.
+        self.minsize(sc(700), sc(700))
 
         self.client = None
         self.enabled = False
@@ -988,10 +1405,19 @@ class KfxGui(tk.Tk):
 
         self._build_toolbar()
         self._build_banks()
+        # both views live inside one center container between the bank bar and
+        # the status bar; _set_view packs whichever matches the window aspect
+        self.center = tk.Frame(self, bg=BG)
+        self.center.pack(fill="both", expand=True)
         self._build_console()
+        self._build_rack()
         self._build_status()
         self._build_overlay()
         self._autofit_strips()      # size every strip to its real content width
+
+        self._view = None
+        self._set_view("console")   # initial geometry is landscape
+        self.bind("<Configure>", self._on_root_configure)
 
         self.set_connected(False)
         self.after(180, self._poll_state)
@@ -1117,6 +1543,15 @@ class KfxGui(tk.Tk):
                                    padx=11, pady=6, cursor="hand2")
         self.follow_btn.pack(side="right", padx=(0, 12), pady=(6, 0))
         self.follow_btn.bind("<Button-1>", lambda e: self.toggle_follow())
+        # rack-only fold controls — packed/unpacked by _set_view
+        self.expand_btn = tk.Label(bar, text="▾ EXPAND", font=self.f_btn,
+                                   fg=DIM, bg="#1b1c21", padx=6, pady=6,
+                                   cursor="hand2")
+        self.expand_btn.bind("<Button-1>", lambda e: self.fold_all(False))
+        self.fold_btn = tk.Label(bar, text="▸ FOLD", font=self.f_btn,
+                                 fg=DIM, bg="#1b1c21", padx=6, pady=6,
+                                 cursor="hand2")
+        self.fold_btn.bind("<Button-1>", lambda e: self.fold_all(True))
         self._paint_tabs()
         self._paint_follow()
 
@@ -1142,8 +1577,7 @@ class KfxGui(tk.Tk):
 
     # ---------------------------------------------------------------- console
     def _build_console(self):
-        wrap = tk.Frame(self, bg=BG)
-        wrap.pack(fill="both", expand=True)
+        wrap = self.console_frame = tk.Frame(self.center, bg=BG)
         hsb = tk.Scrollbar(wrap, orient="horizontal")
         hsb.pack(side="bottom", fill="x")
         canvas = tk.Canvas(wrap, bg=BG, highlightthickness=0,
@@ -1215,6 +1649,240 @@ class KfxGui(tk.Tk):
         _redraw()
         if grow:
             self._grow_gaps.append((fr, w))     # (frame, base width) for _relayout
+
+    # ---------------------------------------------------------------- rack view
+    def _build_rack(self):
+        """Vertical FX rack (portrait): the chain stacked as collapsible rack
+        units in a scrolling column, the patch cable down the left, and the
+        gold MASTER bar pinned at the bottom, above the status bar."""
+        rv = self.rack_frame = tk.Frame(self.center, bg=BG)
+        area = tk.Frame(rv, bg=BG)
+        area.pack(fill="both", expand=True)
+        vsb = self._rack_vsb = tk.Scrollbar(area, orient="vertical")
+        vsb.pack(side="right", fill="y")
+        cv = tk.Canvas(area, bg=BG, highlightthickness=0,
+                       yscrollcommand=vsb.set, yscrollincrement=sc(40))
+        cv.pack(side="left", fill="both", expand=True)
+        vsb.config(command=cv.yview)
+        self.rack_canvas = cv
+        inner = self._rack_inner = tk.Frame(cv, bg=BG)
+        self._rack_win = cv.create_window((0, 0), window=inner, anchor="n")
+        # Re-centre on any size change. We DON'T use scrollregion=bbox("all"):
+        # the window item's bbox starts at its (centred) x offset, which made the
+        # canvas shift the column horizontally. Pinning the scrollregion to the
+        # canvas width (x: 0..w) keeps X fixed so the centred coords actually hold.
+        inner.bind("<Configure>", lambda e: self._center_rack())
+        cv.bind("<Configure>", lambda e: self._center_rack())
+
+        content = tk.Frame(inner, bg=BG)
+        content.pack(fill="both", expand=True, padx=sc(16), pady=(sc(14), sc(6)))
+        # connector canvas on the LEFT carries the squared bracket cables; a
+        # matching spacer on the right keeps the unit stack centred in the column
+        # (height=1 so it doesn't inflate the column — fill="y" stretches it).
+        self.conn_canvas = tk.Canvas(content, width=RK_CONN_W, height=1, bg=BG,
+                                     highlightthickness=0)
+        self.conn_canvas.pack(side="left", fill="y")
+        self.conn_canvas.bind("<Configure>", lambda e: self._draw_rack_cables())
+        # Canvas (not Frame) holds its width reliably so the unit stack stays centred
+        self._rack_spacer = tk.Canvas(content, width=RK_CONN_W, height=1, bg=BG,
+                                      highlightthickness=0)
+        self._rack_spacer.pack(side="right", fill="y")
+        row_area = tk.Frame(content, bg=BG)
+        row_area.pack(side="left", fill="both", expand=True)
+
+        self.rack_units = []
+        channels = [fx for fx in M.active_fx() if not M.is_global(fx)]
+        for i, fx in enumerate(channels):
+            self.rack_units.append(
+                RackUnit(row_area, self, fx, first=(i == 0),
+                         last=(i == len(channels) - 1)))
+
+        self._build_rack_master(rv)
+        self._schedule_cable_redraw()
+
+        # wheel-scroll the rack from anywhere inside it — except over controls
+        # that step themselves (they bind their own wheel handlers)
+        self.bind_class("kfxrackscroll", "<MouseWheel>", self._rack_wheel)
+        self.bind_class("kfxrackscroll", "<Button-4>",
+                        lambda e: self._rack_scroll(-1, e))
+        self.bind_class("kfxrackscroll", "<Button-5>",
+                        lambda e: self._rack_scroll(1, e))
+        self._bind_rack_scroll(rv)
+
+    def _build_rack_master(self, rv):
+        """The sticky gold MASTER bar: name plate, a horizontal fader that
+        stretches across the bar, big readout and MAIN BUS badge — always visible
+        while the rack scrolls behind it."""
+        masters = [fx for fx in M.active_fx() if M.is_global(fx)]
+        if not masters:
+            return
+        fx = masters[0]
+        fp = fader_param(fx)
+        accent = ACCENT["master"]
+        mbg = RK_MASTER_BG
+
+        tk.Frame(rv, bg="#0e0f12", height=1).pack(fill="x")
+        wrap = tk.Frame(rv, bg=BG)
+        wrap.pack(fill="x")
+        bar = tk.Frame(wrap, bg=mbg, highlightthickness=1,
+                       highlightbackground=RK_MASTER_BD)
+        # spans the full width, like the rack column above it
+        bar.pack(fill="x", padx=sc(42), pady=sc(8))
+
+        for side in ("left", "right"):
+            ear = tk.Canvas(bar, width=RK_EAR_W, height=1, bg="#232428",
+                            highlightthickness=0)
+            ear.pack(side=side, fill="y")
+            ear.bind("<Configure>",
+                     lambda e, c=ear, s=side: draw_rack_ear(c, e.width,
+                                                            e.height, s, True))
+        body = tk.Frame(bar, bg=mbg)
+        body.pack(side="left", fill="x", expand=True, padx=sc(12), pady=sc(8))
+        plate = tk.Frame(body, bg=accent, padx=sc(10), pady=sc(4))
+        plate.pack(side="left", padx=(0, sc(12)))
+        tk.Label(plate, text=M.fx_name(fx), font=self.f_btn, fg=HEADER_INK,
+                 bg=accent).pack(anchor="w")
+        tk.Label(plate, text="MASTER · F%d" % fx, font=self.f_cat,
+                 fg=HEADER_INK, bg=accent).pack(anchor="w")
+        badge = tk.Label(body, text="MAIN BUS", font=self.f_cat, fg="#e7c463",
+                         bg="#2a281f", highlightthickness=1,
+                         highlightbackground=RK_MASTER_BD, padx=sc(7), pady=sc(3))
+        badge.pack(side="right")
+        fctl = RackFader(body, self, fx, fp, accent, w=sc(260), bg=mbg,
+                         master=True, expand=True)
+        big = fctl.attach_readout(body, font=self.f_master, fg=accent, bg=mbg)
+        big.pack(side="right", padx=(sc(10), sc(12)))
+        fctl.frame.pack(side="left", fill="x", expand=True, padx=(0, sc(10)))
+        fctl.redraw()   # refresh the big readout attached after the first draw
+
+    def _center_rack(self):
+        """Size the rack column to fill the scroll canvas (width and, when there's
+        surplus, height). Pins the scrollregion's x-extent to the canvas width so
+        X never shifts."""
+        cv = getattr(self, "rack_canvas", None)
+        if cv is None:
+            return
+        w = cv.winfo_width()
+        if w <= 1:
+            return
+        # Width: fill the whole canvas so the FX panels stretch across the window
+        # instead of leaving big empty side margins.
+        # Height: match the viewport when the rack is shorter (units share the
+        # surplus → taller FX + the row gaps); keep natural height when it's taller
+        # so it scrolls.
+        natural = self._rack_inner.winfo_reqheight()
+        vp = cv.winfo_height()
+        h = max(natural, vp)
+        cv.itemconfigure(self._rack_win, width=w, height=h)
+        cv.coords(self._rack_win, w / 2, 0)
+        cv.configure(scrollregion=(0, 0, w, h))
+        # Hide the scrollbar when the whole rack fits (it's expanded to fill);
+        # show it only when the content overflows and really needs scrolling.
+        # Toggling it changes the canvas width, not height, so there's no loop.
+        need = natural > vp
+        vsb = self._rack_vsb
+        if need and not vsb.winfo_ismapped():
+            vsb.pack(side="right", fill="y", before=cv)
+        elif not need and vsb.winfo_ismapped():
+            vsb.pack_forget()
+
+    def fold_all(self, fold):
+        for u in self.rack_units:
+            u.set_collapsed(fold)
+
+    def _schedule_cable_redraw(self):
+        # widget positions are only valid once layout settles; coalesce the many
+        # callers (build, fold, view-swap, resize) into a single idle redraw
+        if getattr(self, "_cable_pending", False):
+            return
+        self._cable_pending = True
+
+        def go():
+            self._cable_pending = False
+            # force pending geometry (fold/unfold height changes) to settle so
+            # winfo_height() is current before we measure unit positions
+            self.update_idletasks()
+            self._center_rack()
+            self._draw_rack_cables()
+        self.after_idle(go)
+
+    def _draw_rack_cables(self):
+        """Left-side signal cables: one separate squared bracket per adjacent
+        pair of FX — straight out to a vertical spine, straight down, then back
+        in with an arrowhead pointing INTO the next effect (a right-angled `[`).
+        Each bracket links exactly one FX to the one below it; nothing runs as a
+        continuous line from input to the end."""
+        cv = getattr(self, "conn_canvas", None)
+        if cv is None:
+            return
+        cv.delete("all")
+        w = cv.winfo_width()
+        if w <= 1:
+            return
+        base = cv.winfo_rooty()
+        units = self.rack_units
+        x_in = w - sc(2)        # cable foot / arrow tip, at the units' left edge
+        x_out = sc(4)           # vertical spine of the bracket, near the far left
+        for i in range(len(units) - 1):
+            u, v = units[i].frame, units[i + 1].frame
+            if not (u.winfo_ismapped() and v.winfo_ismapped()):
+                continue
+            # taller bracket: tap the middle of FX i, run down, into FX i+1's head
+            y0 = u.winfo_rooty() - base + int(u.winfo_height() * 0.5)  # mid of FX i
+            y1 = v.winfo_rooty() - base + RK_NODE_Y                    # into FX i+1
+            # square corners: out-left, down the spine, in-right into the unit
+            cv.create_line(x_in, y0, x_out, y0, x_out, y1, x_in, y1,
+                           fill=CABLE, width=sc(3), capstyle="projecting",
+                           joinstyle="miter", arrow="last",
+                           arrowshape=(sc(8), sc(10), sc(5)))
+            r = sc(3)           # solder node where the cable leaves FX i
+            cv.create_oval(x_in - r, y0 - r, x_in + r, y0 + r,
+                           fill=CABLE_HI, outline="#2a1207")
+
+    def _bind_rack_scroll(self, w):
+        w.bindtags(w.bindtags() + ("kfxrackscroll",))
+        for ch in w.winfo_children():
+            self._bind_rack_scroll(ch)
+
+    def _rack_wheel(self, e):
+        self._rack_scroll(-1 if e.delta > 0 else 1, e)
+
+    def _rack_scroll(self, d, e):
+        try:
+            # controls that handle the wheel themselves win over rack scrolling
+            if e.widget.bind("<MouseWheel>") or e.widget.bind("<Button-4>"):
+                return
+        except Exception:
+            pass
+        self.rack_canvas.yview_scroll(d, "units")
+
+    # ---------------------------------------------------------------- view swap
+    def _set_view(self, mode):
+        """Swap between the landscape mixer console and the portrait rack."""
+        if mode == self._view:
+            return
+        self._view = mode
+        if mode == "rack":
+            self.console_frame.pack_forget()
+            self.rack_frame.pack(fill="both", expand=True)
+            # pack order: follow (rightmost), then EXPAND, then FOLD to its left
+            self.expand_btn.pack(side="right", pady=(6, 0))
+            self.fold_btn.pack(side="right", pady=(6, 0))
+            self._schedule_cable_redraw()   # positions are valid once shown
+        else:
+            self.rack_frame.pack_forget()
+            self.console_frame.pack(fill="both", expand=True)
+            self.fold_btn.pack_forget()
+            self.expand_btn.pack_forget()
+        for c in self.controls:    # sync the freshly shown view's readouts
+            c.redraw()
+
+    def _on_root_configure(self, e):
+        if e.widget is not self:
+            return
+        if e.width <= 1 or e.height <= 1:
+            return
+        self._set_view("rack" if e.height > e.width else "console")
 
     def _autofit_strips(self):
         # After layout, size each strip to its real rendered content so titles and
